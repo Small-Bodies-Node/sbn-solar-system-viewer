@@ -1,9 +1,10 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'react'], factory) :
-  (global = global || self, factory(global.SbnSolarSystemViewerWithThreejs = {}, global.React));
-}(this, (function (exports, React) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('kepler-utils'), require('julian'), require('react')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'kepler-utils', 'julian', 'react'], factory) :
+  (global = global || self, factory(global.SbnSolarSystemViewerWithThreejs = {}, global.keplerUtils, global.julian, global.React));
+}(this, (function (exports, keplerUtils, julian, React) { 'use strict';
 
+  julian = julian && Object.prototype.hasOwnProperty.call(julian, 'default') ? julian['default'] : julian;
   React = React && Object.prototype.hasOwnProperty.call(React, 'default') ? React['default'] : React;
 
   function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
@@ -26933,6 +26934,145 @@
 
   DepthTexture.prototype.isDepthTexture = true;
 
+  const _v0 = new Vector3();
+  const _v1$1 = new Vector3();
+  const _normal = new Vector3();
+  const _triangle = new Triangle();
+
+  class EdgesGeometry extends BufferGeometry {
+
+  	constructor( geometry, thresholdAngle ) {
+
+  		super();
+
+  		this.type = 'EdgesGeometry';
+
+  		this.parameters = {
+  			thresholdAngle: thresholdAngle
+  		};
+
+  		thresholdAngle = ( thresholdAngle !== undefined ) ? thresholdAngle : 1;
+
+  		if ( geometry.isGeometry === true ) {
+
+  			console.error( 'THREE.EdgesGeometry no longer supports THREE.Geometry. Use THREE.BufferGeometry instead.' );
+  			return;
+
+  		}
+
+  		const precisionPoints = 4;
+  		const precision = Math.pow( 10, precisionPoints );
+  		const thresholdDot = Math.cos( DEG2RAD * thresholdAngle );
+
+  		const indexAttr = geometry.getIndex();
+  		const positionAttr = geometry.getAttribute( 'position' );
+  		const indexCount = indexAttr ? indexAttr.count : positionAttr.count;
+
+  		const indexArr = [ 0, 0, 0 ];
+  		const vertKeys = [ 'a', 'b', 'c' ];
+  		const hashes = new Array( 3 );
+
+  		const edgeData = {};
+  		const vertices = [];
+  		for ( let i = 0; i < indexCount; i += 3 ) {
+
+  			if ( indexAttr ) {
+
+  				indexArr[ 0 ] = indexAttr.getX( i );
+  				indexArr[ 1 ] = indexAttr.getX( i + 1 );
+  				indexArr[ 2 ] = indexAttr.getX( i + 2 );
+
+  			} else {
+
+  				indexArr[ 0 ] = i;
+  				indexArr[ 1 ] = i + 1;
+  				indexArr[ 2 ] = i + 2;
+
+  			}
+
+  			const { a, b, c } = _triangle;
+  			a.fromBufferAttribute( positionAttr, indexArr[ 0 ] );
+  			b.fromBufferAttribute( positionAttr, indexArr[ 1 ] );
+  			c.fromBufferAttribute( positionAttr, indexArr[ 2 ] );
+  			_triangle.getNormal( _normal );
+
+  			// create hashes for the edge from the vertices
+  			hashes[ 0 ] = `${ Math.round( a.x * precision ) },${ Math.round( a.y * precision ) },${ Math.round( a.z * precision ) }`;
+  			hashes[ 1 ] = `${ Math.round( b.x * precision ) },${ Math.round( b.y * precision ) },${ Math.round( b.z * precision ) }`;
+  			hashes[ 2 ] = `${ Math.round( c.x * precision ) },${ Math.round( c.y * precision ) },${ Math.round( c.z * precision ) }`;
+
+  			// skip degenerate triangles
+  			if ( hashes[ 0 ] === hashes[ 1 ] || hashes[ 1 ] === hashes[ 2 ] || hashes[ 2 ] === hashes[ 0 ] ) {
+
+  				continue;
+
+  			}
+
+  			// iterate over every edge
+  			for ( let j = 0; j < 3; j ++ ) {
+
+  				// get the first and next vertex making up the edge
+  				const jNext = ( j + 1 ) % 3;
+  				const vecHash0 = hashes[ j ];
+  				const vecHash1 = hashes[ jNext ];
+  				const v0 = _triangle[ vertKeys[ j ] ];
+  				const v1 = _triangle[ vertKeys[ jNext ] ];
+
+  				const hash = `${ vecHash0 }_${ vecHash1 }`;
+  				const reverseHash = `${ vecHash1 }_${ vecHash0 }`;
+
+  				if ( reverseHash in edgeData && edgeData[ reverseHash ] ) {
+
+  					// if we found a sibling edge add it into the vertex array if
+  					// it meets the angle threshold and delete the edge from the map.
+  					if ( _normal.dot( edgeData[ reverseHash ].normal ) <= thresholdDot ) {
+
+  						vertices.push( v0.x, v0.y, v0.z );
+  						vertices.push( v1.x, v1.y, v1.z );
+
+  					}
+
+  					edgeData[ reverseHash ] = null;
+
+  				} else if ( ! ( hash in edgeData ) ) {
+
+  					// if we've already got an edge here then skip adding a new one
+  					edgeData[ hash ] = {
+
+  						index0: indexArr[ j ],
+  						index1: indexArr[ jNext ],
+  						normal: _normal.clone(),
+
+  					};
+
+  				}
+
+  			}
+
+  		}
+
+  		// iterate over all remaining, unmatched edges and add them to the vertex array
+  		for ( const key in edgeData ) {
+
+  			if ( edgeData[ key ] ) {
+
+  				const { index0, index1 } = edgeData[ key ];
+  				_v0.fromBufferAttribute( positionAttr, index0 );
+  				_v1$1.fromBufferAttribute( positionAttr, index1 );
+
+  				vertices.push( _v0.x, _v0.y, _v0.z );
+  				vertices.push( _v1$1.x, _v1$1.y, _v1$1.z );
+
+  			}
+
+  		}
+
+  		this.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+
+  	}
+
+  }
+
   /**
    * Port from https://github.com/mapbox/earcut (v2.2.2)
    */
@@ -32219,133 +32359,6 @@
 
   		this.mimeType = value;
   		return this;
-
-  	}
-
-  }
-
-  /**
-   * Abstract Base class to block based textures loader (dds, pvr, ...)
-   *
-   * Sub classes have to implement the parse() method which will be used in load().
-   */
-
-  class CompressedTextureLoader extends Loader {
-
-  	constructor( manager ) {
-
-  		super( manager );
-
-  	}
-
-  	load( url, onLoad, onProgress, onError ) {
-
-  		const scope = this;
-
-  		const images = [];
-
-  		const texture = new CompressedTexture();
-
-  		const loader = new FileLoader( this.manager );
-  		loader.setPath( this.path );
-  		loader.setResponseType( 'arraybuffer' );
-  		loader.setRequestHeader( this.requestHeader );
-  		loader.setWithCredentials( scope.withCredentials );
-
-  		let loaded = 0;
-
-  		function loadTexture( i ) {
-
-  			loader.load( url[ i ], function ( buffer ) {
-
-  				const texDatas = scope.parse( buffer, true );
-
-  				images[ i ] = {
-  					width: texDatas.width,
-  					height: texDatas.height,
-  					format: texDatas.format,
-  					mipmaps: texDatas.mipmaps
-  				};
-
-  				loaded += 1;
-
-  				if ( loaded === 6 ) {
-
-  					if ( texDatas.mipmapCount === 1 ) texture.minFilter = LinearFilter;
-
-  					texture.image = images;
-  					texture.format = texDatas.format;
-  					texture.needsUpdate = true;
-
-  					if ( onLoad ) onLoad( texture );
-
-  				}
-
-  			}, onProgress, onError );
-
-  		}
-
-  		if ( Array.isArray( url ) ) {
-
-  			for ( let i = 0, il = url.length; i < il; ++ i ) {
-
-  				loadTexture( i );
-
-  			}
-
-  		} else {
-
-  			// compressed cubemap texture stored in a single DDS file
-
-  			loader.load( url, function ( buffer ) {
-
-  				const texDatas = scope.parse( buffer, true );
-
-  				if ( texDatas.isCubemap ) {
-
-  					const faces = texDatas.mipmaps.length / texDatas.mipmapCount;
-
-  					for ( let f = 0; f < faces; f ++ ) {
-
-  						images[ f ] = { mipmaps: [] };
-
-  						for ( let i = 0; i < texDatas.mipmapCount; i ++ ) {
-
-  							images[ f ].mipmaps.push( texDatas.mipmaps[ f * texDatas.mipmapCount + i ] );
-  							images[ f ].format = texDatas.format;
-  							images[ f ].width = texDatas.width;
-  							images[ f ].height = texDatas.height;
-
-  						}
-
-  					}
-
-  					texture.image = images;
-
-  				} else {
-
-  					texture.image.width = texDatas.width;
-  					texture.image.height = texDatas.height;
-  					texture.mipmaps = texDatas.mipmaps;
-
-  				}
-
-  				if ( texDatas.mipmapCount === 1 ) {
-
-  					texture.minFilter = LinearFilter;
-
-  				}
-
-  				texture.format = texDatas.format;
-  				texture.needsUpdate = true;
-
-  				if ( onLoad ) onLoad( texture );
-
-  			}, onProgress, onError );
-
-  		}
-
-  		return texture;
 
   	}
 
@@ -40457,105 +40470,6 @@
 
   }
 
-  const _box = /*@__PURE__*/ new Box3();
-
-  class BoxHelper extends LineSegments {
-
-  	constructor( object, color = 0xffff00 ) {
-
-  		const indices = new Uint16Array( [ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ] );
-  		const positions = new Float32Array( 8 * 3 );
-
-  		const geometry = new BufferGeometry();
-  		geometry.setIndex( new BufferAttribute( indices, 1 ) );
-  		geometry.setAttribute( 'position', new BufferAttribute( positions, 3 ) );
-
-  		super( geometry, new LineBasicMaterial( { color: color, toneMapped: false } ) );
-
-  		this.object = object;
-  		this.type = 'BoxHelper';
-
-  		this.matrixAutoUpdate = false;
-
-  		this.update();
-
-  	}
-
-  	update( object ) {
-
-  		if ( object !== undefined ) {
-
-  			console.warn( 'THREE.BoxHelper: .update() has no longer arguments.' );
-
-  		}
-
-  		if ( this.object !== undefined ) {
-
-  			_box.setFromObject( this.object );
-
-  		}
-
-  		if ( _box.isEmpty() ) return;
-
-  		const min = _box.min;
-  		const max = _box.max;
-
-  		/*
-  			5____4
-  		1/___0/|
-  		| 6__|_7
-  		2/___3/
-
-  		0: max.x, max.y, max.z
-  		1: min.x, max.y, max.z
-  		2: min.x, min.y, max.z
-  		3: max.x, min.y, max.z
-  		4: max.x, max.y, min.z
-  		5: min.x, max.y, min.z
-  		6: min.x, min.y, min.z
-  		7: max.x, min.y, min.z
-  		*/
-
-  		const position = this.geometry.attributes.position;
-  		const array = position.array;
-
-  		array[ 0 ] = max.x; array[ 1 ] = max.y; array[ 2 ] = max.z;
-  		array[ 3 ] = min.x; array[ 4 ] = max.y; array[ 5 ] = max.z;
-  		array[ 6 ] = min.x; array[ 7 ] = min.y; array[ 8 ] = max.z;
-  		array[ 9 ] = max.x; array[ 10 ] = min.y; array[ 11 ] = max.z;
-  		array[ 12 ] = max.x; array[ 13 ] = max.y; array[ 14 ] = min.z;
-  		array[ 15 ] = min.x; array[ 16 ] = max.y; array[ 17 ] = min.z;
-  		array[ 18 ] = min.x; array[ 19 ] = min.y; array[ 20 ] = min.z;
-  		array[ 21 ] = max.x; array[ 22 ] = min.y; array[ 23 ] = min.z;
-
-  		position.needsUpdate = true;
-
-  		this.geometry.computeBoundingSphere();
-
-
-  	}
-
-  	setFromObject( object ) {
-
-  		this.object = object;
-  		this.update();
-
-  		return this;
-
-  	}
-
-  	copy( source ) {
-
-  		LineSegments.prototype.copy.call( this, source );
-
-  		this.object = source.object;
-
-  		return this;
-
-  	}
-
-  }
-
   class AxesHelper extends LineSegments {
 
   	constructor( size = 1 ) {
@@ -44894,11 +44808,69 @@
     return "\n\n   ______________________________    . \\  | / .\n  /                            / \\     \\ \\ / /\n |                            | ==========  - -\n  \\____________________________\\_/     / / \\ \\\n  ______________________________      \\  | / | \\\n /                            / \\     \\ \\ / /.   .\n|                            | ==========  - -\n \\____________________________\\_/     / / \\ \\    /\n   ______________________________   / |\\  | /  .\n  /                            / \\     \\ \\ / /\n |                            | ==========  -  - -\n  \\____________________________\\_/     / / \\ \\\n                                     .  / | \\  .\n\n  Are you trying to wreak havoc!?!\n\n  " + msg + "\n\n  Idiot.\n\n  ";
   }
 
+  var imageBaseUrl = "https://sbn-solar-system-viewer.s3.amazonaws.com/"; // This is the size of each unit in this solar system
+  var orbitalParams = {
+    SUN: {
+      radiusMeters: 696342000,
+      periodDays: undefined
+    },
+    MERCURY: {
+      radiusMeters: 2439700,
+      periodDays: 87.9691
+    },
+    VENUS: {
+      radiusMeters: 6051800,
+      periodDays: 224.701
+    },
+    EARTH: {
+      radiusMeters: 6378000,
+      periodDays: 365.256
+    },
+    MARS: {
+      radiusMeters: 3389500,
+      periodDays: 686.971
+    },
+    JUPITER: {
+      radiusMeters: 71492000,
+      periodDays: 4332.59
+    },
+    SATURN: {
+      radiusMeters: 60268000,
+      periodDays: 10759.22
+    },
+    URANUS: {
+      radiusMeters: 25362000,
+      periodDays: 30688.5
+    },
+    NEPTUNE: {
+      radiusMeters: 24764000,
+      periodDays: 60182
+    },
+    PLUTO: {
+      radiusMeters: 1188300,
+      periodDays: 90560
+    },
+    // Moons
+    MOON: {
+      radiusMeters: 350000,
+      periodDays: 29.5
+    }
+  };
+
+  var secondsPerCentury = 3155692597.474;
+  var minutesPerCentury = secondsPerCentury / 60;
+  var hoursPerCentury = minutesPerCentury / 60;
+  var daysPerCentury = hoursPerCentury / 24;
+
+  function auToMeters(aus) {
+    return 149597870700 * aus;
+  }
+
   var initialCameraParams = {
     aspectRatio: 2,
     fieldOfView: 60,
-    nearPlane: 0.1,
-    farPlane: 13500
+    nearPlane: /*#__PURE__*/auToMeters(0.00001),
+    farPlane: /*#__PURE__*/auToMeters(3000)
   };
   /**
    * This abstract class is to be inherited by the SceneManager instance.
@@ -44929,60 +44901,92 @@
       this._initialViewingVector = new Vector3(10, 10, 10);
       this._isSceneReady = false;
       this._isRendering = false;
-      this._isInit = false; // protected _fps?: number;
-
+      this._isHelpersShown = false;
+      this._isInit = false;
+      this._container = null;
       this._fps = 60;
       this._camera = new PerspectiveCamera(initialCameraParams.fieldOfView, initialCameraParams.aspectRatio, initialCameraParams.nearPlane, initialCameraParams.farPlane);
       this._sceneEntities = [];
 
-      this.updateCamera = function () {};
+      this._preInitHook = function () {};
 
-      this.preInitHook = function () {};
+      this._postInitHook = function () {};
 
-      this.postInitHook = function () {};
+      this._destroyHook = function () {};
 
-      this.destroyHook = function () {};
+      this._updateCamera = function () {};
+
+      this.registerSceneEntities = function (sceneEntities) {
+        sceneEntities.forEach(function (el) {
+          return _this._sceneEntities.push(el);
+        });
+      };
+      /**
+       * This method lets you show/hide the objects within in your scene
+       * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
+       * on any object you want to be classified as a helper
+       */
+
+
+      this.setHelpersVisibility = function (isHelpersShown) {
+        _this._isHelpersShown = !!isHelpersShown;
+
+        _this._scene.traverse(function (child) {
+          return child.userData.isHelper && (child.visible = _this._isHelpersShown);
+        });
+      };
+
+      this.toggleHelpersVisibility = function () {
+        _this._isHelpersShown = !_this._isHelpersShown;
+
+        _this.setHelpersVisibility(_this._isHelpersShown);
+      };
+
+      this._updateCameraAspect = function () {
+        // Not sure where/how, but canvas' style width/height
+        // gets altered and needs to be reset to 100%
+        _this._canvas.style.width = '100%';
+        _this._canvas.style.height = '100%';
+        var width = _this._canvas.offsetWidth || 1;
+        var height = _this._canvas.offsetHeight || 1;
+        _this._camera.aspect = width / height;
+
+        _this._camera.updateProjectionMatrix();
+
+        _this._renderer.setSize(width, height);
+      };
 
       this.destroy = function () {
-        window.removeEventListener('resize', _this.updateCameraAspect);
+        window.removeEventListener('resize', _this._updateCameraAspect);
 
         _this._stopRendering();
 
-        _this.destroyHook();
+        _this._destroyHook();
       };
 
       this._render = function () {
-        console.log('>>> render');
         if (!_this._isRendering) return;
-
-        if (!!_this._fps) {
-          setTimeout(function () {
-            _this._requestAnimationFrameId = requestAnimationFrame(_this._render);
-
-            _this._update();
-          }, 1000 / _this._fps);
-        } else {
+        setTimeout(function () {
           _this._requestAnimationFrameId = requestAnimationFrame(_this._render);
 
           _this._update();
-        }
+        }, 1000 / _this._fps);
       };
 
       this._startRendering = function () {
+        console.log('Starting animation...');
         _this._isRendering = true;
+
+        _this._clock.start();
 
         _this._render();
       };
 
       this._stopRendering = function () {
-        console.log('STOP!!!');
-        _this._isRendering = false; // this._fps = undefined;
-        // if (!!this._requestAnimationFrameId) {
-        //   const xxx = this._requestAnimationFrameId;
-        //   console.log('xxx', xxx);
-        //   cancelAnimationFrame(xxx);
-        //   this._requestAnimationFrameId = undefined;
-        // }
+        console.log('Stopping animation...');
+        _this._isRendering = false;
+
+        _this._clock.stop();
       };
     }
 
@@ -44992,7 +44996,7 @@
       var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
         var _this2 = this;
 
-        var container, DPR;
+        var DPR, initiatedSceneEntityGroups;
         return runtime_1.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -45007,11 +45011,12 @@
               case 2:
                 this._isInit = true; // Enable superclass constructor to adjust settings prior to initialization sequence
 
-                this.preInitHook(); // Get container and add fitting canvas to it
+                this._preInitHook(); // Get container and add fitting canvas to it
 
-                container = document.getElementById(this._containerId);
 
-                if (container) {
+                this._container = document.getElementById(this._containerId);
+
+                if (this._container) {
                   _context2.next = 7;
                   break;
                 }
@@ -45021,10 +45026,14 @@
               case 7:
                 this._canvas.style.width = '100%';
                 this._canvas.style.height = '100%';
-                container.append(this._canvas); // React to resize events on window
 
-                this.updateCameraAspect = this.updateCameraAspect.bind(this);
-                window.addEventListener('resize', this.updateCameraAspect); // Build Renderer
+                this._container.append(this._canvas);
+
+                this._container.style.setProperty('position', 'relative'); // React to resize events on window
+                // this._updateCameraAspect = this.updateCameraAspect.bind(this);
+
+
+                window.addEventListener('resize', this._updateCameraAspect); // Build Renderer
 
                 DPR = window.devicePixelRatio ? window.devicePixelRatio : 1;
                 this._renderer = new WebGLRenderer({
@@ -45045,37 +45054,36 @@
 
                 this._camera.up = new Vector3(0, 0, 1); // Vector defining up direction of camera
 
-                this._camera.lookAt(0, 0, 0); // console.log(">>>", OrbitControls);
-                // Define and configure orbitControls
+                this._camera.lookAt(0, 0, 0); // Define and configure orbitControls
                 // Do NOT attempt to create controls until
                 // dependencies are set, or you'll get erratic behavior.
                 // OrbitControls => Can't flip upside down
                 // TrackballControls => Can flip upside down
 
 
-                this._orbitControls = !this._isWorldFlippable ? new OrbitControls(this._camera, this._renderer.domElement) : new TrackballControls(this._camera, this._renderer.domElement);
+                this._controls = !this._isWorldFlippable ? new OrbitControls(this._camera, this._renderer.domElement) : new TrackballControls(this._camera, this._renderer.domElement);
 
-                if (!(this._orbitControls instanceof OrbitControls)) {
+                if (!(this._controls instanceof OrbitControls)) {
                   _context2.next = 28;
                   break;
                 }
 
-                this._orbitControls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+                this._controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 
-                this._orbitControls.dampingFactor = 0.25;
+                this._controls.dampingFactor = 0.25;
                 _context2.next = 36;
                 break;
 
               case 28:
-                if (!(this._orbitControls instanceof TrackballControls)) {
+                if (!(this._controls instanceof TrackballControls)) {
                   _context2.next = 35;
                   break;
                 }
 
-                this._orbitControls.rotateSpeed = 10.0;
-                this._orbitControls.zoomSpeed = 1.2;
-                this._orbitControls.panSpeed = 0.8;
-                this._orbitControls.keys = ['65', '83', '68']; // a s d
+                this._controls.rotateSpeed = 10.0;
+                this._controls.zoomSpeed = 1.2;
+                this._controls.panSpeed = 0.8;
+                this._controls.keys = ['65', '83', '68']; // a s d
 
                 _context2.next = 36;
                 break;
@@ -45114,11 +45122,9 @@
                             throw new Error(asciiError("\n            -----------------------------------------------------------------------------\n            The scene entity \"" + sceneEntity.constructor.name + "\" has empty sceneEntityGroup\n            after initialization!!!\n            -----------------------------------------------------------------------------\n            "));
 
                           case 5:
-                            _this2._scene.add(initiatedSceneEntityGroup);
+                            return _context.abrupt("return", initiatedSceneEntityGroup);
 
-                            return _context.abrupt("return");
-
-                          case 7:
+                          case 6:
                           case "end":
                             return _context.stop();
                         }
@@ -45132,20 +45138,24 @@
                 }()));
 
               case 40:
-                // Run updater methods
+                initiatedSceneEntityGroups = _context2.sent;
+                initiatedSceneEntityGroups.forEach(function (group) {
+                  return _this2._scene.add(group);
+                }); // Run updater methods
+
                 this.setHelpersVisibility(false);
-                this.updateCameraAspect(); // Begin Animation
 
-                this._clock.start();
+                this._updateCameraAspect(); // Begin Animation
 
-                this._isRendering = true;
 
                 this._startRendering(); // Enable superclass constructor to adjust settings after to initialization sequence
 
 
-                this.postInitHook();
+                this._postInitHook();
 
-              case 46:
+                console.log('FInished initing');
+
+              case 47:
               case "end":
                 return _context2.stop();
             }
@@ -45160,56 +45170,27 @@
       return init;
     }();
 
-    _proto.addSceneEntities = function addSceneEntities(sceneEntities) {
-      var _this3 = this;
-
-      // Add scene entities
-      sceneEntities.forEach(function (el) {
-        return _this3._sceneEntities.push(el);
-      });
-    }
-    /**
-     * This method lets you show/hide the objects within in your scene
-     * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
-     * on any object you want to be classified as a helper
-     */
-    ;
-
-    _proto.setHelpersVisibility = function setHelpersVisibility(isHelpersShown) {
-      this._scene.traverse(function (child) {
-        return child.userData.isHelper && (child.visible = isHelpersShown);
-      });
-    };
-
-    _proto.updateCameraAspect = function updateCameraAspect() {
-      console.log(this._canvas); // Not sure where/how, but canvas' style width/height
-      // gets altered and needs to be reset to 100%
-
-      this._canvas.style.width = '100%';
-      this._canvas.style.height = '100%';
-      var width = this._canvas.offsetWidth || 1;
-      var height = this._canvas.offsetHeight || 1;
-      this._camera.aspect = width / height;
-
-      this._camera.updateProjectionMatrix();
-
-      this._renderer.setSize(width, height);
+    _proto.setFramesPerSecond = function setFramesPerSecond(newFps) {
+      if (newFps <= 0 || newFps > 100) return;
+      this._fps = newFps;
     };
 
     _proto._update = function _update() {
-      var _this$_orbitControls;
+      var _this$_controls;
 
-      // Loop through scene entities and trigger their update methods
-      var elapsedTime = !!this._clock ? this._clock.getElapsedTime() : 0;
+      // Get time
+      var elapsedTime = this._clock.getElapsedTime(); // Loop through scene entities and trigger their update methods
+
 
       this._sceneEntities.forEach(function (el) {
         return el.update(elapsedTime);
       }); // Update camera
 
 
-      this.updateCamera(elapsedTime); // Needed for TrackballControls
+      this._updateCamera(elapsedTime); // Needed for TrackballControls
 
-      (_this$_orbitControls = this._orbitControls) == null ? void 0 : _this$_orbitControls.update(); // Finish loop
+
+      (_this$_controls = this._controls) == null ? void 0 : _this$_controls.update(); // Finish loop
 
       if (!this._camera || !this._renderer) throw new Error('Poor Logic');
 
@@ -45221,1800 +45202,168 @@
     return AbstractSceneManager;
   }();
 
-  // o object_name | g group_name
-  const _object_pattern = /^[og]\s*(.+)?/;
-  // mtllib file_reference
-  const _material_library_pattern = /^mtllib /;
-  // usemtl material_name
-  const _material_use_pattern = /^usemtl /;
-  // usemap map_name
-  const _map_use_pattern = /^usemap /;
-
-  const _vA$2 = new Vector3();
-  const _vB$2 = new Vector3();
-  const _vC$2 = new Vector3();
-
-  const _ab = new Vector3();
-  const _cb = new Vector3();
-
-  function ParserState() {
-
-  	const state = {
-  		objects: [],
-  		object: {},
-
-  		vertices: [],
-  		normals: [],
-  		colors: [],
-  		uvs: [],
-
-  		materials: {},
-  		materialLibraries: [],
-
-  		startObject: function ( name, fromDeclaration ) {
-
-  			// If the current object (initial from reset) is not from a g/o declaration in the parsed
-  			// file. We need to use it for the first parsed g/o to keep things in sync.
-  			if ( this.object && this.object.fromDeclaration === false ) {
-
-  				this.object.name = name;
-  				this.object.fromDeclaration = ( fromDeclaration !== false );
-  				return;
-
-  			}
-
-  			const previousMaterial = ( this.object && typeof this.object.currentMaterial === 'function' ? this.object.currentMaterial() : undefined );
-
-  			if ( this.object && typeof this.object._finalize === 'function' ) {
-
-  				this.object._finalize( true );
-
-  			}
-
-  			this.object = {
-  				name: name || '',
-  				fromDeclaration: ( fromDeclaration !== false ),
-
-  				geometry: {
-  					vertices: [],
-  					normals: [],
-  					colors: [],
-  					uvs: [],
-  					hasUVIndices: false
-  				},
-  				materials: [],
-  				smooth: true,
-
-  				startMaterial: function ( name, libraries ) {
-
-  					const previous = this._finalize( false );
-
-  					// New usemtl declaration overwrites an inherited material, except if faces were declared
-  					// after the material, then it must be preserved for proper MultiMaterial continuation.
-  					if ( previous && ( previous.inherited || previous.groupCount <= 0 ) ) {
-
-  						this.materials.splice( previous.index, 1 );
-
-  					}
-
-  					const material = {
-  						index: this.materials.length,
-  						name: name || '',
-  						mtllib: ( Array.isArray( libraries ) && libraries.length > 0 ? libraries[ libraries.length - 1 ] : '' ),
-  						smooth: ( previous !== undefined ? previous.smooth : this.smooth ),
-  						groupStart: ( previous !== undefined ? previous.groupEnd : 0 ),
-  						groupEnd: - 1,
-  						groupCount: - 1,
-  						inherited: false,
-
-  						clone: function ( index ) {
-
-  							const cloned = {
-  								index: ( typeof index === 'number' ? index : this.index ),
-  								name: this.name,
-  								mtllib: this.mtllib,
-  								smooth: this.smooth,
-  								groupStart: 0,
-  								groupEnd: - 1,
-  								groupCount: - 1,
-  								inherited: false
-  							};
-  							cloned.clone = this.clone.bind( cloned );
-  							return cloned;
-
-  						}
-  					};
-
-  					this.materials.push( material );
-
-  					return material;
-
-  				},
-
-  				currentMaterial: function () {
-
-  					if ( this.materials.length > 0 ) {
-
-  						return this.materials[ this.materials.length - 1 ];
-
-  					}
-
-  					return undefined;
-
-  				},
-
-  				_finalize: function ( end ) {
-
-  					const lastMultiMaterial = this.currentMaterial();
-  					if ( lastMultiMaterial && lastMultiMaterial.groupEnd === - 1 ) {
-
-  						lastMultiMaterial.groupEnd = this.geometry.vertices.length / 3;
-  						lastMultiMaterial.groupCount = lastMultiMaterial.groupEnd - lastMultiMaterial.groupStart;
-  						lastMultiMaterial.inherited = false;
-
-  					}
-
-  					// Ignore objects tail materials if no face declarations followed them before a new o/g started.
-  					if ( end && this.materials.length > 1 ) {
-
-  						for ( let mi = this.materials.length - 1; mi >= 0; mi -- ) {
-
-  							if ( this.materials[ mi ].groupCount <= 0 ) {
-
-  								this.materials.splice( mi, 1 );
-
-  							}
-
-  						}
-
-  					}
-
-  					// Guarantee at least one empty material, this makes the creation later more straight forward.
-  					if ( end && this.materials.length === 0 ) {
-
-  						this.materials.push( {
-  							name: '',
-  							smooth: this.smooth
-  						} );
-
-  					}
-
-  					return lastMultiMaterial;
-
-  				}
-  			};
-
-  			// Inherit previous objects material.
-  			// Spec tells us that a declared material must be set to all objects until a new material is declared.
-  			// If a usemtl declaration is encountered while this new object is being parsed, it will
-  			// overwrite the inherited material. Exception being that there was already face declarations
-  			// to the inherited material, then it will be preserved for proper MultiMaterial continuation.
-
-  			if ( previousMaterial && previousMaterial.name && typeof previousMaterial.clone === 'function' ) {
-
-  				const declared = previousMaterial.clone( 0 );
-  				declared.inherited = true;
-  				this.object.materials.push( declared );
-
-  			}
-
-  			this.objects.push( this.object );
-
-  		},
-
-  		finalize: function () {
-
-  			if ( this.object && typeof this.object._finalize === 'function' ) {
-
-  				this.object._finalize( true );
-
-  			}
-
-  		},
-
-  		parseVertexIndex: function ( value, len ) {
-
-  			const index = parseInt( value, 10 );
-  			return ( index >= 0 ? index - 1 : index + len / 3 ) * 3;
-
-  		},
-
-  		parseNormalIndex: function ( value, len ) {
-
-  			const index = parseInt( value, 10 );
-  			return ( index >= 0 ? index - 1 : index + len / 3 ) * 3;
-
-  		},
-
-  		parseUVIndex: function ( value, len ) {
-
-  			const index = parseInt( value, 10 );
-  			return ( index >= 0 ? index - 1 : index + len / 2 ) * 2;
-
-  		},
-
-  		addVertex: function ( a, b, c ) {
-
-  			const src = this.vertices;
-  			const dst = this.object.geometry.vertices;
-
-  			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-  			dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-  			dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
-
-  		},
-
-  		addVertexPoint: function ( a ) {
-
-  			const src = this.vertices;
-  			const dst = this.object.geometry.vertices;
-
-  			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-
-  		},
-
-  		addVertexLine: function ( a ) {
-
-  			const src = this.vertices;
-  			const dst = this.object.geometry.vertices;
-
-  			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-
-  		},
-
-  		addNormal: function ( a, b, c ) {
-
-  			const src = this.normals;
-  			const dst = this.object.geometry.normals;
-
-  			dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-  			dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-  			dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
-
-  		},
-
-  		addFaceNormal: function ( a, b, c ) {
-
-  			const src = this.vertices;
-  			const dst = this.object.geometry.normals;
-
-  			_vA$2.fromArray( src, a );
-  			_vB$2.fromArray( src, b );
-  			_vC$2.fromArray( src, c );
-
-  			_cb.subVectors( _vC$2, _vB$2 );
-  			_ab.subVectors( _vA$2, _vB$2 );
-  			_cb.cross( _ab );
-
-  			_cb.normalize();
-
-  			dst.push( _cb.x, _cb.y, _cb.z );
-  			dst.push( _cb.x, _cb.y, _cb.z );
-  			dst.push( _cb.x, _cb.y, _cb.z );
-
-  		},
-
-  		addColor: function ( a, b, c ) {
-
-  			const src = this.colors;
-  			const dst = this.object.geometry.colors;
-
-  			if ( src[ a ] !== undefined ) dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-  			if ( src[ b ] !== undefined ) dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-  			if ( src[ c ] !== undefined ) dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
-
-  		},
-
-  		addUV: function ( a, b, c ) {
-
-  			const src = this.uvs;
-  			const dst = this.object.geometry.uvs;
-
-  			dst.push( src[ a + 0 ], src[ a + 1 ] );
-  			dst.push( src[ b + 0 ], src[ b + 1 ] );
-  			dst.push( src[ c + 0 ], src[ c + 1 ] );
-
-  		},
-
-  		addDefaultUV: function () {
-
-  			const dst = this.object.geometry.uvs;
-
-  			dst.push( 0, 0 );
-  			dst.push( 0, 0 );
-  			dst.push( 0, 0 );
-
-  		},
-
-  		addUVLine: function ( a ) {
-
-  			const src = this.uvs;
-  			const dst = this.object.geometry.uvs;
-
-  			dst.push( src[ a + 0 ], src[ a + 1 ] );
-
-  		},
-
-  		addFace: function ( a, b, c, ua, ub, uc, na, nb, nc ) {
-
-  			const vLen = this.vertices.length;
-
-  			let ia = this.parseVertexIndex( a, vLen );
-  			let ib = this.parseVertexIndex( b, vLen );
-  			let ic = this.parseVertexIndex( c, vLen );
-
-  			this.addVertex( ia, ib, ic );
-  			this.addColor( ia, ib, ic );
-
-  			// normals
-
-  			if ( na !== undefined && na !== '' ) {
-
-  				const nLen = this.normals.length;
-
-  				ia = this.parseNormalIndex( na, nLen );
-  				ib = this.parseNormalIndex( nb, nLen );
-  				ic = this.parseNormalIndex( nc, nLen );
-
-  				this.addNormal( ia, ib, ic );
-
-  			} else {
-
-  				this.addFaceNormal( ia, ib, ic );
-
-  			}
-
-  			// uvs
-
-  			if ( ua !== undefined && ua !== '' ) {
-
-  				const uvLen = this.uvs.length;
-
-  				ia = this.parseUVIndex( ua, uvLen );
-  				ib = this.parseUVIndex( ub, uvLen );
-  				ic = this.parseUVIndex( uc, uvLen );
-
-  				this.addUV( ia, ib, ic );
-
-  				this.object.geometry.hasUVIndices = true;
-
-  			} else {
-
-  				// add placeholder values (for inconsistent face definitions)
-
-  				this.addDefaultUV();
-
-  			}
-
-  		},
-
-  		addPointGeometry: function ( vertices ) {
-
-  			this.object.geometry.type = 'Points';
-
-  			const vLen = this.vertices.length;
-
-  			for ( let vi = 0, l = vertices.length; vi < l; vi ++ ) {
-
-  				const index = this.parseVertexIndex( vertices[ vi ], vLen );
-
-  				this.addVertexPoint( index );
-  				this.addColor( index );
-
-  			}
-
-  		},
-
-  		addLineGeometry: function ( vertices, uvs ) {
-
-  			this.object.geometry.type = 'Line';
-
-  			const vLen = this.vertices.length;
-  			const uvLen = this.uvs.length;
-
-  			for ( let vi = 0, l = vertices.length; vi < l; vi ++ ) {
-
-  				this.addVertexLine( this.parseVertexIndex( vertices[ vi ], vLen ) );
-
-  			}
-
-  			for ( let uvi = 0, l = uvs.length; uvi < l; uvi ++ ) {
-
-  				this.addUVLine( this.parseUVIndex( uvs[ uvi ], uvLen ) );
-
-  			}
-
-  		}
-
-  	};
-
-  	state.startObject( '', false );
-
-  	return state;
-
-  }
-
-  //
-
-  class OBJLoader extends Loader {
-
-  	constructor( manager ) {
-
-  		super( manager );
-
-  		this.materials = null;
-
-  	}
-
-  	load( url, onLoad, onProgress, onError ) {
-
-  		const scope = this;
-
-  		const loader = new FileLoader( this.manager );
-  		loader.setPath( this.path );
-  		loader.setRequestHeader( this.requestHeader );
-  		loader.setWithCredentials( this.withCredentials );
-  		loader.load( url, function ( text ) {
-
-  			try {
-
-  				onLoad( scope.parse( text ) );
-
-  			} catch ( e ) {
-
-  				if ( onError ) {
-
-  					onError( e );
-
-  				} else {
-
-  					console.error( e );
-
-  				}
-
-  				scope.manager.itemError( url );
-
-  			}
-
-  		}, onProgress, onError );
-
-  	}
-
-  	setMaterials( materials ) {
-
-  		this.materials = materials;
-
-  		return this;
-
-  	}
-
-  	parse( text ) {
-
-  		const state = new ParserState();
-
-  		if ( text.indexOf( '\r\n' ) !== - 1 ) {
-
-  			// This is faster than String.split with regex that splits on both
-  			text = text.replace( /\r\n/g, '\n' );
-
-  		}
-
-  		if ( text.indexOf( '\\\n' ) !== - 1 ) {
-
-  			// join lines separated by a line continuation character (\)
-  			text = text.replace( /\\\n/g, '' );
-
-  		}
-
-  		const lines = text.split( '\n' );
-  		let line = '', lineFirstChar = '';
-  		let lineLength = 0;
-  		let result = [];
-
-  		// Faster to just trim left side of the line. Use if available.
-  		const trimLeft = ( typeof ''.trimLeft === 'function' );
-
-  		for ( let i = 0, l = lines.length; i < l; i ++ ) {
-
-  			line = lines[ i ];
-
-  			line = trimLeft ? line.trimLeft() : line.trim();
-
-  			lineLength = line.length;
-
-  			if ( lineLength === 0 ) continue;
-
-  			lineFirstChar = line.charAt( 0 );
-
-  			// @todo invoke passed in handler if any
-  			if ( lineFirstChar === '#' ) continue;
-
-  			if ( lineFirstChar === 'v' ) {
-
-  				const data = line.split( /\s+/ );
-
-  				switch ( data[ 0 ] ) {
-
-  					case 'v':
-  						state.vertices.push(
-  							parseFloat( data[ 1 ] ),
-  							parseFloat( data[ 2 ] ),
-  							parseFloat( data[ 3 ] )
-  						);
-  						if ( data.length >= 7 ) {
-
-  							state.colors.push(
-  								parseFloat( data[ 4 ] ),
-  								parseFloat( data[ 5 ] ),
-  								parseFloat( data[ 6 ] )
-
-  							);
-
-  						} else {
-
-  							// if no colors are defined, add placeholders so color and vertex indices match
-
-  							state.colors.push( undefined, undefined, undefined );
-
-  						}
-
-  						break;
-  					case 'vn':
-  						state.normals.push(
-  							parseFloat( data[ 1 ] ),
-  							parseFloat( data[ 2 ] ),
-  							parseFloat( data[ 3 ] )
-  						);
-  						break;
-  					case 'vt':
-  						state.uvs.push(
-  							parseFloat( data[ 1 ] ),
-  							parseFloat( data[ 2 ] )
-  						);
-  						break;
-
-  				}
-
-  			} else if ( lineFirstChar === 'f' ) {
-
-  				const lineData = line.substr( 1 ).trim();
-  				const vertexData = lineData.split( /\s+/ );
-  				const faceVertices = [];
-
-  				// Parse the face vertex data into an easy to work with format
-
-  				for ( let j = 0, jl = vertexData.length; j < jl; j ++ ) {
-
-  					const vertex = vertexData[ j ];
-
-  					if ( vertex.length > 0 ) {
-
-  						const vertexParts = vertex.split( '/' );
-  						faceVertices.push( vertexParts );
-
-  					}
-
-  				}
-
-  				// Draw an edge between the first vertex and all subsequent vertices to form an n-gon
-
-  				const v1 = faceVertices[ 0 ];
-
-  				for ( let j = 1, jl = faceVertices.length - 1; j < jl; j ++ ) {
-
-  					const v2 = faceVertices[ j ];
-  					const v3 = faceVertices[ j + 1 ];
-
-  					state.addFace(
-  						v1[ 0 ], v2[ 0 ], v3[ 0 ],
-  						v1[ 1 ], v2[ 1 ], v3[ 1 ],
-  						v1[ 2 ], v2[ 2 ], v3[ 2 ]
-  					);
-
-  				}
-
-  			} else if ( lineFirstChar === 'l' ) {
-
-  				const lineParts = line.substring( 1 ).trim().split( ' ' );
-  				let lineVertices = [];
-  				const lineUVs = [];
-
-  				if ( line.indexOf( '/' ) === - 1 ) {
-
-  					lineVertices = lineParts;
-
-  				} else {
-
-  					for ( let li = 0, llen = lineParts.length; li < llen; li ++ ) {
-
-  						const parts = lineParts[ li ].split( '/' );
-
-  						if ( parts[ 0 ] !== '' ) lineVertices.push( parts[ 0 ] );
-  						if ( parts[ 1 ] !== '' ) lineUVs.push( parts[ 1 ] );
-
-  					}
-
-  				}
-
-  				state.addLineGeometry( lineVertices, lineUVs );
-
-  			} else if ( lineFirstChar === 'p' ) {
-
-  				const lineData = line.substr( 1 ).trim();
-  				const pointData = lineData.split( ' ' );
-
-  				state.addPointGeometry( pointData );
-
-  			} else if ( ( result = _object_pattern.exec( line ) ) !== null ) {
-
-  				// o object_name
-  				// or
-  				// g group_name
-
-  				// WORKAROUND: https://bugs.chromium.org/p/v8/issues/detail?id=2869
-  				// let name = result[ 0 ].substr( 1 ).trim();
-  				const name = ( ' ' + result[ 0 ].substr( 1 ).trim() ).substr( 1 );
-
-  				state.startObject( name );
-
-  			} else if ( _material_use_pattern.test( line ) ) {
-
-  				// material
-
-  				state.object.startMaterial( line.substring( 7 ).trim(), state.materialLibraries );
-
-  			} else if ( _material_library_pattern.test( line ) ) {
-
-  				// mtl file
-
-  				state.materialLibraries.push( line.substring( 7 ).trim() );
-
-  			} else if ( _map_use_pattern.test( line ) ) {
-
-  				// the line is parsed but ignored since the loader assumes textures are defined MTL files
-  				// (according to https://www.okino.com/conv/imp_wave.htm, 'usemap' is the old-style Wavefront texture reference method)
-
-  				console.warn( 'THREE.OBJLoader: Rendering identifier "usemap" not supported. Textures must be defined in MTL files.' );
-
-  			} else if ( lineFirstChar === 's' ) {
-
-  				result = line.split( ' ' );
-
-  				// smooth shading
-
-  				// @todo Handle files that have varying smooth values for a set of faces inside one geometry,
-  				// but does not define a usemtl for each face set.
-  				// This should be detected and a dummy material created (later MultiMaterial and geometry groups).
-  				// This requires some care to not create extra material on each smooth value for "normal" obj files.
-  				// where explicit usemtl defines geometry groups.
-  				// Example asset: examples/models/obj/cerberus/Cerberus.obj
-
-  				/*
-  					 * http://paulbourke.net/dataformats/obj/
-  					 * or
-  					 * http://www.cs.utah.edu/~boulos/cs3505/obj_spec.pdf
-  					 *
-  					 * From chapter "Grouping" Syntax explanation "s group_number":
-  					 * "group_number is the smoothing group number. To turn off smoothing groups, use a value of 0 or off.
-  					 * Polygonal elements use group numbers to put elements in different smoothing groups. For free-form
-  					 * surfaces, smoothing groups are either turned on or off; there is no difference between values greater
-  					 * than 0."
-  					 */
-  				if ( result.length > 1 ) {
-
-  					const value = result[ 1 ].trim().toLowerCase();
-  					state.object.smooth = ( value !== '0' && value !== 'off' );
-
-  				} else {
-
-  					// ZBrush can produce "s" lines #11707
-  					state.object.smooth = true;
-
-  				}
-
-  				const material = state.object.currentMaterial();
-  				if ( material ) material.smooth = state.object.smooth;
-
-  			} else {
-
-  				// Handle null terminated files without exception
-  				if ( line === '\0' ) continue;
-
-  				console.warn( 'THREE.OBJLoader: Unexpected line: "' + line + '"' );
-
-  			}
-
-  		}
-
-  		state.finalize();
-
-  		const container = new Group();
-  		container.materialLibraries = [].concat( state.materialLibraries );
-
-  		const hasPrimitives = ! ( state.objects.length === 1 && state.objects[ 0 ].geometry.vertices.length === 0 );
-
-  		if ( hasPrimitives === true ) {
-
-  			for ( let i = 0, l = state.objects.length; i < l; i ++ ) {
-
-  				const object = state.objects[ i ];
-  				const geometry = object.geometry;
-  				const materials = object.materials;
-  				const isLine = ( geometry.type === 'Line' );
-  				const isPoints = ( geometry.type === 'Points' );
-  				let hasVertexColors = false;
-
-  				// Skip o/g line declarations that did not follow with any faces
-  				if ( geometry.vertices.length === 0 ) continue;
-
-  				const buffergeometry = new BufferGeometry();
-
-  				buffergeometry.setAttribute( 'position', new Float32BufferAttribute( geometry.vertices, 3 ) );
-
-  				if ( geometry.normals.length > 0 ) {
-
-  					buffergeometry.setAttribute( 'normal', new Float32BufferAttribute( geometry.normals, 3 ) );
-
-  				}
-
-  				if ( geometry.colors.length > 0 ) {
-
-  					hasVertexColors = true;
-  					buffergeometry.setAttribute( 'color', new Float32BufferAttribute( geometry.colors, 3 ) );
-
-  				}
-
-  				if ( geometry.hasUVIndices === true ) {
-
-  					buffergeometry.setAttribute( 'uv', new Float32BufferAttribute( geometry.uvs, 2 ) );
-
-  				}
-
-  				// Create materials
-
-  				const createdMaterials = [];
-
-  				for ( let mi = 0, miLen = materials.length; mi < miLen; mi ++ ) {
-
-  					const sourceMaterial = materials[ mi ];
-  					const materialHash = sourceMaterial.name + '_' + sourceMaterial.smooth + '_' + hasVertexColors;
-  					let material = state.materials[ materialHash ];
-
-  					if ( this.materials !== null ) {
-
-  						material = this.materials.create( sourceMaterial.name );
-
-  						// mtl etc. loaders probably can't create line materials correctly, copy properties to a line material.
-  						if ( isLine && material && ! ( material instanceof LineBasicMaterial ) ) {
-
-  							const materialLine = new LineBasicMaterial();
-  							Material.prototype.copy.call( materialLine, material );
-  							materialLine.color.copy( material.color );
-  							material = materialLine;
-
-  						} else if ( isPoints && material && ! ( material instanceof PointsMaterial ) ) {
-
-  							const materialPoints = new PointsMaterial( { size: 10, sizeAttenuation: false } );
-  							Material.prototype.copy.call( materialPoints, material );
-  							materialPoints.color.copy( material.color );
-  							materialPoints.map = material.map;
-  							material = materialPoints;
-
-  						}
-
-  					}
-
-  					if ( material === undefined ) {
-
-  						if ( isLine ) {
-
-  							material = new LineBasicMaterial();
-
-  						} else if ( isPoints ) {
-
-  							material = new PointsMaterial( { size: 1, sizeAttenuation: false } );
-
-  						} else {
-
-  							material = new MeshPhongMaterial();
-
-  						}
-
-  						material.name = sourceMaterial.name;
-  						material.flatShading = sourceMaterial.smooth ? false : true;
-  						material.vertexColors = hasVertexColors;
-
-  						state.materials[ materialHash ] = material;
-
-  					}
-
-  					createdMaterials.push( material );
-
-  				}
-
-  				// Create mesh
-
-  				let mesh;
-
-  				if ( createdMaterials.length > 1 ) {
-
-  					for ( let mi = 0, miLen = materials.length; mi < miLen; mi ++ ) {
-
-  						const sourceMaterial = materials[ mi ];
-  						buffergeometry.addGroup( sourceMaterial.groupStart, sourceMaterial.groupCount, mi );
-
-  					}
-
-  					if ( isLine ) {
-
-  						mesh = new LineSegments( buffergeometry, createdMaterials );
-
-  					} else if ( isPoints ) {
-
-  						mesh = new Points( buffergeometry, createdMaterials );
-
-  					} else {
-
-  						mesh = new Mesh( buffergeometry, createdMaterials );
-
-  					}
-
-  				} else {
-
-  					if ( isLine ) {
-
-  						mesh = new LineSegments( buffergeometry, createdMaterials[ 0 ] );
-
-  					} else if ( isPoints ) {
-
-  						mesh = new Points( buffergeometry, createdMaterials[ 0 ] );
-
-  					} else {
-
-  						mesh = new Mesh( buffergeometry, createdMaterials[ 0 ] );
-
-  					}
-
-  				}
-
-  				mesh.name = object.name;
-
-  				container.add( mesh );
-
-  			}
-
-  		} else {
-
-  			// if there is only the default parser state object with no geometry data, interpret data as point cloud
-
-  			if ( state.vertices.length > 0 ) {
-
-  				const material = new PointsMaterial( { size: 1, sizeAttenuation: false } );
-
-  				const buffergeometry = new BufferGeometry();
-
-  				buffergeometry.setAttribute( 'position', new Float32BufferAttribute( state.vertices, 3 ) );
-
-  				if ( state.colors.length > 0 && state.colors[ 0 ] !== undefined ) {
-
-  					buffergeometry.setAttribute( 'color', new Float32BufferAttribute( state.colors, 3 ) );
-  					material.vertexColors = true;
-
-  				}
-
-  				const points = new Points( buffergeometry, material );
-  				container.add( points );
-
-  			}
-
-  		}
-
-  		return container;
-
-  	}
-
-  }
-
   /**
-   * Loads a Wavefront .mtl file specifying materials
+   * Constants for widget
    */
 
-  class MTLLoader extends Loader {
-
-  	constructor( manager ) {
-
-  		super( manager );
-
-  	}
-
-  	/**
-  	 * Loads and parses a MTL asset from a URL.
-  	 *
-  	 * @param {String} url - URL to the MTL file.
-  	 * @param {Function} [onLoad] - Callback invoked with the loaded object.
-  	 * @param {Function} [onProgress] - Callback for download progress.
-  	 * @param {Function} [onError] - Callback for download errors.
-  	 *
-  	 * @see setPath setResourcePath
-  	 *
-  	 * @note In order for relative texture references to resolve correctly
-  	 * you must call setResourcePath() explicitly prior to load.
-  	 */
-  	load( url, onLoad, onProgress, onError ) {
-
-  		const scope = this;
-
-  		const path = ( this.path === '' ) ? LoaderUtils.extractUrlBase( url ) : this.path;
-
-  		const loader = new FileLoader( this.manager );
-  		loader.setPath( this.path );
-  		loader.setRequestHeader( this.requestHeader );
-  		loader.setWithCredentials( this.withCredentials );
-  		loader.load( url, function ( text ) {
-
-  			try {
-
-  				onLoad( scope.parse( text, path ) );
-
-  			} catch ( e ) {
-
-  				if ( onError ) {
-
-  					onError( e );
-
-  				} else {
-
-  					console.error( e );
-
-  				}
-
-  				scope.manager.itemError( url );
-
-  			}
-
-  		}, onProgress, onError );
-
-  	}
-
-  	setMaterialOptions( value ) {
-
-  		this.materialOptions = value;
-  		return this;
-
-  	}
-
-  	/**
-  	 * Parses a MTL file.
-  	 *
-  	 * @param {String} text - Content of MTL file
-  	 * @return {MaterialCreator}
-  	 *
-  	 * @see setPath setResourcePath
-  	 *
-  	 * @note In order for relative texture references to resolve correctly
-  	 * you must call setResourcePath() explicitly prior to parse.
-  	 */
-  	parse( text, path ) {
-
-  		const lines = text.split( '\n' );
-  		let info = {};
-  		const delimiter_pattern = /\s+/;
-  		const materialsInfo = {};
-
-  		for ( let i = 0; i < lines.length; i ++ ) {
-
-  			let line = lines[ i ];
-  			line = line.trim();
-
-  			if ( line.length === 0 || line.charAt( 0 ) === '#' ) {
-
-  				// Blank line or comment ignore
-  				continue;
-
-  			}
-
-  			const pos = line.indexOf( ' ' );
-
-  			let key = ( pos >= 0 ) ? line.substring( 0, pos ) : line;
-  			key = key.toLowerCase();
-
-  			let value = ( pos >= 0 ) ? line.substring( pos + 1 ) : '';
-  			value = value.trim();
-
-  			if ( key === 'newmtl' ) {
-
-  				// New material
-
-  				info = { name: value };
-  				materialsInfo[ value ] = info;
-
-  			} else {
-
-  				if ( key === 'ka' || key === 'kd' || key === 'ks' || key === 'ke' ) {
-
-  					const ss = value.split( delimiter_pattern, 3 );
-  					info[ key ] = [ parseFloat( ss[ 0 ] ), parseFloat( ss[ 1 ] ), parseFloat( ss[ 2 ] ) ];
-
-  				} else {
-
-  					info[ key ] = value;
-
-  				}
-
-  			}
-
-  		}
-
-  		const materialCreator = new MaterialCreator( this.resourcePath || path, this.materialOptions );
-  		materialCreator.setCrossOrigin( this.crossOrigin );
-  		materialCreator.setManager( this.manager );
-  		materialCreator.setMaterials( materialsInfo );
-  		return materialCreator;
-
-  	}
-
-  }
-
   /**
-   * Create a new MTLLoader.MaterialCreator
-   * @param baseUrl - Url relative to which textures are loaded
-   * @param options - Set of options on how to construct the materials
-   *                  side: Which side to apply the material
-   *                        FrontSide (default), THREE.BackSide, THREE.DoubleSide
-   *                  wrap: What type of wrapping to apply for textures
-   *                        RepeatWrapping (default), THREE.ClampToEdgeWrapping, THREE.MirroredRepeatWrapping
-   *                  normalizeRGB: RGBs need to be normalized to 0-1 from 0-255
-   *                                Default: false, assumed to be already normalized
-   *                  ignoreZeroRGBs: Ignore values of RGBs (Ka,Kd,Ks) that are all 0's
-   *                                  Default: false
-   * @constructor
+   * Properties common to all html buttons
    */
-
-  class MaterialCreator {
-
-  	constructor( baseUrl = '', options = {} ) {
-
-  		this.baseUrl = baseUrl;
-  		this.options = options;
-  		this.materialsInfo = {};
-  		this.materials = {};
-  		this.materialsArray = [];
-  		this.nameLookup = {};
-
-  		this.crossOrigin = 'anonymous';
-
-  		this.side = ( this.options.side !== undefined ) ? this.options.side : FrontSide;
-  		this.wrap = ( this.options.wrap !== undefined ) ? this.options.wrap : RepeatWrapping;
-
-  	}
-
-  	setCrossOrigin( value ) {
-
-  		this.crossOrigin = value;
-  		return this;
-
-  	}
-
-  	setManager( value ) {
-
-  		this.manager = value;
-
-  	}
-
-  	setMaterials( materialsInfo ) {
-
-  		this.materialsInfo = this.convert( materialsInfo );
-  		this.materials = {};
-  		this.materialsArray = [];
-  		this.nameLookup = {};
-
-  	}
-
-  	convert( materialsInfo ) {
-
-  		if ( ! this.options ) return materialsInfo;
-
-  		const converted = {};
-
-  		for ( const mn in materialsInfo ) {
-
-  			// Convert materials info into normalized form based on options
-
-  			const mat = materialsInfo[ mn ];
-
-  			const covmat = {};
-
-  			converted[ mn ] = covmat;
-
-  			for ( const prop in mat ) {
-
-  				let save = true;
-  				let value = mat[ prop ];
-  				const lprop = prop.toLowerCase();
-
-  				switch ( lprop ) {
-
-  					case 'kd':
-  					case 'ka':
-  					case 'ks':
-
-  						// Diffuse color (color under white light) using RGB values
-
-  						if ( this.options && this.options.normalizeRGB ) {
-
-  							value = [ value[ 0 ] / 255, value[ 1 ] / 255, value[ 2 ] / 255 ];
-
-  						}
-
-  						if ( this.options && this.options.ignoreZeroRGBs ) {
-
-  							if ( value[ 0 ] === 0 && value[ 1 ] === 0 && value[ 2 ] === 0 ) {
-
-  								// ignore
-
-  								save = false;
-
-  							}
-
-  						}
-
-  						break;
-
-  				}
-
-  				if ( save ) {
-
-  					covmat[ lprop ] = value;
-
-  				}
-
-  			}
-
-  		}
-
-  		return converted;
-
-  	}
-
-  	preload() {
-
-  		for ( const mn in this.materialsInfo ) {
-
-  			this.create( mn );
-
-  		}
-
-  	}
-
-  	getIndex( materialName ) {
-
-  		return this.nameLookup[ materialName ];
-
-  	}
-
-  	getAsArray() {
-
-  		let index = 0;
-
-  		for ( const mn in this.materialsInfo ) {
-
-  			this.materialsArray[ index ] = this.create( mn );
-  			this.nameLookup[ mn ] = index;
-  			index ++;
-
-  		}
-
-  		return this.materialsArray;
-
-  	}
-
-  	create( materialName ) {
-
-  		if ( this.materials[ materialName ] === undefined ) {
-
-  			this.createMaterial_( materialName );
-
-  		}
-
-  		return this.materials[ materialName ];
-
-  	}
-
-  	createMaterial_( materialName ) {
-
-  		// Create material
-
-  		const scope = this;
-  		const mat = this.materialsInfo[ materialName ];
-  		const params = {
-
-  			name: materialName,
-  			side: this.side
-
-  		};
-
-  		function resolveURL( baseUrl, url ) {
-
-  			if ( typeof url !== 'string' || url === '' )
-  				return '';
-
-  			// Absolute URL
-  			if ( /^https?:\/\//i.test( url ) ) return url;
-
-  			return baseUrl + url;
-
-  		}
-
-  		function setMapForType( mapType, value ) {
-
-  			if ( params[ mapType ] ) return; // Keep the first encountered texture
-
-  			const texParams = scope.getTextureParams( value, params );
-  			const map = scope.loadTexture( resolveURL( scope.baseUrl, texParams.url ) );
-
-  			map.repeat.copy( texParams.scale );
-  			map.offset.copy( texParams.offset );
-
-  			map.wrapS = scope.wrap;
-  			map.wrapT = scope.wrap;
-
-  			params[ mapType ] = map;
-
-  		}
-
-  		for ( const prop in mat ) {
-
-  			const value = mat[ prop ];
-  			let n;
-
-  			if ( value === '' ) continue;
-
-  			switch ( prop.toLowerCase() ) {
-
-  				// Ns is material specular exponent
-
-  				case 'kd':
-
-  					// Diffuse color (color under white light) using RGB values
-
-  					params.color = new Color().fromArray( value );
-
-  					break;
-
-  				case 'ks':
-
-  					// Specular color (color when light is reflected from shiny surface) using RGB values
-  					params.specular = new Color().fromArray( value );
-
-  					break;
-
-  				case 'ke':
-
-  					// Emissive using RGB values
-  					params.emissive = new Color().fromArray( value );
-
-  					break;
-
-  				case 'map_kd':
-
-  					// Diffuse texture map
-
-  					setMapForType( 'map', value );
-
-  					break;
-
-  				case 'map_ks':
-
-  					// Specular map
-
-  					setMapForType( 'specularMap', value );
-
-  					break;
-
-  				case 'map_ke':
-
-  					// Emissive map
-
-  					setMapForType( 'emissiveMap', value );
-
-  					break;
-
-  				case 'norm':
-
-  					setMapForType( 'normalMap', value );
-
-  					break;
-
-  				case 'map_bump':
-  				case 'bump':
-
-  					// Bump texture map
-
-  					setMapForType( 'bumpMap', value );
-
-  					break;
-
-  				case 'map_d':
-
-  					// Alpha map
-
-  					setMapForType( 'alphaMap', value );
-  					params.transparent = true;
-
-  					break;
-
-  				case 'ns':
-
-  					// The specular exponent (defines the focus of the specular highlight)
-  					// A high exponent results in a tight, concentrated highlight. Ns values normally range from 0 to 1000.
-
-  					params.shininess = parseFloat( value );
-
-  					break;
-
-  				case 'd':
-  					n = parseFloat( value );
-
-  					if ( n < 1 ) {
-
-  						params.opacity = n;
-  						params.transparent = true;
-
-  					}
-
-  					break;
-
-  				case 'tr':
-  					n = parseFloat( value );
-
-  					if ( this.options && this.options.invertTrProperty ) n = 1 - n;
-
-  					if ( n > 0 ) {
-
-  						params.opacity = 1 - n;
-  						params.transparent = true;
-
-  					}
-
-  					break;
-
-  			}
-
-  		}
-
-  		this.materials[ materialName ] = new MeshPhongMaterial( params );
-  		return this.materials[ materialName ];
-
-  	}
-
-  	getTextureParams( value, matParams ) {
-
-  		const texParams = {
-
-  			scale: new Vector2( 1, 1 ),
-  			offset: new Vector2( 0, 0 )
-
-  		 };
-
-  		const items = value.split( /\s+/ );
-  		let pos;
-
-  		pos = items.indexOf( '-bm' );
-
-  		if ( pos >= 0 ) {
-
-  			matParams.bumpScale = parseFloat( items[ pos + 1 ] );
-  			items.splice( pos, 2 );
-
-  		}
-
-  		pos = items.indexOf( '-s' );
-
-  		if ( pos >= 0 ) {
-
-  			texParams.scale.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
-  			items.splice( pos, 4 ); // we expect 3 parameters here!
-
-  		}
-
-  		pos = items.indexOf( '-o' );
-
-  		if ( pos >= 0 ) {
-
-  			texParams.offset.set( parseFloat( items[ pos + 1 ] ), parseFloat( items[ pos + 2 ] ) );
-  			items.splice( pos, 4 ); // we expect 3 parameters here!
-
-  		}
-
-  		texParams.url = items.join( ' ' ).trim();
-  		return texParams;
-
-  	}
-
-  	loadTexture( url, mapping, onLoad, onProgress, onError ) {
-
-  		const manager = ( this.manager !== undefined ) ? this.manager : DefaultLoadingManager;
-  		let loader = manager.getHandler( url );
-
-  		if ( loader === null ) {
-
-  			loader = new TextureLoader( manager );
-
-  		}
-
-  		if ( loader.setCrossOrigin ) loader.setCrossOrigin( this.crossOrigin );
-
-  		const texture = loader.load( url, onLoad, onProgress, onError );
-
-  		if ( mapping !== undefined ) texture.mapping = mapping;
-
-  		return texture;
-
-  	}
-
-  }
-
-  class DDSLoader extends CompressedTextureLoader {
-
-  	constructor( manager ) {
-
-  		super( manager );
-
-  	}
-
-  	parse( buffer, loadMipmaps ) {
-
-  		const dds = { mipmaps: [], width: 0, height: 0, format: null, mipmapCount: 1 };
-
-  		// Adapted from @toji's DDS utils
-  		// https://github.com/toji/webgl-texture-utils/blob/master/texture-util/dds.js
-
-  		// All values and structures referenced from:
-  		// http://msdn.microsoft.com/en-us/library/bb943991.aspx/
-
-  		const DDS_MAGIC = 0x20534444;
-
-  		// let DDSD_CAPS = 0x1;
-  		// let DDSD_HEIGHT = 0x2;
-  		// let DDSD_WIDTH = 0x4;
-  		// let DDSD_PITCH = 0x8;
-  		// let DDSD_PIXELFORMAT = 0x1000;
-  		const DDSD_MIPMAPCOUNT = 0x20000;
-  		// let DDSD_LINEARSIZE = 0x80000;
-  		// let DDSD_DEPTH = 0x800000;
-
-  		// let DDSCAPS_COMPLEX = 0x8;
-  		// let DDSCAPS_MIPMAP = 0x400000;
-  		// let DDSCAPS_TEXTURE = 0x1000;
-
-  		const DDSCAPS2_CUBEMAP = 0x200;
-  		const DDSCAPS2_CUBEMAP_POSITIVEX = 0x400;
-  		const DDSCAPS2_CUBEMAP_NEGATIVEX = 0x800;
-  		const DDSCAPS2_CUBEMAP_POSITIVEY = 0x1000;
-  		const DDSCAPS2_CUBEMAP_NEGATIVEY = 0x2000;
-  		const DDSCAPS2_CUBEMAP_POSITIVEZ = 0x4000;
-  		const DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x8000;
-  		// let DDSCAPS2_VOLUME = 0x200000;
-
-  		// let DDPF_ALPHAPIXELS = 0x1;
-  		// let DDPF_ALPHA = 0x2;
-  		const DDPF_FOURCC = 0x4;
-  		// let DDPF_RGB = 0x40;
-  		// let DDPF_YUV = 0x200;
-  		// let DDPF_LUMINANCE = 0x20000;
-
-  		function fourCCToInt32( value ) {
-
-  			return value.charCodeAt( 0 ) +
-  				( value.charCodeAt( 1 ) << 8 ) +
-  				( value.charCodeAt( 2 ) << 16 ) +
-  				( value.charCodeAt( 3 ) << 24 );
-
-  		}
-
-  		function int32ToFourCC( value ) {
-
-  			return String.fromCharCode(
-  				value & 0xff,
-  				( value >> 8 ) & 0xff,
-  				( value >> 16 ) & 0xff,
-  				( value >> 24 ) & 0xff
-  			);
-
-  		}
-
-  		function loadARGBMip( buffer, dataOffset, width, height ) {
-
-  			const dataLength = width * height * 4;
-  			const srcBuffer = new Uint8Array( buffer, dataOffset, dataLength );
-  			const byteArray = new Uint8Array( dataLength );
-  			let dst = 0;
-  			let src = 0;
-  			for ( let y = 0; y < height; y ++ ) {
-
-  				for ( let x = 0; x < width; x ++ ) {
-
-  					const b = srcBuffer[ src ]; src ++;
-  					const g = srcBuffer[ src ]; src ++;
-  					const r = srcBuffer[ src ]; src ++;
-  					const a = srcBuffer[ src ]; src ++;
-  					byteArray[ dst ] = r; dst ++;	//r
-  					byteArray[ dst ] = g; dst ++;	//g
-  					byteArray[ dst ] = b; dst ++;	//b
-  					byteArray[ dst ] = a; dst ++;	//a
-
-  				}
-
-  			}
-
-  			return byteArray;
-
-  		}
-
-  		const FOURCC_DXT1 = fourCCToInt32( 'DXT1' );
-  		const FOURCC_DXT3 = fourCCToInt32( 'DXT3' );
-  		const FOURCC_DXT5 = fourCCToInt32( 'DXT5' );
-  		const FOURCC_ETC1 = fourCCToInt32( 'ETC1' );
-
-  		const headerLengthInt = 31; // The header length in 32 bit ints
-
-  		// Offsets into the header array
-
-  		const off_magic = 0;
-
-  		const off_size = 1;
-  		const off_flags = 2;
-  		const off_height = 3;
-  		const off_width = 4;
-
-  		const off_mipmapCount = 7;
-
-  		const off_pfFlags = 20;
-  		const off_pfFourCC = 21;
-  		const off_RGBBitCount = 22;
-  		const off_RBitMask = 23;
-  		const off_GBitMask = 24;
-  		const off_BBitMask = 25;
-  		const off_ABitMask = 26;
-
-  		// let off_caps = 27;
-  		const off_caps2 = 28;
-  		// let off_caps3 = 29;
-  		// let off_caps4 = 30;
-
-  		// Parse header
-
-  		const header = new Int32Array( buffer, 0, headerLengthInt );
-
-  		if ( header[ off_magic ] !== DDS_MAGIC ) {
-
-  			console.error( 'THREE.DDSLoader.parse: Invalid magic number in DDS header.' );
-  			return dds;
-
-  		}
-
-  		if ( ! header[ off_pfFlags ] & DDPF_FOURCC ) {
-
-  			console.error( 'THREE.DDSLoader.parse: Unsupported format, must contain a FourCC code.' );
-  			return dds;
-
-  		}
-
-  		let blockBytes;
-
-  		const fourCC = header[ off_pfFourCC ];
-
-  		let isRGBAUncompressed = false;
-
-  		switch ( fourCC ) {
-
-  			case FOURCC_DXT1:
-
-  				blockBytes = 8;
-  				dds.format = RGB_S3TC_DXT1_Format;
-  				break;
-
-  			case FOURCC_DXT3:
-
-  				blockBytes = 16;
-  				dds.format = RGBA_S3TC_DXT3_Format;
-  				break;
-
-  			case FOURCC_DXT5:
-
-  				blockBytes = 16;
-  				dds.format = RGBA_S3TC_DXT5_Format;
-  				break;
-
-  			case FOURCC_ETC1:
-
-  				blockBytes = 8;
-  				dds.format = RGB_ETC1_Format;
-  				break;
-
-  			default:
-
-  				if ( header[ off_RGBBitCount ] === 32
-  					&& header[ off_RBitMask ] & 0xff0000
-  					&& header[ off_GBitMask ] & 0xff00
-  					&& header[ off_BBitMask ] & 0xff
-  					&& header[ off_ABitMask ] & 0xff000000 ) {
-
-  					isRGBAUncompressed = true;
-  					blockBytes = 64;
-  					dds.format = RGBAFormat;
-
-  				} else {
-
-  					console.error( 'THREE.DDSLoader.parse: Unsupported FourCC code ', int32ToFourCC( fourCC ) );
-  					return dds;
-
-  				}
-
-  		}
-
-  		dds.mipmapCount = 1;
-
-  		if ( header[ off_flags ] & DDSD_MIPMAPCOUNT && loadMipmaps !== false ) {
-
-  			dds.mipmapCount = Math.max( 1, header[ off_mipmapCount ] );
-
-  		}
-
-  		const caps2 = header[ off_caps2 ];
-  		dds.isCubemap = caps2 & DDSCAPS2_CUBEMAP ? true : false;
-  		if ( dds.isCubemap && (
-  			! ( caps2 & DDSCAPS2_CUBEMAP_POSITIVEX ) ||
-  			! ( caps2 & DDSCAPS2_CUBEMAP_NEGATIVEX ) ||
-  			! ( caps2 & DDSCAPS2_CUBEMAP_POSITIVEY ) ||
-  			! ( caps2 & DDSCAPS2_CUBEMAP_NEGATIVEY ) ||
-  			! ( caps2 & DDSCAPS2_CUBEMAP_POSITIVEZ ) ||
-  			! ( caps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ )
-  		) ) {
-
-  			console.error( 'THREE.DDSLoader.parse: Incomplete cubemap faces' );
-  			return dds;
-
-  		}
-
-  		dds.width = header[ off_width ];
-  		dds.height = header[ off_height ];
-
-  		let dataOffset = header[ off_size ] + 4;
-
-  		// Extract mipmaps buffers
-
-  		const faces = dds.isCubemap ? 6 : 1;
-
-  		for ( let face = 0; face < faces; face ++ ) {
-
-  			let width = dds.width;
-  			let height = dds.height;
-
-  			for ( let i = 0; i < dds.mipmapCount; i ++ ) {
-
-  				let byteArray, dataLength;
-
-  				if ( isRGBAUncompressed ) {
-
-  					byteArray = loadARGBMip( buffer, dataOffset, width, height );
-  					dataLength = byteArray.length;
-
-  				} else {
-
-  					dataLength = Math.max( 4, width ) / 4 * Math.max( 4, height ) / 4 * blockBytes;
-  					byteArray = new Uint8Array( buffer, dataOffset, dataLength );
-
-  				}
-
-  				const mipmap = { 'data': byteArray, 'width': width, 'height': height };
-  				dds.mipmaps.push( mipmap );
-
-  				dataOffset += dataLength;
-
-  				width = Math.max( width >> 1, 1 );
-  				height = Math.max( height >> 1, 1 );
-
-  			}
-
-  		}
-
-  		return dds;
-
-  	}
-
-  }
+  var buttonBackgroundColor = 'rgba(255,255,255,0.2)';
+  var buttonClickedBackgroundColor = 'rgba(255,255,255,0.4)';
+  var buttonTextColor = 'rgba(255,255,255,0.8)';
+  var buttonCursorType = 'pointer';
+  var buttonPadding = '10px';
+  var buttonFadeInSpecs = '1s ease-in-out'; // These two properties must be coordinated together using e.g. google.fonts
+
+  var buttonFontFamily = "'Odibee Sans', cursive";
+  var buttonCssUrl = 'https://fonts.googleapis.com/css2?family=Odibee+Sans';
 
   /**
-   * Function to scale an object so that the child with the largest bounding-sphere radius
-   * will end up with a bounding sphere radius equal to the supplied targetRadius
-   */
-
-  function resizeThreeJsObject(object, targetRadius) {
-    // --------------------------------------------------------------------------->>>
-    var biggestSphereRadius = Math.pow(10, -10);
-    object.traverse(function (child) {
-      if (child instanceof Mesh) {
-        child.geometry.computeBoundingSphere(); // Need to run this, else `child.geometry.boundingSphere.radius` will be undefined
-
-        if (!!child.geometry && !!child.geometry.boundingSphere && child.geometry.boundingSphere.radius > biggestSphereRadius) {
-          biggestSphereRadius = child.geometry.boundingSphere.radius;
-        }
-      }
-    });
-    var s = targetRadius / biggestSphereRadius;
-    object.scale.set(s, s, s);
-  }
-
-  /**
-   * Simple function to ensure all children receive and cast shadows
-   */
-  function enshadowChildren(object) {
-    object.traverse(function (child) {
-      if (child.type === 'Mesh') {
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
-  }
-
-  /**
-   * Function to center object on its bounding box
    *
-   * An object created in blender may not have its origin at the object's
-   * physical center, and this can be annoying when, say, you want to rotate
-   * that object. This function will shift the object relative to its parent
-   * coordinate system so that its center is at the parent's origin; that means
-   * you can then e.g. rotate the parent to get a realistic/useful rotation effect
-   * on this object
    */
+  var addGlobalStyles = function addGlobalStyles() {
 
-  function centerOnBoundingBox(object) {
-    // ----------------------------------------------------->>>
-    // Get center of boundingBox
-    var boundingBox = new Box3().setFromObject(object);
-
-    var _boundingBox$getCente = boundingBox.getCenter(new Vector3()).toArray(),
-        x2 = _boundingBox$getCente[0],
-        y2 = _boundingBox$getCente[1],
-        z2 = _boundingBox$getCente[2]; // Move object to where center was
-
-
-    var _object$position$clon = object.position.clone().toArray(),
-        x1 = _object$position$clon[0],
-        y1 = _object$position$clon[1],
-        z1 = _object$position$clon[2];
-
-    object.position.set(x1 - x2, y1 - y2, z1 - z2);
-  }
+    var globalStyle = document.createElement('style');
+    globalStyle.innerHTML = "\n    @keyframes global-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n  ";
+    document.head.append(globalStyle); //
+  };
 
   /**
-   * Wrapper around OBJLoader and MTLLoader letting you just specify
-   * urls to the obj and mtl files, a scaling factor, and a callback to use
-   * on the resulting threeJs object
-   * Patterns taken from: https://threejs.org/examples/webgl_loader_obj_mtl.html
+   * Function to mutate buttons by injecting them with properties
+   * common to all html buttons; append to container when ready
    */
 
-  function MTLOBJLoader(mtlUrl, objUrl, cbOnReady, targetRadius, isCenteredOnBoundingBox, isShadowShown) {
+  var injectCommonButtonProperties = function injectCommonButtonProperties(button, container, onClickCB) {
     // --->>>
-    var manager = new LoadingManager();
-    manager.addHandler(/\.dds$/i, new DDSLoader());
-    new MTLLoader(manager).load(mtlUrl, function (materials) {
-      // --->>>
-      materials.preload();
-      new OBJLoader().setMaterials(materials).load(objUrl, function (object) {
-        if (!!targetRadius) resizeThreeJsObject(object, targetRadius);
-        if (!!isCenteredOnBoundingBox) centerOnBoundingBox(object);
-        if (!!isShadowShown) enshadowChildren(object);
-        cbOnReady(object); // Signal object readiness
-      }, function (xhr) {
-        // Called when loading is in progress
-        console.log(xhr.loaded / xhr.total * 100 + '% loaded');
-      }, function (error) {
-        console.log('Loading error occurred:', error.message);
+    // Add to global styles
+    addGlobalStyles(); // Start loading the remote fonts style sheet; mutate button on completion
+
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+
+    link.onload = function () {
+      // console.log('Loaded css url for fonts');
+      mutateButton();
+    };
+
+    link.onerror = function () {
+      console.log('Failed to load css url for fonts; continuing anyway...');
+      mutateButton();
+    };
+
+    link.href = buttonCssUrl;
+    document.head.append(link); // Callback to mutate button
+
+    function mutateButton() {
+      // Positioning
+      button.style.position = 'absolute';
+      button.style.setProperty('padding', buttonPadding); // Colors
+
+      button.style.setProperty('color', buttonTextColor);
+      button.style.setProperty('background-color', buttonBackgroundColor); // Font stuff
+
+      button.style.setProperty('font-family', buttonFontFamily);
+      button.style.setProperty('font-size', '20px'); // Setup fade-in effect
+
+      button.style.setProperty('animation', "global-fade-in " + buttonFadeInSpecs); // Cursor behavior
+      // Prevent text in button from being selectable
+      // See here: https://stackoverflow.com/a/4407335/8620332
+
+      button.style.setProperty('cursor', buttonCursorType);
+      button.style.setProperty('-webkit-touch-callout', 'none');
+      button.style.setProperty('-webkit-user-select', 'none');
+      button.style.setProperty('-khtml-user-select', 'none');
+      button.style.setProperty('-moz-user-select', 'none');
+      button.style.setProperty('-ms-user-select', 'none');
+      button.style.setProperty('user-select', 'none'); // Properties related to click effect
+
+      button.style.setProperty('transition', 'background-color 50ms ease-in-out');
+      button.addEventListener('click', function () {
+        button.style.setProperty('background-color', buttonClickedBackgroundColor);
+        setTimeout(function () {
+          button.style.setProperty('background-color', buttonBackgroundColor);
+          onClickCB();
+        }, 200);
+      }); // Make visible
+
+      container.append(button);
+    }
+  };
+
+  /**
+   *
+   * @param container
+   */
+
+  var buttonToggleLights = function buttonToggleLights(container, onClickCB) {
+    // --->>>
+    // Warning
+    if (!container) throw new Error('Canvas Container is Falsy!'); // Set properties unique to this button
+
+    var button = document.createElement('div');
+    button.innerText = 'Toggle Lights';
+    button.style.setProperty('top', '10px');
+    button.style.setProperty('left', '10px'); // Set properties common to all buttons; append to container when ready
+
+    injectCommonButtonProperties(button, container, onClickCB); // Finish him
+
+    return button;
+  };
+
+  /**
+   *
+   * @param container
+   */
+
+  var buttonToggleHelpers = function buttonToggleHelpers(container, onClickCB) {
+    // --->>>
+    // Warning
+    if (!container) throw new Error('Canvas Container is Falsy!'); // Set properties unique to this button
+
+    var button = document.createElement('div');
+    button.innerText = 'Toggle Helpers';
+    button.style.setProperty('top', '10px');
+    button.style.setProperty('right', '10px'); // Set properties common to all buttons; append to container when ready
+
+    injectCommonButtonProperties(button, container, onClickCB); // Finish him
+
+    return button;
+  };
+
+  /**
+   *
+   * @param container
+   */
+
+  var buttonToggleToyScale = function buttonToggleToyScale(container, onClickCB) {
+    // --->>>
+    // Warning
+    if (!container) throw new Error('Canvas Container is Falsy!'); // Set properties unique to this button
+
+    var button = document.createElement('div');
+    button.innerText = 'Toggle Toy Scale';
+    button.style.setProperty('top', '10px');
+    button.style.setProperty('left', '50%');
+    button.style.setProperty('transform', 'translateX(-50%)'); // Set properties common to all buttons; append to container when ready
+
+    injectCommonButtonProperties(button, container, onClickCB); // Finish him
+
+    return button;
+  };
+
+  var getTexture = function getTexture(url, _name) {
+    return new Promise(function (resolve) {
+      new TextureLoader().load(url, function (texture) {
+        if (_name != null && _name.includes('EARTH')) {
+          console.log('>>> texture loaded', url, texture);
+        }
+
+        texture.encoding = GammaEncoding;
+        resolve(texture);
       });
     });
-  }
+  };
 
   /**
    * Base class that any entity must extend in order that its threeJs group
@@ -47032,85 +45381,198 @@
     };
   };
 
-  var DemoObjLoader = /*#__PURE__*/function (_AbstractSceneEntity) {
-    _inheritsLoose(DemoObjLoader, _AbstractSceneEntity);
+  /**
+   * Base class for orbiting object (planet, asteroid, etc.)
+   */
 
-    function DemoObjLoader() {
+  var AbstractToyMesh = /*#__PURE__*/function (_AbstractSceneEntity) {
+    _inheritsLoose(AbstractToyMesh, _AbstractSceneEntity);
+
+    function AbstractToyMesh(_name, _radius, options) {
       var _this;
 
-      // ~~~>>>
-      _this = _AbstractSceneEntity.apply(this, arguments) || this;
+      _this = _AbstractSceneEntity.call(this) || this;
+      _this._name = _name;
+      _this._radius = _radius;
+      _this._isToyScale = false;
 
-      _this.update = function (time) {
-        _this._sceneEntityGroup.rotateY(time * 0 + 0.001);
-      };
+      var _sphereSegments$toySc = _extends({
+        sphereSegments: 32,
+        toyScale: 3000,
+        realScale: 1
+      }, options),
+          sphereSegments = _sphereSegments$toySc.sphereSegments,
+          toyScale = _sphereSegments$toySc.toyScale,
+          realScale = _sphereSegments$toySc.realScale;
+
+      _this._realScale = realScale;
+      _this._toyScale = toyScale; // Default geometry and appearance
+
+      _this._geometry = new SphereGeometry(_this._radius, sphereSegments, sphereSegments);
+      _this._wireframe = new LineSegments(new EdgesGeometry(_this._geometry), new LineBasicMaterial());
+      _this._wireframe.userData.isHelper = true;
+      _this._material = new MeshPhongMaterial(); // this._material = new THREE.MeshStandardMaterial();
+
+      _this._mesh = new Mesh(_this._geometry, _this._material);
+      _this._mesh.receiveShadow = true;
+      _this._mesh.castShadow = true;
+      _this._mesh.name = _this._name; //
+
+      _this._sceneEntityGroup.name = _this._name; // this._sceneEntityGroup.add(this._mesh);
+
+      _this._sceneEntityGroup.add(_this._wireframe);
 
       return _this;
     }
 
-    var _proto = DemoObjLoader.prototype;
+    var _proto = AbstractToyMesh.prototype;
+
+    _proto.setIsToyScale = function setIsToyScale(value) {
+      // Note: once set, an animated transition to the new scale will take place within the update loop
+      this._isToyScale = value;
+    };
+
+    _proto._setToToyScale = function _setToToyScale() {
+      // Update scale instantly (rather than depending on animated transition)
+      this._isToyScale = true;
+      var t = this._toyScale; // 't' for 'target'
+
+      if (this._mesh) this._mesh.scale.set(t, t, t);
+      if (!!this._wireframe) this._wireframe.scale.set(t, t, t);
+    };
+
+    _proto._updateMeshScale = function _updateMeshScale() {
+      // Test if planet is already at target scale
+      var t = this._isToyScale ? this._toyScale : this._realScale; // 't' for 'target'
+
+      var _this$_mesh$scale = this._mesh.scale,
+          sx = _this$_mesh$scale.x,
+          sy = _this$_mesh$scale.y,
+          sz = _this$_mesh$scale.z;
+      if (sx === t) return; // Update-mesh-scale logic
+
+      var ds = this._toyScale / 50;
+
+      if (sx < t) {
+        // Increase deficient scale
+        this._mesh.scale.set(sx + ds, sy + ds, sz + ds);
+
+        if (!!this._wireframe) this._wireframe.scale.set(sx + ds, sy + ds, sz + ds);
+      }
+
+      if (sx > t) {
+        // Decrease excessive scale
+        this._mesh.scale.set(sx - ds, sy - ds, sz - ds);
+
+        if (!!this._wireframe) this._wireframe.scale.set(sx - ds, sy - ds, sz - ds);
+      }
+
+      if (Math.abs(sx - t) < ds) {
+        // Snap scale to target
+        this._mesh.scale.set(t, t, t);
+
+        if (!!this._wireframe) this._wireframe.scale.set(t, t, t);
+      }
+    };
+
+    _proto._updateToyScale = function _updateToyScale(_time) {
+      // Check if planet needs to be resized
+      this._updateMeshScale();
+    };
+
+    return AbstractToyMesh;
+  }(AbstractSceneEntity);
+
+  /**
+   * When a sprite is loaded it is given a size of '1'
+   * So it needs to be scaled, in this case, to the size of the Sun
+   * Further, the Sun only takes up a fraction of this image, so we need this factor
+   * to scale the image further
+   */
+
+  var imageToSunRatio = 10;
+  var sunRadiusMeters = orbitalParams.SUN.radiusMeters;
+  var sunToyScale = sunRadiusMeters * imageToSunRatio * 40;
+  var sunRealScale = sunRadiusMeters * imageToSunRatio;
+  var Sun = /*#__PURE__*/function (_AbstractToyMesh) {
+    _inheritsLoose(Sun, _AbstractToyMesh);
+
+    function Sun() {
+      var _this;
+
+      _this = _AbstractToyMesh.call(this, 'SUN', sunRadiusMeters, {
+        toyScale: sunToyScale,
+        realScale: sunRealScale
+      }) || this; // ~~~>>>
+
+      _this.name = 'SUN';
+      return _this;
+    }
+
+    var _proto = Sun.prototype;
 
     _proto.init = /*#__PURE__*/function () {
-      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
+      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
         var _this2 = this;
 
-        return runtime_1.wrap(function _callee$(_context) {
+        return runtime_1.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                return _context.abrupt("return", new Promise(function (resolve) {
-                  // --->>>
-                  var onObjectLoad = function onObjectLoad(loadedThreeJsObject) {
-                    // --->>>
-                    // Add loaded object and rotate whole group
-                    _this2._sceneEntityGroup.add(loadedThreeJsObject);
+                return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                  var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
+                    var texture, sprite;
+                    return runtime_1.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.next = 2;
+                            return getTexture(imageBaseUrl + "sun.png");
 
-                    _this2._sceneEntityGroup.rotateX(Math.PI / 2); // Create helper box around loaded object
+                          case 2:
+                            texture = _context.sent;
+                            sprite = new Sprite(new SpriteMaterial({
+                              blending: AdditiveBlending,
+                              depthWrite: false,
+                              map: texture
+                            }));
+                            sprite.updateMatrix();
+                            sprite.matrixAutoUpdate = true; // Hide sun's spherical toy mesh
 
+                            // Hide sun's spherical toy mesh
+                            _this2._mesh.visible = false; // Overwrite representation of sun with sprite in place of sphere
+                            // AbstractToyMesh will then handle scaling of sprite
 
-                    // Create helper box around loaded object
-                    var helperBox = new BoxHelper(loadedThreeJsObject, 0xffff00);
-                    helperBox.userData.isHelper = true;
+                            // Overwrite representation of sun with sprite in place of sphere
+                            // AbstractToyMesh will then handle scaling of sprite
+                            _this2._mesh = sprite; // Reregister sun but as sprite
 
-                    _this2._sceneEntityGroup.add(helperBox); // Add helper sphere to origin of group to illustrate it
+                            // Reregister sun but as sprite
+                            _this2._sceneEntityGroup.name = _this2.name;
 
+                            _this2._sceneEntityGroup.add(_this2._mesh);
 
-                    // Add helper sphere to origin of group to illustrate it
-                    var sphere = new Mesh(new SphereGeometry(1), new MeshPhongMaterial({
-                      color: 'white',
-                      opacity: 0.5
-                    }));
-                    sphere.userData.isHelper = true;
+                            resolve(_this2._sceneEntityGroup);
 
-                    _this2._sceneEntityGroup.add(sphere); // Add helperBox to all children of loadedObject
+                          case 11:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  }));
 
-
-                    // Add helperBox to all children of loadedObject
-                    loadedThreeJsObject.traverse(function (child) {
-                      child.visible = true;
-                      var helperBox0 = new BoxHelper(child, 0xffff00);
-                      helperBox0.userData.isHelper = true;
-
-                      _this2._sceneEntityGroup.add(helperBox0);
-                    });
-                    resolve(_this2._sceneEntityGroup);
-                  }; // Test loader-wrappers for MTL-OBJ and FBX files
-
-
-                  // Test loader-wrappers for MTL-OBJ and FBX files
-                  {
-                    MTLOBJLoader( // 'https://raw.githubusercontent.com/d-w-d/sbn-solar-system-viewer/main/images/low-poly-well.mtl',
-                    // 'https://raw.githubusercontent.com/d-w-d/sbn-solar-system-viewer/main/images/low-poly-well.obj',
-                    'https://threejs.org/examples/models/obj/male02/male02_dds.mtl', 'https://threejs.org/examples/models/obj/male02/male02.obj', onObjectLoad, 5, true, true);
-                  }
-                }));
+                  return function (_x) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()));
 
               case 1:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee);
+        }, _callee2);
       }));
 
       function init() {
@@ -47120,8 +45582,2002 @@
       return init;
     }();
 
-    return DemoObjLoader;
+    _proto.update = function update(_tCenturiesSinceJ200) {
+      this._updateMeshScale();
+    };
+
+    return Sun;
+  }(AbstractToyMesh);
+
+  /**
+   * This function is adapted from `https://github.com/jeromeetienne/threex.planets/blob/master/threex.planets.js`, based on instructions from `http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/`
+   * Jpg doesnt have channel, so the idea is to load cloud image from jpg and remove pixels manually to create an alpha-channel effect; I havent worked through exactly how the details work, but it does
+   */
+
+  function createEarthCloudMesh(cloudPlanetRadius) {
+    // ---------------------------------------------------->>>
+    return new Promise(function (resolve) {
+      // ----------------------->>>
+      // create destination canvas
+      var canvasResult = document.createElement('canvas');
+      canvasResult.width = 1024;
+      canvasResult.height = 512;
+      var contextResult = canvasResult.getContext('2d'); // load earthcloudmap
+
+      var imageMap = new Image();
+      imageMap.crossOrigin = 'Anonymous';
+      var geometry = new SphereGeometry(cloudPlanetRadius, 32, 32);
+      var material = new MeshPhongMaterial({
+        map: new Texture(canvasResult),
+        side: DoubleSide,
+        transparent: true,
+        opacity: 0.6
+      });
+      var mesh = new Mesh(geometry, material);
+      imageMap.addEventListener('load', function () {
+        // ---->>>
+        // create dataMap ImageData for earthcloudmap
+        var canvasMap = document.createElement('canvas');
+        canvasMap.width = imageMap.width;
+        canvasMap.height = imageMap.height;
+        var contextMap = canvasMap.getContext('2d');
+        contextMap.drawImage(imageMap, 0, 0);
+        var dataMap = contextMap.getImageData(0, 0, canvasMap.width, canvasMap.height); // load earthcloudmaptrans
+
+        var imageTrans = new Image();
+        imageTrans.crossOrigin = 'Anonymous';
+        imageTrans.addEventListener('load', function () {
+          // ---------------------------------------->>>
+          // create dataTrans ImageData for earthcloudmaptrans
+          var canvasTrans = document.createElement('canvas');
+          canvasTrans.width = imageTrans.width;
+          canvasTrans.height = imageTrans.height;
+          var contextTrans = canvasTrans.getContext('2d');
+          contextTrans.drawImage(imageTrans, 0, 0);
+
+          try {
+            var dataTrans = contextTrans.getImageData(0, 0, canvasTrans.width, canvasTrans.height); // merge dataMap + dataTrans into dataResult
+
+            var dataResult = contextMap.createImageData(canvasMap.width, canvasMap.height);
+
+            for (var y = 0, offset = 0; y < imageMap.height; y++) {
+              for (var x = 0; x < imageMap.width; x++, offset += 4) {
+                dataResult.data[offset + 0] = dataMap.data[offset + 0];
+                dataResult.data[offset + 1] = dataMap.data[offset + 1];
+                dataResult.data[offset + 2] = dataMap.data[offset + 2];
+                dataResult.data[offset + 3] = 255 - dataTrans.data[offset + 0];
+              }
+            } // update texture with result
+
+
+            contextResult.putImageData(dataResult, 0, 0);
+            if (!!material && !!material.map) material.map.needsUpdate = true;
+          } catch (error) {
+            console.log('Error: ', error);
+            resolve(mesh);
+          }
+
+          resolve(mesh);
+        });
+        imageTrans.src = imageBaseUrl + "earthcloudmaptrans.jpg";
+      }, false);
+      imageMap.src = imageBaseUrl + "earthcloudcolor.jpg";
+    });
+  }
+
+  function getPlanetRadiusMeters(name) {
+    // --->>>
+    return orbitalParams[name].radiusMeters;
+  }
+
+  var EOrbitalType;
+
+  (function (EOrbitalType) {
+    EOrbitalType["PLANET"] = "PLANET";
+    EOrbitalType["SUN"] = "SUN";
+    EOrbitalType["ASTEROID"] = "ASTEROID";
+  })(EOrbitalType || (EOrbitalType = {}));
+
+  function getPlanetPosition(name, tCenturiesSinceJ200) {
+    // --->>>
+    {
+      var planetPosition = keplerUtils.OrbitalUtils.calcOrbitals(keplerUtils.SolarSystem[name.toLowerCase()], tCenturiesSinceJ200).helioCentricCoords;
+      planetPosition.x = auToMeters(planetPosition.x);
+      planetPosition.y = auToMeters(planetPosition.y);
+      planetPosition.z = auToMeters(planetPosition.z);
+      return planetPosition;
+    }
+  }
+
+  var METERS_IN_AU = 149597870700;
+  var SECONDS_IN_DAY = 86400;
+  var EPHEM_VALID_ATTRS_ARR = ['a', 'e', 'i', 'q', 'epoch', 'period', 'tp', 'ma', 'n', 'L', 'om', 'w', 'wBar', 'GM'];
+  var EPHEM_VALID_ATTRS = /*#__PURE__*/new Set(EPHEM_VALID_ATTRS_ARR); // Which of these are angular measurements.
+
+  var ANGLE_UNITS = /*#__PURE__*/new Set(['i', 'ma', 'n', 'L', 'om', 'w', 'wBar']); // Returns true if object is defined.
+
+  function isDef(obj) {
+    return typeof obj !== 'undefined';
+  }
+  /**
+   * A class representing Kepler ephemerides.
+   * @example
+   * const NEPTUNE = new Ephem({
+   *   epoch: 2458426.500000000,
+   *   a: 3.009622263428050E+01,
+   *   e: 7.362571187193770E-03,
+   *   i: 1.774569249829094E+00,
+   *   om: 1.318695882492132E+02,
+   *   w: 2.586226409499831E+02,
+   *   ma: 3.152804988924479E+02,
+   * }, 'deg'),
+   */
+
+
+  var SKEphem = /*#__PURE__*/function () {
+    // a?: number; // Semimajor axis
+    // e?: number; // Eccentricity
+    // i?: number; // Inclination
+    // epoch?: number; // Epoch in JD
+    // period?: number; // Period in days
+    // ma?: number; // Mean anomaly
+    // n?: number; // Mean motion
+    // L?: number; // Mean longitude
+    // om?: number; // Longitude of Ascending Node
+    // w?: number; // Argument of Perihelion
+    // wBar?: number; // Longitude of Perihelion
+    // GM?: number; // Standard gravitational parameter in km^3/s^2.
+    function SKEphem(initialValues, units, locked) {
+      var _this = this;
+
+      if (units === void 0) {
+        units = 'rad';
+      }
+
+      if (locked === void 0) {
+        locked = false;
+      }
+
+      this._locked = false;
+      this._attrs = _extends({}, initialValues);
+      this._locked = false; // let attr: keyof TInitialValues;
+      // for (attr in initialValues) {
+      //   if (!!initialValues[attr]) {
+      //     const actualUnits = ANGLE_UNITS.has(attr) ? units : undefined;
+      //     const x = initialValues[attr];
+      //     if (x) this.set(attr, x, actualUnits);
+      //   }
+      // }
+
+      if (!!initialValues) {
+        Object.keys(initialValues).forEach(function (key) {
+          var actualUnits = ANGLE_UNITS.has(key) ? units : undefined;
+          var val = initialValues[key];
+          if (val) _this.set(key, val, actualUnits);
+        });
+      }
+
+      if (typeof this._attrs.GM === 'undefined') {
+        this._attrs.GM = GM.SUN;
+      }
+
+      this.fill();
+
+      if (this.get('e') > 0.9 && typeof this.get('tp') === 'undefined') {
+        console.warn('You must specify "tp" (time of perihelion) for highly eccentric orbits');
+      }
+
+      this._locked = locked;
+    }
+    /**
+     * Sets an ephemerides attribute.
+     * @param {String} attr The name of the attribute (e.g. 'a')
+     * @param {Number} val The value of the attribute (e.g. 0.5)
+     * @param {'deg'|'rad'} units The unit of angle provided, if applicable.
+     */
+
+
+    var _proto = SKEphem.prototype;
+
+    _proto.set = function set(attr, val, units) {
+      if (units === void 0) {
+        units = 'rad';
+      }
+
+      if (this._locked) {
+        throw new Error('Attempted to modify locked (immutable) Ephem object');
+      }
+
+      if (!EPHEM_VALID_ATTRS.has(attr)) {
+        console.warn("Invalid ephem attr: " + attr);
+        return false;
+      } // Store everything in radians.
+
+
+      if (units === 'deg') {
+        this._attrs[attr] = val * Math.PI / 180;
+      } else {
+        this._attrs[attr] = val;
+      }
+
+      return true;
+    }
+    /**
+     * Gets an ephemerides attribute.
+     * @param {String} attr The name of the attribute (e.g. 'a')
+     * @param {'deg'|'rad'} units The unit of angle desired, if applicable. This
+     * input is ignored for values that are not angle measurements.
+     */
+    ;
+
+    _proto.get = function get(attr, units) {
+      if (units === void 0) {
+        units = 'rad';
+      }
+
+      // --->>>
+      var val = this._attrs[attr]; // if (!val && units !== 'deg') throw new Error('Poor logic to allow non angle attr here');
+
+      return units === 'deg' ? val * 180 / Math.PI : val;
+    }
+    /**
+     * @private
+     * Infers values of some ephemerides attributes if the required information
+     * is available.
+     */
+    ;
+
+    _proto.fill = function fill() {
+      // Perihelion distance and semimajor axis
+      var e = this.get('e');
+
+      if (!isDef(e)) {
+        throw new Error('Must define eccentricity "e" in an orbit');
+      } // Semimajor axis and perihelion distance
+
+
+      var a = this.get('a');
+      var q = this.get('q');
+
+      if (isDef(a)) {
+        if (!isDef(q)) {
+          if (e >= 1.0) {
+            throw new Error('Must provide perihelion distance "q" if eccentricity "e" is greater than 1');
+          }
+
+          q = a * (1.0 - e);
+          this.set('q', q);
+        }
+      } else if (isDef(q)) {
+        a = q / (1.0 - e);
+        this.set('a', a);
+      } else {
+        throw new Error('Must define semimajor axis "a" or perihelion distance "q" in an orbit');
+      } // Longitude/Argument of Perihelion and Long. of Ascending Node
+
+
+      var w = this.get('w');
+      var wBar = this.get('wBar');
+      var om = this.get('om');
+
+      if (isDef(w) && isDef(om) && !isDef(wBar)) {
+        wBar = w + om;
+        this.set('wBar', wBar);
+      } else if (isDef(wBar) && isDef(om) && !isDef(w)) {
+        w = wBar - om;
+        this.set('w', w);
+      } else if (isDef(w) && isDef(wBar) && !isDef(om)) {
+        om = wBar - w;
+        this.set('om', om);
+      } // Mean motion and period
+
+
+      var aMeters = a * METERS_IN_AU;
+      var n = this.get('n');
+      var GM = this.get('GM');
+      var period = this.get('period');
+
+      if (!isDef(period) && isDef(a)) {
+        period = 2 * Math.PI * Math.sqrt(aMeters * aMeters * aMeters / GM) / SECONDS_IN_DAY;
+        this.set('period', period);
+      }
+
+      if (e < 1.0) {
+        // Only work with mean motion for elliptical orbits.
+        if (isDef(period) && !isDef(n)) {
+          // Set radians
+          var newN = 2.0 * Math.PI / period;
+          this.set('n', newN);
+        } else if (isDef(n) && !isDef(period)) {
+          this.set('period', 2.0 * Math.PI / n);
+        }
+      } // Mean longitude
+
+
+      var ma = this.get('ma');
+      var L = this.get('L');
+
+      if (!isDef(L) && isDef(om) && isDef(w) && isDef(ma)) {
+        L = om + w + ma;
+        this.set('L', L);
+      } // Mean anomaly
+
+
+      if (!isDef(ma)) {
+        // MA = Mean longitude - Longitude of perihelion
+        this.set('ma', L - wBar);
+      } //  TODO(ian): Handle no om
+
+    }
+    /**
+     * Make this ephem object immutable.
+     */
+    ;
+
+    _proto.lock = function lock() {
+      this._locked = true;
+    };
+
+    _proto.copy = function copy() {
+      return new SKEphem({
+        GM: this.get('GM'),
+        epoch: this.get('epoch'),
+        a: this.get('a'),
+        e: this.get('e'),
+        i: this.get('i'),
+        om: this.get('om'),
+        ma: this.get('ma'),
+        w: this.get('w')
+      }, 'rad');
+    };
+
+    return SKEphem;
+  }();
+  /**
+   * Standard gravitational parameter for objects orbiting these bodies.
+   * Units in m^3/s^2
+   */
+
+  var GM = {
+    // See https://space.stackexchange.com/questions/22948/where-to-find-the-best-values-for-standard-gravitational-parameters-of-solar-sys and https://naif.jpl.nasa.gov/pub/naif/generic_kernels/pck/gm_de431.tpc
+    SUN: 1.3271244004193938e20,
+    MERCURY: 2.2031780000000021e13,
+    VENUS: 3.2485859200000006e14,
+    EARTH_MOON: 4.0350323550225981e14,
+    MARS: 4.2828375214000022e13,
+    JUPITER: 1.2671276480000021e17,
+    SATURN: 3.7940585200000003e16,
+    URANUS: 5.794548600000008e15,
+    NEPTUNE: 6.8365271005800236e15,
+    PLUTO_CHARON: 9.7700000000000068e11
+  };
+
+  function kmToAu(km) {
+    return km / 149597870.7;
+  }
+
+  /**
+   * A dictionary containing ephemerides of planets and other well-known objects.
+   * @example
+   * const planet1 = viz.createObject('planet1', {
+   *   ephem: EphemPresets.MERCURY,
+   * });
+   */
+
+  var EphemPresets = {
+    // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+    MERCURY: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 3.870968969437096e-1,
+      e: 2.056515875393916e-1,
+      i: 7.003891682749818,
+      om: 4.830774804443502e1,
+      w: 2.917940253442659e1,
+      ma: 2.56190975209273e2
+    }, 'deg', true
+    /* locked */
+    ),
+    VENUS: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 7.233458663591554e-1,
+      e: 6.762510759617694e-3,
+      i: 3.394567787211735,
+      om: 7.662534150657346e1,
+      w: 5.474567447560867e1,
+      ma: 2.756687596099721e2
+    }, 'deg', true
+    /* locked */
+    ),
+    EARTH: /*#__PURE__*/new SKEphem({
+      // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+
+      /*
+      epoch: 2451545.0,
+      a: 1.00000011,
+      e: 0.01671022,
+      i: 0.00005,
+      om: -11.26064,
+      wBar: 102.94719,
+      L: 100.46435,
+      */
+      // https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
+      epoch: 2451545.0,
+      a: 1.00000261,
+      e: 0.01671123,
+      i: -0.00001531,
+      om: 0.0,
+      wBar: 102.93768193,
+      L: 100.46457166
+    }, 'deg', true
+    /* locked */
+    ),
+    MOON: /*#__PURE__*/new SKEphem({
+      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+      GM: 0.3986e6,
+      // Geocentric
+      // https://ssd.jpl.nasa.gov/horizons.cgi#results
+      epoch: 2458621.5,
+      a: 2.582517063772124e-3,
+      e: 4.582543645168888e-2,
+      i: 5.102060246928811,
+      om: 1.085916732144811e2,
+      w: 6.180561793729225e1,
+      ma: 5.053270083636792e1
+    }, 'deg', true
+    /* locked */
+    ),
+    MARS: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 1.52371401537107,
+      e: 9.336741335309606e-2,
+      i: 1.848141099825311,
+      om: 4.950420572080223e1,
+      w: 2.866965847685386e2,
+      ma: 2.538237617924876e1
+    }, 'deg', true
+    /* locked */
+    ),
+    JUPITER: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 5.20180355911023,
+      e: 4.89912558249006e-2,
+      i: 1.303560894624275,
+      om: 1.005203828847816e2,
+      w: 2.73736301845404e2,
+      ma: 2.31939544389401e2
+    }, 'deg', true
+    /* locked */
+    ),
+    SATURN: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 9.577177295536776,
+      e: 5.101889921719987e-2,
+      i: 2.482782449972317,
+      om: 1.136154964073247e2,
+      w: 3.394422648650336e2,
+      ma: 1.870970898012944e2
+    }, 'deg', true
+    /* locked */
+    ),
+    URANUS: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 1.914496966635462e1,
+      e: 4.832662948112808e-2,
+      i: 7.697511134483724e-1,
+      om: 7.414239045667875e1,
+      w: 9.942704504702185e1,
+      ma: 2.202603033874267e2
+    }, 'deg', true
+    /* locked */
+    ),
+    NEPTUNE: /*#__PURE__*/new SKEphem({
+      epoch: 2458426.5,
+      a: 3.00962226342805e1,
+      e: 7.36257118719377e-3,
+      i: 1.774569249829094,
+      om: 1.318695882492132e2,
+      w: 2.586226409499831e2,
+      ma: 3.152804988924479e2
+    }, 'deg', true
+    /* locked */
+    ),
+    PLUTO: /*#__PURE__*/new SKEphem({
+      epoch: 2454000.5,
+      a: 39.4450697257,
+      e: 0.250248713478,
+      i: 17.0890009196,
+      om: 110.376957955,
+      w: 112.597141677,
+      ma: 25.2471897122
+    }, 'deg', true
+    /* locked */
+    )
+  };
+
+  var scaleFactor = 1.0;
+  function rescaleArray(XYZ) {
+    return [XYZ[0] * scaleFactor, XYZ[1] * scaleFactor, XYZ[2] * scaleFactor];
+  }
+  function rescaleXYZ(X, Y, Z) {
+    return [X * scaleFactor, Y * scaleFactor, Z * scaleFactor];
+  }
+
+  /**
+   * Interpolates the given 2D array of data using a Lagrange Polynomial interpolation. User specifies first/last row
+   * versus giving a number of sample points and a starting index. For best performance number of points generally would
+   * be between 1 (linear) and 7
+   *
+   * @param {Array} data array
+   * @param {Number} xValue value of x to evaluate for function y = f(x) represented by the data
+   * @param {Number} sampleRowMin first row of data to use for the interpolation
+   * @param {Number} sampleRowMax last row of data to use for the interpolation
+   * @param {Number} xIndex the column of data which represents the 'x' variable of y = f(x)
+   * @param {Number} yIndex the column of data which represents the 'y' curve data of y = f(x)
+   * @returns {Number} the interpolated value of the function f(x) from the data
+   */
+  function interpolate(data, xValue, sampleRowMin, sampleRowMax, xIndex, yIndex) {
+    if (data === undefined) {
+      throw 'data object is undefined';
+    }
+
+    if (!Array.isArray(data)) {
+      throw 'data object must be an array';
+    }
+
+    if (sampleRowMin >= sampleRowMax) {
+      throw 'first row must be greater than last row';
+    }
+
+    if (sampleRowMin < 0) {
+      throw 'first row must be greater than zero';
+    }
+
+    if (sampleRowMax > data.length - 1) {
+      throw 'last row must be ';
+    }
+
+    if (!Array.isArray(data[sampleRowMin])) {
+      throw 'data in rows must be array data';
+    }
+
+    var maxColumn = data[0].length - 1;
+
+    if (xIndex < 0 || xIndex > maxColumn) {
+      throw "xIndex has to be between 0 and " + maxColumn + ": " + xIndex;
+    }
+
+    if (yIndex < 0 || yIndex > maxColumn) {
+      throw "yIndex has to be between 0 and " + maxColumn + ": " + yIndex;
+    }
+
+    var sum = 0;
+
+    for (var j = sampleRowMin; j <= sampleRowMax; j++) {
+      var prod = 1;
+
+      for (var k = sampleRowMin; k <= sampleRowMax; k++) {
+        if (k === j) {
+          continue;
+        }
+
+        prod *= (xValue - data[k][xIndex]) / (data[j][xIndex] - data[k][xIndex]);
+      }
+
+      sum += prod * data[j][yIndex];
+    }
+
+    return sum;
+  }
+
+  var DEFAULT_COMPARER_METHOD = function DEFAULT_COMPARER_METHOD(a, b) {
+    return a - b;
+  };
+  /**
+   * Performs a standard binary search on an array of values returning the index of the found item or the twos complement
+   * negative of the closest value if the exact value isn't found. For example for array: [10, 20, 30]
+   *   * Searching for a value of 20 would return an index of 1
+   *   * Searching for a value of 12 would return a value of -2 (taking the two's complement back '~' give you 1)
+   * @param {Array} data an array of values of the type consistent with the comparer method
+   * @param value the value to be searched for in the data array
+   * @param {Function} [comparer] a function which takes two arguments: first of same type as data row and second as same
+   * time as value to compare. Default method is a numerical comparison
+   * @returns {number}
+   */
+
+  function binarySearch(data, value, comparer) {
+    if (comparer === void 0) {
+      comparer = DEFAULT_COMPARER_METHOD;
+    }
+
+    if (data === undefined) {
+      throw 'data object is undefined';
+    }
+
+    if (!Array.isArray(data)) {
+      throw 'data object must be an array';
+    }
+
+    if (value === undefined) {
+      throw 'value object must be defined';
+    }
+
+    if (comparer === undefined) {
+      throw 'comparer must be defined';
+    }
+
+    var left = 0;
+    var right = data.length;
+
+    while (left <= right) {
+      var middle = Math.floor((left + right) / 2);
+
+      if (middle === data.length) {
+        return middle;
+      }
+
+      var comparisonCalc = comparer(data[middle], value);
+
+      if (comparisonCalc < 0) {
+        left = middle + 1;
+      } else if (comparisonCalc > 0) {
+        right = middle - 1;
+      } else {
+        return middle;
+      }
+    }
+
+    return ~left;
+  }
+
+  /**
+   * A class representing an ephemeris look-up table for defining a space object.
+   * @example
+   */
+  // Constants
+
+  var MAX_INTERPOLATION_ORDER = 20;
+
+  var INCREASING_JDATE_SEARCH_METHOD = function INCREASING_JDATE_SEARCH_METHOD(a, b) {
+    return a[0] - b;
+  }; //Default Values
+
+
+  var DEFAULT_UNITS = {
+    distance: 'au',
+    time: 'day'
+  };
+  var DEFAULT_EPHEM_TYPE = 'cartesianposvel';
+  var DEFAULT_INTERPOLATION_TYPE = 'lagrange';
+  var DEFAULT_INTERPOLATION_ORDER = 5; //Allowable unit types
+
+  var DISTANCE_UNITS = /*#__PURE__*/new Set(['km', 'au']);
+  var EPHEM_TYPES = /*#__PURE__*/new Set(['cartesianposvel']);
+  var INTERPOLATION_TYPES = /*#__PURE__*/new Set(['lagrange']);
+  var TIME_UNITS = /*#__PURE__*/new Set(['day', 'sec']);
+  /**
+   * This class encapsulates the data and necessary methods for operating with look up ephemeris data.
+   * Users of the class pass in their ephemeris data as a data structure with the data and the settings for the ephemeris.
+   * The settings include things like the units, and the ephemeris representation. The ephemeris data itself is an array
+   * of arrays where each line constitute the necessary components of the line.
+   *
+   * For 'cartesianposvel' style ephemeris each line of data looks like: [Julian Date, X, Y, Z, Vx, Vy, Vz]
+   */
+
+  var SKEphemerisTable = /*#__PURE__*/function () {
+    /**
+     * @param {Object} ephemerisData Look up ephemeris data to initialize the table with and the properties of it
+     * @param {Array.<Array.<Number>>} ephemerisData.data the ephemeris data appropriate for the specified ephemeris type
+     * @param {String} ephemerisData.ephemerisType the type of ephemeres data here (defaults to 'cartesianposvel')
+     * @param {String} ephemerisData.distanceUnits the distance units for this data (defaults to AU
+     * @param {String} ephemerisData.timeUnits the distance units for this data (defaults to day)
+     * @param {String} ephemerisData.interpolationType the type of interpolater to use (defaults to 'lagrange')
+     * @param {Number} ephemerisData.interpolationOrder the order of the interpolator to use (defaults to 5)
+     */
+    function SKEphemerisTable(ephemerisData) {
+      // this._units = JSON.parse(JSON.stringify(DEFAULT_UNITS));
+      // this._ephemType = DEFAULT_EPHEM_TYPE;
+      // this._ephemType = DEFAULT_EPHEM_TYPE;
+      // this._interpolationType = DEFAULT_INTERPOLATION_TYPE;
+      // this._interpolationOrder = DEFAULT_INTERPOLATION_ORDER;
+      // ~~~>>>
+      this._units = _extends({}, DEFAULT_UNITS);
+      this._ephemType = DEFAULT_EPHEM_TYPE;
+      this._interpolationType = DEFAULT_INTERPOLATION_TYPE;
+      this._interpolationOrder = DEFAULT_INTERPOLATION_ORDER;
+
+      if (!ephemerisData) {
+        throw 'EphemerisTable must be initialized with an ephemeris data structure';
+      }
+
+      if (!ephemerisData.data || !Array.isArray(ephemerisData.data) || ephemerisData.data.length === 0 || !Array.isArray(ephemerisData.data[0])) {
+        throw 'EphemerisTable must be initialized with a structure containing an array of arrays of ephemeris data';
+      } // this._data = JSON.parse(JSON.stringify(ephemerisData.data));
+
+
+      this._data = [].concat(ephemerisData.data);
+
+      if (ephemerisData.distanceUnits) {
+        if (!DISTANCE_UNITS.has(ephemerisData.distanceUnits)) {
+          throw "Unknown distance units: " + ephemerisData.distanceUnits;
+        }
+
+        this._units.distance = ephemerisData.distanceUnits;
+      }
+
+      if (ephemerisData.timeUnits) {
+        if (!TIME_UNITS.has(ephemerisData.timeUnits)) {
+          throw "Unknown time units: " + ephemerisData.timeUnits;
+        }
+
+        this._units.time = ephemerisData.timeUnits;
+      }
+
+      if (ephemerisData.ephemerisType) {
+        if (!EPHEM_TYPES.has(ephemerisData.ephemerisType)) {
+          throw "Unknown ephemeris type: " + ephemerisData.ephemerisType;
+        }
+
+        this._ephemType = ephemerisData.ephemerisType;
+      }
+
+      if (ephemerisData.interpolationType) {
+        if (!INTERPOLATION_TYPES.has(ephemerisData.interpolationType)) {
+          throw "Unknown interpolation type: " + ephemerisData.interpolationType;
+        }
+
+        this._interpolationType = ephemerisData.interpolationType;
+      }
+
+      if (ephemerisData.interpolationOrder !== undefined) {
+        if (ephemerisData.interpolationOrder < 1 || ephemerisData.interpolationOrder > MAX_INTERPOLATION_ORDER) {
+          throw "Interpolation order must be >0 and <" + MAX_INTERPOLATION_ORDER + ": " + ephemerisData.interpolationOrder;
+        }
+
+        this._interpolationOrder = ephemerisData.interpolationOrder;
+      }
+
+      if (this._units.distance !== DEFAULT_UNITS.distance || this._units.time !== DEFAULT_UNITS.time) {
+        var distanceMultiplier = this.calcDistanceMultiplier(this._units.distance);
+        var timeMultiplier = this.calcTimeMultiplier(this._units.time);
+
+        this._data.forEach(function (line) {
+          line[1] *= distanceMultiplier;
+          line[2] *= distanceMultiplier;
+          line[3] *= distanceMultiplier;
+          line[4] *= distanceMultiplier * timeMultiplier;
+          line[5] *= distanceMultiplier * timeMultiplier;
+          line[6] *= distanceMultiplier * timeMultiplier;
+        });
+      }
+    }
+    /**
+     * Calculates the interpolated position for the given requested date. If the requested date is before the first
+     * point it returns the first point. If the requested date is after the last point it returns the last point.
+     * @param {Number} jd of the requested time
+     * @returns {Number[]|*[]} x, y, z position in the ephemeris table's reference frame
+     */
+
+
+    var _proto = SKEphemerisTable.prototype;
+
+    _proto.getPositionAtTime = function getPositionAtTime(jd) {
+      if (jd <= this._data[0][0]) {
+        return [this._data[0][1], this._data[0][2], this._data[0][3]];
+      }
+
+      var last = this._data[this._data.length - 1];
+
+      if (jd >= last[0]) {
+        return [last[1], last[2], last[3]];
+      }
+
+      var _this$calcBoundingInd = this.calcBoundingIndices(jd),
+          startIndex = _this$calcBoundingInd.startIndex,
+          stopIndex = _this$calcBoundingInd.stopIndex;
+
+      var x = interpolate(this._data, jd, startIndex, stopIndex, 0, 1);
+      var y = interpolate(this._data, jd, startIndex, stopIndex, 0, 2);
+      var z = interpolate(this._data, jd, startIndex, stopIndex, 0, 3);
+      return [x, y, z];
+    }
+    /**
+     * Given the start and stop time returns a uniform ephemeris history.
+     * @param {Number} startJd the requested start date
+     * @param {Number} stopJd the requested stop date
+     * @param {Number} stepDays the step size of the data requested in days (can be fractional days)
+     * @returns {number[][]}
+     */
+    ;
+
+    _proto.getPositions = function getPositions(startJd, stopJd, stepDays) {
+      if (startJd > stopJd) {
+        throw "Requested start needs to be after requested stop";
+      }
+
+      if (stepDays <= 0.0) {
+        throw 'Step days needs to be greater than zero';
+      }
+
+      var result = [];
+
+      for (var t = startJd; t <= stopJd; t += stepDays) {
+        result.push(this.getPositionAtTime(t));
+      }
+
+      return result;
+    }
+    /**
+     * @private
+     */
+    ;
+
+    _proto.calcDistanceMultiplier = function calcDistanceMultiplier(unitType) {
+      switch (unitType) {
+        case 'au':
+          return 1.0;
+
+        case 'km':
+          return kmToAu(1);
+
+        default:
+          throw new Error('Unknown distance unit type: ' + unitType);
+      }
+    }
+    /**
+     * @private
+     */
+    ;
+
+    _proto.calcTimeMultiplier = function calcTimeMultiplier(unitType) {
+      switch (unitType) {
+        case 'day':
+          return 1.0;
+
+        case 'sec':
+          return 1 / 86400.0;
+
+        default:
+          throw new Error('Unknown time unit type: ' + unitType);
+      }
+    }
+    /**
+     * @private
+     */
+    ;
+
+    _proto.calcBoundingIndices = function calcBoundingIndices(jd) {
+      var halfSampleSize = Math.floor(this._interpolationOrder / 2);
+      var closestIndex = binarySearch(this._data, jd, INCREASING_JDATE_SEARCH_METHOD);
+
+      if (closestIndex < 0) {
+        closestIndex = ~closestIndex - 1;
+      }
+
+      var startIndex = closestIndex - halfSampleSize;
+
+      if (startIndex < 0) {
+        startIndex = 0;
+      }
+
+      var stopIndex = startIndex + Number(this._interpolationOrder);
+
+      if (stopIndex >= this._data.length) {
+        stopIndex = this._data.length - 1;
+
+        if (this._data.length > halfSampleSize) {
+          startIndex = stopIndex - halfSampleSize;
+        }
+      }
+
+      return {
+        startIndex: startIndex,
+        stopIndex: stopIndex
+      };
+    };
+
+    return SKEphemerisTable;
+  }();
+
+  var sin = Math.sin;
+  var cos = Math.cos;
+  var sqrt = Math.sqrt;
+  var DEFAULT_LEAD_TRAIL_YEARS = 10;
+  var DEFAULT_SAMPLE_POINTS = 360; // const DEFAULT_ORBIT_PATH_SETTINGS = {
+  //   leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+  //   trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+  //   numberSamplePoints: DEFAULT_SAMPLE_POINTS,
+  // };
+  // const MAX_NUM_ECLIPTIC_DROPLINES = 90;
+
+  /**
+   * Special cube root function that assumes input is always positive.
+   */
+
+  function cbrt(x) {
+    return Math.exp(Math.log(x) / 3.0);
+  }
+  /**
+   * Enum of orbital types.
+   */
+  // export const OrbitType = Object.freeze({
+  //   UNKNOWN: 0,
+  //   PARABOLIC: 1,
+  //   HYPERBOLIC: 2,
+  //   ELLIPTICAL: 3,
+  //   TABLE: 4,
+  // });
+
+
+  var OrbitType;
+
+  (function (OrbitType) {
+    OrbitType[OrbitType["UNKNOWN"] = 0] = "UNKNOWN";
+    OrbitType[OrbitType["PARABOLIC"] = 1] = "PARABOLIC";
+    OrbitType[OrbitType["HYPERBOLIC"] = 2] = "HYPERBOLIC";
+    OrbitType[OrbitType["ELLIPTICAL"] = 3] = "ELLIPTICAL";
+    OrbitType[OrbitType["TABLE"] = 4] = "TABLE";
+  })(OrbitType || (OrbitType = {}));
+  /**
+   * Get the type of orbit. Returns one of OrbitType.PARABOLIC, HYPERBOLIC,
+   * ELLIPTICAL, or UNKNOWN.
+   * @return {OrbitType} Name of orbit type
+   */
+
+
+  function getOrbitType(ephem) {
+    if (ephem instanceof SKEphemerisTable) {
+      return OrbitType.TABLE;
+    }
+
+    var e = ephem.get('e');
+
+    if (e > 0.9 && e < 1.2) {
+      return OrbitType.PARABOLIC;
+    } else if (e > 1.2) {
+      return OrbitType.HYPERBOLIC;
+    } else {
+      return OrbitType.ELLIPTICAL;
+    }
+  }
+  /**
+   * A class that builds a visual representation of a Kepler orbit.
+   * @example
+   * const orbit = new Spacekit.Orbit({
+   *   ephem: new Spacekit.Ephem({...}),
+   *   options: {
+   *     color: 0xFFFFFF,
+   *     eclipticLineColor: 0xCCCCCC,
+   *   },
+   * });
+   */
+
+  var SKOrbit = /*#__PURE__*/function () {
+    /**
+     * @param {(SKEphem | SKEphemerisTable)} ephem The ephemerides that define this orbit.
+     * @param {Object} options
+     * @param {Object} options.color The color of the orbital ellipse.
+     * @param {Object} options.orbitPathSettings settings for the path
+     * @param {Object} options.orbitPathSettings.leadDurationYears orbit path lead time in years
+     * @param {Object} options.orbitPathSettings.trailDurationYears orbit path trail time in years
+     * @param {Object} options.orbitPathSettings.numberSamplePoints number of
+     * points to use when drawing the orbit line. Only applicable for
+     * non-elliptical and ephemeris table orbits.
+     * @param {Object} options.eclipticLineColor The color of lines drawn
+     * perpendicular to the ecliptic in order to illustrate depth (defaults to
+     * 0x333333).
+     */
+    function SKOrbit(_ephem, options) {
+      /**
+       * Ephem object
+       * @type {SKEphem}
+       */
+      // this._ephem = ephem;
+      this._ephem = _ephem;
+      this._orbitStart = 0;
+      this._orbitStop = 0;
+      /**
+       * Options (see class definition for details)
+       */
+
+      this._options = _extends({
+        color: 'white',
+        eclipticLineColor: 'cyan'
+      }, options, {
+        orbitPathSettings: _extends({
+          leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+          trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
+          numberSamplePoints: DEFAULT_SAMPLE_POINTS
+        }, options.orbitPathSettings)
+      }); // /**
+      //  * configuring orbit path lead/trail data
+      //  */
+      // if (!this._options.orbitPathSettings) {
+      //   this._options.orbitPathSettings = JSON.parse(
+      //     JSON.stringify(DEFAULT_ORBIT_PATH_SETTINGS)
+      //   );
+      // }
+      // if (!this._options.orbitPathSettings.leadDurationYears) {
+      //   this._options.orbitPathSettings.leadDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+      // }
+      // if (!this._options.orbitPathSettings.trailDurationYears) {
+      //   this._options.orbitPathSettings.trailDurationYears = DEFAULT_LEAD_TRAIL_YEARS;
+      // }
+      // if (!this._options.orbitPathSettings.numberSamplePoints) {
+      //   this._options.orbitPathSettings.numberSamplePoints = DEFAULT_SAMPLE_POINTS;
+      // }
+
+      /**
+       * Cached orbital points.
+       * @type {Array.<THREE.Vector3>}
+       */
+      // this._orbitPoints = null;
+
+      /**
+       * Cached ecliptic drop lines.
+       * @type {Array.<THREE.Vector3>}
+       */
+      // this._eclipticDropLines = null;
+
+      /**
+       * Cached orbit shape.
+       * @type {THREE.Line}
+       */
+      // this._orbitShape = null;
+
+      /**
+       * Time span of the drawn orbit line
+       */
+      // this._orbitStart = 0;
+      // this._orbitStop = 0;
+
+      /**
+       * Orbit type
+       * @type {OrbitType}
+       */
+      // this._orbitType = getOrbitType(this._ephem);
+
+      this._orbitType = getOrbitType(this._ephem);
+    }
+    /**
+     * Get heliocentric position of object at a given JD.
+     * @param {Number} jd Date value in JD.
+     * @param {boolean} debug Set true for debug output.
+     * @return {Array.<Number>} [X, Y, Z] coordinates
+     */
+
+
+    var _proto = SKOrbit.prototype;
+
+    _proto.getPositionAtTime = function getPositionAtTime(jd, debug) {
+      if (debug === void 0) {
+        debug = false;
+      }
+
+      // Note: logic below must match the vertex shader.
+      // This position calculation is used to create orbital ellipses.
+      switch (this._orbitType) {
+        case OrbitType.PARABOLIC:
+          return this.getPositionAtTimeNearParabolic(jd, debug);
+
+        case OrbitType.HYPERBOLIC:
+          return this.getPositionAtTimeHyperbolic(jd, debug);
+
+        case OrbitType.ELLIPTICAL:
+          return this.getPositionAtTimeElliptical(jd, debug);
+
+        case OrbitType.TABLE:
+          return this.getPositionAtTimeTable(jd, debug);
+      }
+
+      throw new Error('No handler for this type of orbit');
+    };
+
+    _proto.getPositionAtTimeParabolic = function getPositionAtTimeParabolic(jd, _debug) {
+
+      // See https://stjarnhimlen.se/comp/ppcomp.html#17
+      var eph = this._ephem;
+      if (eph instanceof SKEphemerisTable) throw new Error('Poor logic allowing table type here'); // The Guassian gravitational constant
+
+      var k = 0.01720209895; // Perihelion distance
+
+      var q = eph.get('q'); // Compute time since perihelion
+
+      var d = jd - eph.get('tp');
+      var H = d * (k / sqrt(2)) / sqrt(q * q * q);
+      var h = 1.5 * H;
+      var g = sqrt(1.0 + h * h);
+      var s = cbrt(g + h) - cbrt(g - h); // True anomaly
+
+      var v = 2.0 * Math.atan(s); // Heliocentric distance
+
+      var r = q * (1.0 + s * s);
+      return this.vectorToHeliocentric(v, r);
+    };
+
+    _proto.getPositionAtTimeNearParabolic = function getPositionAtTimeNearParabolic(jd, _debug) {
+
+      // See https://stjarnhimlen.se/comp/ppcomp.html#17
+      var eph = this._ephem;
+      if (eph instanceof SKEphemerisTable) throw new Error('Poor logic allowing table type here'); // The Guassian gravitational constant
+
+      var k = 0.01720209895; // Eccentricity
+
+      var e = eph.get('e'); // Perihelion distance
+
+      var q = eph.get('q'); // Compute time since perihelion
+
+      var d = jd - eph.get('tp');
+      var a = 0.75 * d * k * sqrt((1 + e) / (q * q * q));
+      var b = sqrt(1 + a * a);
+      var W = cbrt(b + a) - cbrt(b - a);
+      var f = (1 - e) / (1 + e);
+      var a1 = 2 / 3 + 2 / 5 * W * W;
+      var a2 = 7 / 5 + 33 / 35 * W * W + 37 / 175 * Math.pow(W, 4);
+      var a3 = W * W * (432 / 175 + 956 / 1125 * W * W + 84 / 1575 * Math.pow(W, 4));
+      var C = W * W / (1 + W * W);
+      var g = f * C * C;
+      var w = W * (1 + f * C * (a1 + a2 * g + a3 * g * g)); // True anomaly
+
+      var v = 2 * Math.atan(w); // Heliocentric distance
+
+      var r = q * (1 + w * w) / (1 + w * w * f);
+      return this.vectorToHeliocentric(v, r);
+    };
+
+    _proto.getPositionAtTimeHyperbolic = function getPositionAtTimeHyperbolic(jd, _debug) {
+
+      // See https://stjarnhimlen.se/comp/ppcomp.html#17
+      var eph = this._ephem;
+      if (eph instanceof SKEphemerisTable) throw new Error('Poor logic allowing table type here'); // Eccentricity
+
+      var e = eph.get('e'); // Perihelion distance
+      // const q = eph.get('q');
+      // Semimajor axis
+
+      var a = eph.get('a'); // Mean anomaly
+
+      var ma = eph.get('ma'); // Calculate mean anomaly at jd
+
+      var n = eph.get('n', 'rad');
+      var epoch = eph.get('epoch');
+      var d = jd - epoch;
+      var M = ma + n * d;
+      var F0 = M;
+
+      for (var count = 0; count < 100; count++) {
+        var F1 = (M + e * (F0 * Math.cosh(F0) - Math.sinh(F0))) / (e * Math.cosh(F0) - 1);
+        var lastdiff = Math.abs(F1 - F0);
+        F0 = F1;
+
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+
+      var F = F0;
+      var v = 2 * Math.atan(sqrt((e + 1) / (e - 1))) * Math.tanh(F / 2);
+      var r = a * (1 - e * e) / (1 + e * cos(v));
+      return this.vectorToHeliocentric(v, r);
+    };
+
+    _proto.getPositionAtTimeElliptical = function getPositionAtTimeElliptical(jd, _debug) {
+      if (_debug === void 0) {
+        _debug = false;
+      }
+
+      var eph = this._ephem;
+      if (eph instanceof SKEphemerisTable) throw new Error('Poor logic allowing table type here'); // Eccentricity
+
+      var e = eph.get('e'); // Mean anomaly
+
+      var ma = eph.get('ma', 'rad'); // Calculate mean anomaly at jd
+
+      var n = eph.get('n', 'rad');
+      var epoch = eph.get('epoch');
+      var d = jd - epoch;
+      var M = ma + n * d;
+
+      if (_debug) {
+        console.info('period=', eph.get('period'));
+        console.info('n=', n);
+        console.info('ma=', ma);
+        console.info('d=', d);
+        console.info('M=', M);
+      } // Estimate eccentric and true anom using iterative approx
+
+
+      var E0 = M;
+
+      for (var count = 0; count < 100; count++) {
+        var E1 = M + e * sin(E0);
+        var lastdiff = Math.abs(E1 - E0);
+        E0 = E1;
+
+        if (lastdiff < 0.0000001) {
+          break;
+        }
+      }
+
+      var E = E0;
+      var v = 2 * Math.atan(sqrt((1 + e) / (1 - e)) * Math.tan(E / 2)); // Radius vector, in AU
+
+      var a = eph.get('a');
+      var r = a * (1 - e * e) / (1 + e * cos(v));
+      return this.vectorToHeliocentric(v, r);
+    };
+
+    _proto.getPositionAtTimeTable = function getPositionAtTimeTable(jd, _debug) {
+
+      if (this._ephem instanceof SKEphem) throw new Error('Poor logic allowing non-table type here');
+
+      var point = this._ephem.getPositionAtTime(jd);
+
+      return rescaleXYZ(point[0], point[1], point[2]);
+    }
+    /**
+     * Given true anomaly and heliocentric distance, returns the scaled heliocentric coordinates (X, Y, Z)
+     * @param {Number} v True anomaly
+     * @param {Number} r Heliocentric distance
+     * @return {Array.<Number>} Heliocentric coordinates
+     */
+    ;
+
+    _proto.vectorToHeliocentric = function vectorToHeliocentric(v, r) {
+      var eph = this._ephem;
+      if (eph instanceof SKEphemerisTable) throw new Error('Poor logic allowing table type here'); // Inclination, Longitude of ascending node, Longitude of perihelion
+
+      var i = eph.get('i', 'rad');
+      var o = eph.get('om', 'rad');
+      var p = eph.get('wBar', 'rad'); // Heliocentric coords
+
+      var X = r * (cos(o) * cos(v + p - o) - sin(o) * sin(v + p - o) * cos(i));
+      var Y = r * (sin(o) * cos(v + p - o) + cos(o) * sin(v + p - o) * cos(i));
+      var Z = r * (sin(v + p - o) * sin(i));
+      return rescaleXYZ(X, Y, Z);
+    }
+    /**
+     * Returns whether the requested epoch is within the current orbit's
+     * definition. Used only for ephemeris tables.
+     * @param {Number} jd
+     * @return {boolean} true if it is within the orbit span, false if not
+     */
+    ;
+
+    _proto.needsUpdateForTime = function needsUpdateForTime(jd) {
+      if (this._orbitType === OrbitType.TABLE) {
+        return jd < this._orbitStart || jd > this._orbitStop;
+      } // Renderings for other types are static.
+
+
+      return false;
+    }
+    /**
+     * Calculates, caches, and returns the orbit state for this orbit around this time
+     * @param {Number} jd center time of the orbit (only used for ephemeris table ephemeris)
+     * @param {boolean} forceCompute forces the recomputing of the orbit on this call
+     * @return {THREE.Line}
+     */
+    ;
+
+    _proto.getOrbitShape = function getOrbitShape(jd, forceCompute) {
+      if (forceCompute === void 0) {
+        forceCompute = false;
+      }
+
+      if (forceCompute) {
+        if (this._orbitShape) {
+          this._orbitShape.geometry.dispose();
+
+          this._orbitShape.material.dispose();
+        }
+
+        this._orbitShape = undefined;
+
+        if (this._orbitPoints) {
+          this._orbitPoints.dispose();
+        }
+
+        this._orbitPoints = undefined;
+
+        if (this._eclipticDropLines) {
+          this._eclipticDropLines.geometry.dispose();
+
+          this._eclipticDropLines.material.dispose();
+        }
+
+        this._eclipticDropLines = undefined;
+      }
+
+      if (this._orbitShape) {
+        return this._orbitShape;
+      }
+
+      if (this._orbitType === OrbitType.ELLIPTICAL) {
+        return this.getEllipse();
+      } // For hyperbolic and parabolic orbits, decide on a time range to draw
+      // them.
+      // TODO(ian): Should we compute around current position, not time of perihelion?
+      // @ts-ignore
+
+
+      var tp = this._orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp'); // Use current date as a fallback if time of perihelion is not available.
+
+      var centerDate = tp ? tp : julian.toJulianDay(new Date());
+      var startJd = centerDate - this._options.orbitPathSettings.trailDurationYears * 365.25;
+      var endJd = centerDate + this._options.orbitPathSettings.leadDurationYears * 365.25;
+      var step = (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
+      this._orbitStart = startJd;
+      this._orbitStop = endJd;
+
+      switch (this._orbitType) {
+        case OrbitType.HYPERBOLIC:
+          return this.getLine(this.getPositionAtTimeHyperbolic.bind(this), startJd, endJd, step);
+
+        case OrbitType.PARABOLIC:
+          return this.getLine(this.getPositionAtTimeNearParabolic.bind(this), startJd, endJd, step);
+
+        case OrbitType.TABLE:
+          return this.getTableOrbit(startJd, endJd, step);
+      }
+
+      throw new Error('Unknown orbit shape');
+    }
+    /**
+     * Compute a line between a given date range.
+     * @private
+     */
+    ;
+
+    _proto.getLine = function getLine(orbitFn, startJd, endJd, step) {
+      var points = [];
+
+      for (var jd = startJd; jd <= endJd; jd += step) {
+        var pos = orbitFn(jd); // DWD
+
+        pos[0] = auToMeters(pos[0]);
+        pos[1] = auToMeters(pos[1]);
+        pos[2] = auToMeters(pos[2]); //
+
+        points.push(new Vector3(pos[0], pos[1], pos[2]));
+      } // const pointsGeometry = new THREE.Geometry();
+      // pointsGeometry.vertices = points;
+
+
+      var pointsGeometry = new BufferGeometry();
+      pointsGeometry.setFromPoints(points);
+      return this.generateAndCacheOrbitShape(pointsGeometry);
+    }
+    /**
+     * Returns the orbit for a table lookup orbit definition
+     * @private
+     * @param {Number} startJd start of orbit in JDate format
+     * @param {Number} stopJd end of orbit in JDate format
+     * @param {Number} step step size in days
+     * @return {THREE.Line}
+     */
+    ;
+
+    _proto.getTableOrbit = function getTableOrbit(startJd, stopJd, step) {
+      // --->>>
+      if (this._ephem instanceof SKEphem) throw new Error('Poor logic allowing non-table type here');
+
+      var rawPoints = this._ephem.getPositions(startJd, stopJd, step);
+
+      var points = rawPoints.map(function (values) {
+        return rescaleArray(values);
+      }).map(function (values) {
+        return new Vector3(values[0], values[1], values[2]);
+      }); // const pointGeometry = new THREE.Geometry();
+      // pointGeometry.vertices = points;
+
+      var pointGeometry = new BufferGeometry();
+      pointGeometry.setFromPoints(points);
+      return this.generateAndCacheOrbitShape(pointGeometry);
+    }
+    /**
+     * @private
+     * @return {THREE.Line} The ellipse object that represents this orbit.
+     */
+    ;
+
+    _proto.getEllipse = function getEllipse() {
+      var pointGeometry = this.getEllipseGeometry();
+      return this.generateAndCacheOrbitShape(pointGeometry);
+    }
+    /**
+     * @private
+     * @return {THREE.Geometry} A THREE.js geometry
+     */
+    ;
+
+    _proto.getEllipseGeometry = function getEllipseGeometry() {
+      var eph = this._ephem;
+      if (eph instanceof SKEphemerisTable) throw new Error('Poor logic allowing table type here');
+
+      var _period = eph.get('period');
+
+      var a = eph.get('a');
+      var ecc = eph.get('e');
+      var twoPi = Math.PI * 2;
+      var step = twoPi / 90;
+      var pts = [];
+
+      for (var E = 0; E < twoPi; E += step) {
+        var v = 2 * Math.atan(sqrt((1 + ecc) / (1 - ecc)) * Math.tan(E / 2));
+        var r = a * (1 - ecc * ecc) / (1 + ecc * cos(v));
+        var pos = this.vectorToHeliocentric(v, r);
+
+        if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
+          console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
+          console.error(eph);
+        } // pts.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
+        // DWD
+
+
+        pts.push(new Vector3(auToMeters(pos[0]), auToMeters(pos[1]), auToMeters(pos[2]))); //
+      }
+
+      pts.push(pts[0]); // const pointGeometry = new THREE.Geometry();
+      // pointGeometry.vertices = pts;
+
+      var pointGeometry = new BufferGeometry();
+      pointGeometry.setFromPoints(pts);
+      return pointGeometry;
+    }
+    /**
+     * @private
+     */
+    ;
+
+    _proto.generateAndCacheOrbitShape = function generateAndCacheOrbitShape(pointGeometry) {
+      // --->>>
+      this._orbitPoints = pointGeometry;
+      this._orbitShape = new Line(pointGeometry, new LineBasicMaterial({
+        color: new Color(this._options.color || 0x444444)
+      }) // THREE.LineStrip
+      );
+      return this._orbitShape;
+    }
+    /**
+     * A geometry containing line segments that run between the orbit ellipse and
+     * the ecliptic plane of the solar system. This is a useful visual effect
+     * that makes it easy to tell when an orbit goes below or above the ecliptic
+     * plane.
+     * @return {THREE.Geometry} A geometry with many line segments.
+     */
+    ;
+
+    _proto.getLinesToEcliptic = function getLinesToEcliptic() {
+      if (this._eclipticDropLines) {
+        return this._eclipticDropLines;
+      }
+
+      if (!this._orbitPoints) {
+        // Generate the orbitPoints cache.
+        this.getOrbitShape();
+      }
+
+      var points = this._orbitPoints; // const geometry = new THREE.Geometry();
+
+      var geometry = new BufferGeometry();
+      if (!points) throw new Error('Poor logic letting point be undefined here'); // Place a cap on visible lines, for large or highly inclined orbits.
+      // points.vertices.forEach((vertex, idx) => {
+      //   // Drop last point because it's a repeat of the first point.
+      //   if (
+      //     idx === points.vertices.length - 1 &&
+      //     this._orbitType === OrbitType.ELLIPTICAL
+      //   ) {
+      //     return;
+      //   }
+      //   geometry.vertices.push(vertex);
+      //   geometry.vertices.push(new THREE.Vector3(vertex.x, vertex.y, 0));
+      // });
+
+      this._eclipticDropLines = new LineSegments(geometry, new LineBasicMaterial({
+        color: this._options.eclipticLineColor || 0x333333,
+        blending: AdditiveBlending
+      }) // THREE.LineStrip
+      );
+      return this._eclipticDropLines;
+    }
+    /**
+     * Get the color of this orbit.
+     * @return {Number} The hexadecimal color of the orbital ellipse.
+     */
+    ;
+
+    _proto.getHexColor = function getHexColor() {
+      var _this$_orbitShape;
+
+      return (_this$_orbitShape = this._orbitShape) == null ? void 0 : _this$_orbitShape.material.color.getHex();
+    }
+    /**
+     * @param {Number} hexVal The hexadecimal color of the orbital ellipse.
+     */
+    ;
+
+    _proto.setHexColor = function setHexColor(hexVal) {
+      var _this$_orbitShape2, _this$_orbitShape2$ma;
+
+      if ((_this$_orbitShape2 = this._orbitShape) != null && (_this$_orbitShape2$ma = _this$_orbitShape2.material) != null && _this$_orbitShape2$ma.color) this._orbitShape.material.color = new Color(hexVal);
+    }
+    /**
+     * Get the visibility of this orbit.
+     * @return {boolean} Whether the orbital ellipse is visible. Note that
+     * although the ellipse may not be visible, it is still present in the
+     * underlying Scene and Simultation.
+     */
+    ;
+
+    _proto.getVisibility = function getVisibility() {
+      var _this$_orbitShape3;
+
+      return (_this$_orbitShape3 = this._orbitShape) == null ? void 0 : _this$_orbitShape3.visible;
+    }
+    /**
+     * Change the visibility of this orbit.
+     * @param {boolean} val Whether to show the orbital ellipse.
+     */
+    ;
+
+    _proto.setVisibility = function setVisibility(val) {
+      if (this._orbitShape) this._orbitShape.visible = val;
+    };
+
+    return SKOrbit;
+  }();
+
+  var Orbit = /*#__PURE__*/function () {
+    function Orbit(name, orbitalType) {
+      var _this = this;
+
+      if (orbitalType === void 0) {
+        orbitalType = EOrbitalType.PLANET;
+      }
+
+      // --->>>
+      this.name = name;
+      this.orbitalType = orbitalType; // ~~~>>>
+
+      this.cachedPositions = [];
+      this.projectedOrbitPoints = [];
+      this.projectedOrbitMaterial = new LineBasicMaterial({
+        linewidth: 2,
+        color: 'white'
+      });
+      this.projectedOrbitLine = new Line(new BufferGeometry(), this.projectedOrbitMaterial);
+
+      this.loadPlanet = function () {
+        _this.projectedOrbitMaterial.color = new Color('white');
+        _this.SKEph = EphemPresets[_this.name];
+        _this.SKOrbit = new SKOrbit(_this.SKEph, {
+          color: 'white',
+          eclipticLineColor: undefined,
+          orbitPathSettings: undefined
+        });
+        _this.SKprojectedOrbitLine = _this.SKOrbit.getOrbitShape();
+      };
+
+      this.loadAsteroid = function () {
+        _this.projectedOrbitMaterial.color = new Color('cyan');
+        _this.SKEph = new SKEphem({
+          epoch: 2458600.5,
+          a: 5.38533,
+          e: 0.19893,
+          i: 22.11137,
+          om: 294.42992,
+          w: 314.2889,
+          ma: 229.14238
+        }, 'deg');
+        _this.SKOrbit = new SKOrbit(_this.SKEph, {
+          color: undefined,
+          eclipticLineColor: undefined,
+          orbitPathSettings: undefined
+        });
+        _this.SKprojectedOrbitLine = _this.SKOrbit.getOrbitShape();
+      };
+
+      this.getProjectedOrbitLine = function () {
+        return _this.SKprojectedOrbitLine;
+      }; // this.calcRevolutionPath();
+
+
+      console.log('>>>> 0', name, orbitalType);
+
+      switch (this.orbitalType) {
+        case EOrbitalType.ASTEROID:
+          {
+            this.loadAsteroid();
+            break;
+          }
+
+        case EOrbitalType.PLANET:
+          {
+            this.loadPlanet();
+            break;
+          }
+
+        default:
+          {
+            this.loadPlanet();
+            break;
+          }
+      } //
+      // @ts-ignore
+      // console.log('>>>>', this.projectedOrbitLine, this.SKprojectedOrbitLine);
+
+    }
+
+    var _proto = Orbit.prototype;
+
+    _proto.calcRevolutionPath = function calcRevolutionPath(tCenturiesSinceJ200) {
+      if (tCenturiesSinceJ200 === void 0) {
+        tCenturiesSinceJ200 = 0;
+      }
+
+      // --->>>
+      // Calc path increments in units of centuries
+      var dayInCenturies = 1 / (100 * 365.25);
+      var dt = dayInCenturies * 1;
+      this.projectedOrbitPoints = [];
+      var orbitalPeriod = orbitalParams[this.name].periodDays || 0;
+
+      for (var i = 0; i < orbitalPeriod * 1.01; i++) {
+        var _this$getXyzMeters = this.getXyzMeters(tCenturiesSinceJ200 + dt * i),
+            x = _this$getXyzMeters.x,
+            y = _this$getXyzMeters.y,
+            z = _this$getXyzMeters.z;
+
+        this.projectedOrbitPoints.push(new Vector3(x, y, z));
+      } // Convert array of points to THREE.Line:
+
+
+      this.projectedOrbitLine.geometry = new BufferGeometry().setFromPoints(this.projectedOrbitPoints);
+    } // getProjectedOrbitLine = () => this.projectedOrbitLine;
+    ;
+
+    _proto.getPlanetXyzMeters = function getPlanetXyzMeters(tCenturiesSinceJ200) {
+      if (tCenturiesSinceJ200 === void 0) {
+        tCenturiesSinceJ200 = 0;
+      }
+
+      // --->>>
+      if (!!this.cachedPositions[tCenturiesSinceJ200]) return this.cachedPositions[tCenturiesSinceJ200];
+      var planetPosition = getPlanetPosition(this.name, tCenturiesSinceJ200);
+      this.cachedPositions[tCenturiesSinceJ200] = planetPosition;
+      return planetPosition;
+    };
+
+    _proto.getXyzMeters = function getXyzMeters(tCenturiesSinceJ200) {
+      var _this$SKOrbit;
+
+      if (tCenturiesSinceJ200 === void 0) {
+        tCenturiesSinceJ200 = 0;
+      }
+
+      // --->>>
+      var xyz = (_this$SKOrbit = this.SKOrbit) == null ? void 0 : _this$SKOrbit.getPositionAtTime(tCenturiesSinceJ200);
+      if (!xyz) return {
+        x: 0,
+        y: 0,
+        z: 0
+      };
+      var x = auToMeters(xyz[0]);
+      var y = auToMeters(xyz[1]);
+      var z = auToMeters(xyz[2]);
+      return {
+        x: x,
+        y: y,
+        z: z
+      };
+    };
+
+    return Orbit;
+  }();
+
+  var getSphereSegments = function getSphereSegments(orbitalType) {
+    if (orbitalType === EOrbitalType.ASTEROID) return 8;
+    return 32;
+  };
+  /**
+   * Base class for orbiting object (planet, asteroid, etc.) with toy-scale presentation
+   */
+
+
+  var AbstractOrbital = /*#__PURE__*/function (_AbstractToyMesh) {
+    _inheritsLoose(AbstractOrbital, _AbstractToyMesh);
+
+    function AbstractOrbital(_name, _orbitalType, radius, toyScale) {
+      var _this;
+
+      _this = _AbstractToyMesh.call(this, _name, radius, {
+        toyScale: toyScale,
+        realScale: 1,
+        sphereSegments: getSphereSegments(_orbitalType)
+      }) || this;
+      _this._name = _name;
+      _this._orbitalType = _orbitalType;
+
+      _this.getOrbit = function () {
+        return _this._orbit;
+      }; // Default geometry and appearance
+
+
+      _this._orbit = new Orbit(_this._name, _orbitalType);
+      _this._sceneEntityGroup.name = _this._name;
+
+      _this._sceneEntityGroup.add(_this._orbit.getProjectedOrbitLine());
+
+      return _this;
+    }
+
+    var _proto = AbstractOrbital.prototype;
+
+    _proto._getOrbitXyz = function _getOrbitXyz() {
+      return {
+        x: this._mesh.position.x,
+        y: this._mesh.position.y,
+        z: this._mesh.position.z
+      };
+    };
+
+    _proto._updateOrbitalPosition = function _updateOrbitalPosition(tCenturiesSinceJ2000) {
+      var t = tCenturiesSinceJ2000;
+
+      var _this$_orbit$getXyzMe = this._orbit.getXyzMeters(t),
+          x = _this$_orbit$getXyzMe.x,
+          y = _this$_orbit$getXyzMe.y,
+          z = _this$_orbit$getXyzMe.z;
+
+      this._mesh.position.set(x, y, z);
+
+      this._wireframe.position.set(x, y, z);
+    };
+
+    return AbstractOrbital;
+  }(AbstractToyMesh);
+
+  var Planet = /*#__PURE__*/function (_AbstractOrbital) {
+    _inheritsLoose(Planet, _AbstractOrbital);
+
+    function Planet(name) {
+      var _this;
+
+      _this = _AbstractOrbital.call(this, name, EOrbitalType.PLANET, getPlanetRadiusMeters(name), name === 'PLUTO' ? 10000 : 3000) || this;
+      _this.name = name;
+      return _this;
+    }
+
+    var _proto = Planet.prototype;
+
+    _proto.init = /*#__PURE__*/function () {
+      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
+        var _this2 = this;
+
+        return runtime_1.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                  var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
+                    var texture, bumpTexture;
+                    return runtime_1.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.next = 2;
+                            return getTexture("" + imageBaseUrl + _this2.name.toLowerCase() + (_this2.name === 'EARTH' ? '3' : '_small') + ".jpg", // `${imageBaseUrl}${this.name.toLowerCase()}.jpg`,
+                            _this2._name + ' IMAGE');
+
+                          case 2:
+                            texture = _context.sent;
+                            _this2._material.map = texture; //If Earth, then add fancy stuff; see: http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/
+
+                            if (!(_this2._name === 'EARTH')) {
+                              _context.next = 16;
+                              break;
+                            }
+
+                            _context.next = 7;
+                            return getTexture( // `${imageBaseUrl}earthBump_small.png`
+                            imageBaseUrl + "earthbump2.jpg", _this2._name + ' BUMP IMAGE');
+
+                          case 7:
+                            bumpTexture = _context.sent;
+                            _this2._material.bumpMap = bumpTexture;
+                            _this2._material.bumpScale = 0.95;
+                            _this2._material = new MeshStandardMaterial({
+                              // ambient: 0x00aa00,
+                              color: 0x00aa00,
+                              bumpMap: bumpTexture,
+                              bumpScale: 1
+                            });
+                            console.log('######## >>> ', _this2._material); // Use pixels in image to determine reflections on surface
+                            // this._material.specularMap = await getTexture(
+                            //   `${imageBaseUrl}earthspecular_small.jpg`,
+                            //   'earth specular'
+                            // );
+                            // this._material.specular = new THREE.Color('grey');
+                            // this._material.shininess = 5;
+                            // Clouds
+
+                            _context.next = 14;
+                            return createEarthCloudMesh(1.035 * _this2._radius);
+
+                          case 14:
+                            _this2.earthCloudMesh = _context.sent;
+
+                            if (!!_this2.earthCloudMesh) {
+                              console.log('>>>>');
+
+                              _this2._sceneEntityGroup.add(_this2.earthCloudMesh);
+                            }
+
+                          case 16:
+                            //
+                            _this2._sceneEntityGroup.add(_this2._mesh); // Rotate planet so images are right way up
+
+
+                            // Rotate planet so images are right way up
+                            _this2._mesh.rotation.x = Math.PI / 2;
+                            if (!!_this2.earthCloudMesh) _this2.earthCloudMesh.rotation.x = Math.PI / 2;
+                            if (!!_this2._wireframe) _this2._wireframe.rotation.x = Math.PI / 2; // Finish
+
+                            // Finish
+                            resolve(_this2._sceneEntityGroup);
+
+                          case 21:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  }));
+
+                  return function (_x) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()));
+
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }();
+
+    _proto.update = function update(_tCenturiesSinceJ2000) {
+      // ---
+      this._updateOrbitalPosition(_tCenturiesSinceJ2000);
+
+      this._updateMeshScale(); // ---
+
+
+      var _this$_getOrbitXyz = this._getOrbitXyz(),
+          x = _this$_getOrbitXyz.x,
+          y = _this$_getOrbitXyz.y,
+          z = _this$_getOrbitXyz.z;
+
+      if (this.earthCloudMesh) this.earthCloudMesh.position.set(x, y, z); // Spin planet
+
+      this._mesh.rotateY(0.001);
+
+      if (!!this.earthCloudMesh) this.earthCloudMesh.rotateY(0.002);
+    };
+
+    return Planet;
+  }(AbstractOrbital);
+
+  var StarField = /*#__PURE__*/function (_AbstractSceneEntity) {
+    _inheritsLoose(StarField, _AbstractSceneEntity);
+
+    function StarField(radius) {
+      var _this;
+
+      _this = _AbstractSceneEntity.call(this) || this; // ~~~>>>
+
+      _this.name = 'STARFIELD';
+      _this.material = new MeshPhongMaterial({
+        side: BackSide,
+        transparent: true
+      });
+      _this.mesh = new Mesh(new SphereGeometry(radius, 32, 32), _this.material);
+      _this.mesh.rotation.x = Math.PI / 2;
+
+      _this._sceneEntityGroup.add(_this.mesh);
+
+      _this._sceneEntityGroup.name = 'STARFIELD';
+      return _this;
+    }
+
+    var _proto = StarField.prototype;
+
+    _proto.init = /*#__PURE__*/function () {
+      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
+        var _this2 = this;
+
+        return runtime_1.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                  var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
+                    var texture;
+                    return runtime_1.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.next = 2;
+                            return getTexture(imageBaseUrl + "galaxy_starfield.png", 'star field image');
+
+                          case 2:
+                            texture = _context.sent;
+                            _this2.material.map = texture; // this.material.opacity = 0.3;
+
+                            // this.material.opacity = 0.3;
+                            resolve(_this2._sceneEntityGroup);
+
+                          case 5:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  }));
+
+                  return function (_x) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()));
+
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }();
+
+    _proto.update = function update(_time) {};
+
+    return StarField;
   }(AbstractSceneEntity);
+
+  // ------------------------------------------------------------- \\
+
+  var LEAP_SEC_SINCE_J2000 = 5; // Unix time at 12:00:00 TT Jan 1 2000
+
+  var UNIX_J2000_TT_EPOCH_SEC = 946727935.816;
+  function unixToJ2000(unix_time) {
+    return unix_time - UNIX_J2000_TT_EPOCH_SEC + LEAP_SEC_SINCE_J2000;
+  }
+  function dateToJ2000(date) {
+    return unixToJ2000(date.getTime() / 1000);
+  }
+  // ------------------------------------------------------------- \\
+  // ------------------------------------------------------------- \\
+
+  function jsDateToCenturiesSinceJ2000(date) {
+    // --------------------------------------->>>
+    var J2000Secs = dateToJ2000(date);
+    var tCenturiesSinceJ2000 = J2000Secs / secondsPerCentury;
+    return tCenturiesSinceJ2000;
+  }
 
   var MiscHelpers = /*#__PURE__*/function (_AbstractSceneEntity) {
     _inheritsLoose(MiscHelpers, _AbstractSceneEntity);
@@ -47177,121 +47633,17 @@
     return MiscHelpers;
   }(AbstractSceneEntity);
 
-  var SimpleLight = /*#__PURE__*/function (_AbstractSceneEntity) {
-    _inheritsLoose(SimpleLight, _AbstractSceneEntity);
-
-    function SimpleLight() {
-      var _this;
-
-      _this = _AbstractSceneEntity.apply(this, arguments) || this;
-
-      _this.update = function (time) {
-        _this._sceneEntityGroup.position.x += time * 0;
-      };
-
-      return _this;
-    }
-
-    var _proto = SimpleLight.prototype;
-
-    _proto.init = /*#__PURE__*/function () {
-      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
-        var _this2 = this;
-
-        return runtime_1.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                return _context.abrupt("return", new Promise(function (resolve) {
-                  //
-                  var light = new AmbientLight(0x333333, 0.3);
-                  light.userData.isAmbientLight = true;
-
-                  _this2._sceneEntityGroup.add(light);
-
-                  resolve(_this2._sceneEntityGroup);
-                }));
-
-              case 1:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee);
-      }));
-
-      function init() {
-        return _init.apply(this, arguments);
-      }
-
-      return init;
-    }();
-
-    return SimpleLight;
-  }(AbstractSceneEntity);
-
-  var Square = /*#__PURE__*/function (_AbstractSceneEntity) {
-    _inheritsLoose(Square, _AbstractSceneEntity);
-
-    // ~~~>>>
-    function Square(sideLength) {
-      var _this;
-
-      _this = _AbstractSceneEntity.call(this) || this;
-      _this.sideLength = sideLength;
-
-      _this.update = function (time) {
-        _this._sceneEntityGroup.position.x += time * 0;
-      };
-
-      return _this;
-    }
-
-    var _proto = Square.prototype;
-
-    _proto.init = /*#__PURE__*/function () {
-      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
-        var _this2 = this;
-
-        return runtime_1.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                return _context.abrupt("return", new Promise(function (resolve) {
-                  _this2._sceneEntityGroup.add(new Mesh(new BoxGeometry(_this2.sideLength, _this2.sideLength, _this2.sideLength), new MeshPhongMaterial()));
-
-                  _this2._sceneEntityGroup.position.z = -10;
-                  resolve(_this2._sceneEntityGroup);
-                }));
-
-              case 1:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee);
-      }));
-
-      function init() {
-        return _init.apply(this, arguments);
-      }
-
-      return init;
-    }();
-
-    return Square;
-  }(AbstractSceneEntity);
-
   var DirectionalLight$1 = /*#__PURE__*/function (_AbstractSceneEntity) {
     _inheritsLoose(DirectionalLight$1, _AbstractSceneEntity);
 
     function DirectionalLight$1() {
       var _this;
 
+      // ~~~>>>
       _this = _AbstractSceneEntity.apply(this, arguments) || this;
 
-      _this.update = function (time) {
-        _this._sceneEntityGroup.position.x += time * 0;
+      _this.update = function (_time) {// this._sceneEntityGroup.position.x += time * 0;
+        // this._sceneEntityGroup.rotateZ(_time * 0 + 0.001);
       };
 
       return _this;
@@ -47308,20 +47660,32 @@
             switch (_context.prev = _context.next) {
               case 0:
                 return _context.abrupt("return", new Promise(function (resolve) {
-                  var light = new DirectionalLight(0xffffff, 1);
-                  light.position.set(10, 10, 10);
-                  light.lookAt(0, 0, 0);
-                  light.castShadow = true;
+                  // Create light
+                  _this2._light = new DirectionalLight(0xffffff, 10);
+                  var s = auToMeters(4); // this._light.position.set(10, 10, 10);
 
-                  _this2._sceneEntityGroup.add(light);
+                  // this._light.position.set(10, 10, 10);
+                  _this2._light.position.set(s, s, s);
 
-                  var helper = new DirectionalLightHelper(light, 5);
+                  _this2._light.lookAt(0, 0, 0);
+
+                  _this2._light.castShadow = true;
+
+                  _this2._sceneEntityGroup.add(_this2._light); // Add light helper
+
+
+                  // Add light helper
+                  var helper = new DirectionalLightHelper(_this2._light.clone(), 5, 'cyan');
                   helper.userData.isHelper = true;
+                  helper.visible = true;
+                  helper.userData.name = 'my-directional-light-helper';
 
-                  _this2._sceneEntityGroup.add(light);
+                  _this2._sceneEntityGroup.add(_this2._light);
 
-                  _this2._sceneEntityGroup.add(helper);
+                  _this2._sceneEntityGroup.add(helper); // console.log('=============', this._light, this._light.clone(), helper);
 
+
+                  // console.log('=============', this._light, this._light.clone(), helper);
                   resolve(_this2._sceneEntityGroup);
                 }));
 
@@ -47340,11 +47704,89 @@
       return init;
     }();
 
+    _proto.setIsOn = function setIsOn(isOn) {
+      this._light.visible = isOn;
+    };
+
     return DirectionalLight$1;
   }(AbstractSceneEntity);
 
+  var defaultRadiusMeters = 10000;
+  var Asteroid = /*#__PURE__*/function (_AbstractOrbital) {
+    _inheritsLoose(Asteroid, _AbstractOrbital);
+
+    // ~~~>>>
+    function Asteroid(name, radius) {
+      if (radius === void 0) {
+        radius = defaultRadiusMeters;
+      }
+
+      return _AbstractOrbital.call(this, name, EOrbitalType.ASTEROID, radius, 30000) || this;
+    }
+
+    var _proto = Asteroid.prototype;
+
+    _proto.init = /*#__PURE__*/function () {
+      var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
+        var _this = this;
+
+        return runtime_1.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                  var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
+                    return runtime_1.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _this._sceneEntityGroup.add(_this._orbit.getProjectedOrbitLine());
+
+                            resolve(_this._sceneEntityGroup);
+
+                          case 2:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  }));
+
+                  return function (_x) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()));
+
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }();
+
+    _proto.update = function update(_tCenturiesSinceJ2000) {
+      // ---
+      this._updateOrbitalPosition(_tCenturiesSinceJ2000);
+
+      this._updateMeshScale(); // Spin planet
+
+
+      this._mesh.rotateY(0.01);
+    };
+
+    return Asteroid;
+  }(AbstractOrbital);
+
   /**
-   * Implement a scene for this app with 'real' entities
+   * Implement a scene for this app with 'real' scene entities
    */
 
   var SceneManager = /*#__PURE__*/function (_AbstractSceneManager) {
@@ -47353,69 +47795,85 @@
     function SceneManager(containerId) {
       var _this;
 
-      // -------------------------->>>
-      _this = _AbstractSceneManager.call(this, containerId) || this; // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>>
+      // --->>>
+      _this = _AbstractSceneManager.call(this, containerId) || this;
+      _this.isToyScale = true;
+      _this.tCenturiesSinceJ2000 = jsDateToCenturiesSinceJ2000(new Date());
 
-      _this.isRotating = false;
+      _this.toggleIsToyScale = function () {
+        _this.isToyScale = !_this.isToyScale;
 
-      _this.updateCamera = function (time) {
-        // -------------------------->>>
-        // if (!this.isRotating) return;
-        // Logic for random rotation
-        // This illustrates some important concepts for controlling camera
-        var f = 0.5;
-        var c = 1.111;
-        var x = 10 * Math.sin(time * 0.1 * f) + c;
-        var y = 10 * Math.cos(time * 0.1 * f * 2 + Math.PI) + c;
-        var z = 10 * Math.sin(time * 0.1 * f + Math.PI * 0.5) + c;
-        _this._camera.position.x = x;
-        _this._camera.position.y = y;
-        _this._camera.position.z = z; // Logic to prevent camera reorientation at zenith
-        // Allows world to go upside down; nauseating
-
-        var presentLookVector = new Vector3(0, 0, -1);
-        presentLookVector.applyQuaternion(_this._camera.quaternion);
-
-        _this._camera.up.copy(presentLookVector);
-
-        _this._camera.lookAt(0, 0, 0);
+        _this.setIsToyScale(_this.isToyScale);
       };
 
-      _this.toggleRotation = function () {
-        _this.isRotating = !_this.isRotating; // Reset camera
+      _this.setIsToyScale = function (isToyScale) {
+        _this.isToyScale = !!isToyScale;
 
-        if (_this.isRotating) {
-          _this._orbitControls.enabled = false;
-        } else {
-          _this._camera.position.copy(_this._initialViewingVector);
+        _this.sun.setIsToyScale(_this.isToyScale);
 
-          _this._camera.up.copy(new Vector3(0, 0, 1));
+        _this.planets.forEach(function (_) {
+          return _.setIsToyScale(_this.isToyScale);
+        });
 
-          _this._orbitControls.enabled = true;
-        }
+        _this.asteroids.forEach(function (_) {
+          return _.setIsToyScale(_this.isToyScale);
+        });
       };
 
-      _this.addSceneEntities([new DemoObjLoader(), new MiscHelpers(), new SimpleLight(), new Square(1), new DirectionalLight$1()]); // Logic to run before scene initialization
+      _this._updateCamera = function (_time) {
+        var _this$_controls;
+
+        var deltaDaysPerSec = 5000;
+
+        var dt_real = _this._clock.getDelta();
+
+        var dt = 1 / daysPerCentury * deltaDaysPerSec * dt_real;
+        _this.tCenturiesSinceJ2000 += dt;
+
+        _this._sceneEntities.forEach(function (el) {
+          return el.update(_this.tCenturiesSinceJ2000);
+        }); // Debug
 
 
-      _this.preInitHook = function () {}; // Logic to run after scene initialization
+        if (_this._controls instanceof TrackballControls) (_this$_controls = _this._controls) == null ? void 0 : _this$_controls.update();
+      }; // Create scene entities with handles
 
 
-      _this.postInitHook = function () {// this._orbitControls!.enabled = false;
-      }; // Set initial camera position
+      _this.sun = new Sun();
+      _this.starField = new StarField(auToMeters(999));
+      _this.planets = [new Planet('MERCURY'), new Planet('VENUS'), new Planet('EARTH'), new Planet('MARS'), new Planet('JUPITER'), new Planet('SATURN'), new Planet('URANUS'), new Planet('NEPTUNE'), new Planet('PLUTO')];
+      _this.asteroids = [new Asteroid('65P')]; // Register scene entities
+
+      _this.registerSceneEntities([new DirectionalLight$1(), new MiscHelpers()].concat(_this.planets, _this.asteroids, [_this.starField,
+      /** Sun MUST come last due to its sprite-blending settings **/
+      _this.sun])); // Logic to run before scene initialization
 
 
-      _this._initialViewingVector = new Vector3(6, 15, 9); // Add listeners, subscriptions, etc.
-      // !BE SURE TO ADD CORRESPONDING TERMINARTORS TO this.destroyHook()!
+      _this._preInitHook = function () {
+        var radius = auToMeters(4); // const radius = auToMeters(100); // See all planets
 
-      _this.tempInterval = setInterval(function () {
-        console.log('>>> Hmmm');
-      }, 1000);
+        _this._initialViewingVector = new Vector3(0, 0, radius);
+      }; // Logic to run after scene initialization
 
-      _this.destroyHook = function () {
-        console.log('Clearing interval');
-        clearInterval(_this.tempInterval);
-      };
+
+      _this._postInitHook = function () {
+        // Add buttons
+        buttonToggleLights(_this._container, function () {});
+        buttonToggleToyScale(_this._container, _this.toggleIsToyScale);
+        buttonToggleHelpers(_this._container, _this.toggleHelpersVisibility); // Misc
+
+        _this._controls.maxDistance = auToMeters(100);
+
+        _this.setIsToyScale(true);
+
+        _this.setHelpersVisibility(!true); //
+
+
+        _this._camera.position.set(-180595912325.3482, 34587914945.44637, 3906449321.9052143);
+      }; // Clean up on instance destruction
+
+
+      _this._destroyHook = function () {};
 
       return _this;
     }
@@ -47471,7 +47929,27 @@
     var canvasContainer = document.getElementById(containerId);
     if (!canvasContainer) throw new Error("Can't find div of id " + containerId);
     threejsScene = new SceneManager(containerId);
-    threejsScene.init();
+    threejsScene.init(); //@ts-ignore
+
+    var eph = new SKEphem({
+      epoch: 2458426.5,
+      a: 3.870968969437096e-1,
+      e: 2.056515875393916e-1,
+      i: 7.003891682749818,
+      om: 4.830774804443502e1,
+      w: 2.917940253442659e1,
+      ma: 2.56190975209273e2
+    }, 'deg', true
+    /* locked */
+    ); //
+    // const xxx = new SKOrbit(eph, {
+    //   color: undefined,
+    //   eclipticLineColor: undefined,
+    //   orbitPathSettings: undefined,
+    // });
+    // // const xyz = xxx.getPositionAtTime(0);
+    // const aaa = xxx.getOrbitShape();
+    // console.log('>>>>> ', xyz, aaa);
   }
   /**
    * Destroy

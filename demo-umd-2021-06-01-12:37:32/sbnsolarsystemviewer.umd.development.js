@@ -5364,7 +5364,9 @@
 
                           case 16:
                             //
-                            // this._sceneEntityGroup.add(this._mesh);
+                            _this2._sceneEntityGroup.add(_this2._mesh); // Rotate planet so images are right way up
+
+
                             // Rotate planet so images are right way up
                             _this2._mesh.rotation.x = Math.PI / 2;
                             if (!!_this2.earthCloudMesh) _this2.earthCloudMesh.rotation.x = Math.PI / 2;
@@ -5373,7 +5375,7 @@
                             // Finish
                             resolve(_this2._sceneEntityGroup);
 
-                          case 20:
+                          case 21:
                           case "end":
                             return _context.stop();
                         }
