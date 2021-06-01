@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
-import { ISceneEntity } from './models';
+import { ISceneEntity } from '../models/ISceneEntity';
 /**
  * This abstract class is to be inherited by the SceneManager instance.
  * The idea is to place all the usual/boilerplate code for setting up
@@ -43,7 +43,7 @@ export declare abstract class AbstractSceneManager {
      * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
      * on any object you want to be classified as a helper
      */
-    setHelpersVisibility: () => void;
+    setHelpersVisibility: (isHelpersShown: boolean) => void;
     toggleHelpersVisibility: () => void;
     setFramesPerSecond(newFps: number): void;
     private _updateCameraAspect;

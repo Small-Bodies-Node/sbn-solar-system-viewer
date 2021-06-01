@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
-import { ISceneEntity } from '../abstract-scene/models';
+import { ISceneEntity } from '../models/ISceneEntity';
 
 export class MiscHelpers extends AbstractSceneEntity implements ISceneEntity {
   async init() {

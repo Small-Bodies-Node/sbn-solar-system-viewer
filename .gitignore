@@ -6,3 +6,5 @@ dist
 **/*.tgz
 package
 dist-gh-pages
+
+.notes

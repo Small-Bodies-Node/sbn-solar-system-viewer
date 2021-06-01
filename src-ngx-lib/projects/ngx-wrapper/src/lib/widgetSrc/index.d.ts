@@ -9,4 +9,4 @@ export declare function destroy(): void;
 /**
  * React-component wrapper
  */
-export { TsdxThreejsTemplate } from './react-component';
+export { SbnSolarSystemViewer } from './react-component';

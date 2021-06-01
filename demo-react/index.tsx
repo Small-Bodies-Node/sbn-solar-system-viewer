@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'react-app-polyfill/ie11';
 
-import { TsdxThreejsTemplate } from '..';
+import { SbnSolarSystemViewer } from '..';
 
 const App = () => {
   // --------------->>>
@@ -32,7 +32,7 @@ const App = () => {
               e.stopPropagation();
             }}
           >
-            <TsdxThreejsTemplate backgroundColor="none" />
+            <SbnSolarSystemViewer backgroundColor="none" />
           </div>
         ) : (
           <div>Not visible</div>

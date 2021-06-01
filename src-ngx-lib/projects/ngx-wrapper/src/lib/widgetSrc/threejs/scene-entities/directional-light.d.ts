@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
-import { ISceneEntity } from '../abstract-scene/models';
+import { ISceneEntity } from '../models/ISceneEntity';
 export declare class DirectionalLight extends AbstractSceneEntity implements ISceneEntity {
     _light?: THREE.DirectionalLight;
     init(): Promise<THREE.Group>;

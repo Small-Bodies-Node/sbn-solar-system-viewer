@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react')) :
   typeof define === 'function' && define.amd ? define(['exports', 'react'], factory) :
-  (global = global || self, factory(global.TsdxThreejsTemplateWithThreejs = {}, global.React));
+  (global = global || self, factory(global.SbnSolarSystemViewerWithThreejs = {}, global.React));
 }(this, (function (exports, React) { 'use strict';
 
   React = React && Object.prototype.hasOwnProperty.call(React, 'default') ? React['default'] : React;
@@ -52906,7 +52906,7 @@
 
                   // Test loader-wrappers for MTL-OBJ and FBX files
                   {
-                    FBXLoader$1('https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.fbx', onObjectLoad, // 1,
+                    FBXLoader$1('https://raw.githubusercontent.com/d-w-d/sbn-solar-system-viewer/main/images/low-poly-well.fbx', onObjectLoad, // 1,
                     0.05, true, true);
                   }
                 }));
@@ -53436,7 +53436,7 @@
    *  React wrapper
    */
 
-  function TsdxThreejsTemplate(props) {
+  function SbnSolarSystemViewer(props) {
     // --->>>
     var _width$height$backgro = _extends({
       width: '100%',
@@ -53491,11 +53491,11 @@
     threejsScene.destroy();
   }
 
-  exports.TsdxThreejsTemplate = TsdxThreejsTemplate;
+  exports.SbnSolarSystemViewer = SbnSolarSystemViewer;
   exports.destroy = destroy;
   exports.init = init;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=tsdxthreejstemplatewiththreejs.umd.development.js.map
+//# sourceMappingURL=sbnsolarsystemviewerwiththreejs.umd.development.js.map

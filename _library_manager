@@ -90,14 +90,14 @@ function _build_umd() {
   _print "Building cjs,umd,esm..."
 
   _print "First build with threejs bundled into umd"
-  BUNDLE_THREE=true ./node_modules/.bin/tsdx build --format cjs,esm,umd --name TsdxThreejsTemplateWithThreejs
+  BUNDLE_THREE=true ./node_modules/.bin/tsdx build --format cjs,esm,umd --name SbnSolarSystemViewerWithThreejs
 
   _print "Move umd with threejs to demo-umd"
   # find dist -type f -name '*.umd.*js*' -exec bash -c $'mv {} $(echo {} | sed 's/.umd/.umd.withthreejs/g' | sed 's/dist/demo-umd/g' )' \;
   find dist -type f -name '*.umd.*js*' -exec bash -c $'mv {} $(echo {} | sed 's/dist/demo-umd/g' )' \;
 
   _print "Rebuild without threejs bundled into umd"
-  ./node_modules/.bin/tsdx build --format cjs,esm,umd --name TsdxThreejsTemplate
+  ./node_modules/.bin/tsdx build --format cjs,esm,umd --name SbnSolarSystemViewer
 
   _print "Copy umd without threejs to demo-umd"
   cp dist/*.umd.*.*js* demo-umd

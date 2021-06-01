@@ -106,23 +106,23 @@
         }
       }
     },
-    "TsdxThreejsTemplate": {
+    "SbnSolarSystemViewer": {
       "projectType": "library",
-      "root": "projects/tsdx-threejs-template",
-      "sourceRoot": "projects/tsdx-threejs-template/src",
+      "root": "projects/sbn-solar-system-viewer",
+      "sourceRoot": "projects/sbn-solar-system-viewer/src",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "project": "projects/tsdx-threejs-template/ng-package.json"
+            "project": "projects/sbn-solar-system-viewer/ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "projects/tsdx-threejs-template/tsconfig.lib.prod.json"
+              "tsConfig": "projects/sbn-solar-system-viewer/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/tsdx-threejs-template/tsconfig.lib.json"
+              "tsConfig": "projects/sbn-solar-system-viewer/tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -130,9 +130,9 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/tsdx-threejs-template/src/test.ts",
-            "tsConfig": "projects/tsdx-threejs-template/tsconfig.spec.json",
-            "karmaConfig": "projects/tsdx-threejs-template/karma.conf.js"
+            "main": "projects/sbn-solar-system-viewer/src/test.ts",
+            "tsConfig": "projects/sbn-solar-system-viewer/tsconfig.spec.json",
+            "karmaConfig": "projects/sbn-solar-system-viewer/karma.conf.js"
           }
         }
       }

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
-import { ISceneEntity } from '../abstract-scene/models';
+import { ISceneEntity } from '../models/ISceneEntity';
+import { auToMeters } from '../utils/conversions';
 
 export class DirectionalLight extends AbstractSceneEntity
   implements ISceneEntity {
@@ -12,8 +13,10 @@ export class DirectionalLight extends AbstractSceneEntity
   async init() {
     return new Promise<THREE.Group>(resolve => {
       // Create light
-      this._light = new THREE.DirectionalLight(0xffffff, 1);
-      this._light.position.set(10, 10, 10);
+      this._light = new THREE.DirectionalLight(0xffffff, 10);
+      const s = auToMeters(4);
+      // this._light.position.set(10, 10, 10);
+      this._light.position.set(s, s, s);
       this._light.lookAt(0, 0, 0);
       this._light.castShadow = true;
       this._sceneEntityGroup.add(this._light);

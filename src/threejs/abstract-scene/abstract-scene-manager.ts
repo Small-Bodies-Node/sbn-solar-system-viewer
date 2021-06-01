@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
+import { ISceneEntity } from '../models/ISceneEntity';
 import { asciiError } from '../utils/asciiError';
-import { ISceneEntity } from './models';
+import { auToMeters } from '../utils/conversions';
 
 const initialCameraParams = {
   aspectRatio: 2,
   fieldOfView: 60,
-  nearPlane: 0.1, // Wow! Beware: changing this causes/fixes flickering/artifact-ing !!!
-  farPlane: 13500,
+  nearPlane: auToMeters(0.00001), // Wow! Beware: changing this causes/fixes flickering/artifact-ing !!!
+  farPlane: auToMeters(3000),
 };
 
 /**
@@ -122,9 +123,10 @@ export abstract class AbstractSceneManager {
     }
 
     // Initiate Scene Entities
-    if (!this._sceneEntities.length)
+    if (!this._sceneEntities.length) {
       throw new Error(asciiError('You have no scene entities!'));
-    await Promise.all(
+    }
+    const initiatedSceneEntityGroups = await Promise.all(
       this._sceneEntities.map(async sceneEntity => {
         const initiatedSceneEntityGroup: THREE.Group = await sceneEntity.init();
         if (
@@ -139,13 +141,13 @@ export abstract class AbstractSceneManager {
             -----------------------------------------------------------------------------
             `)
           );
-        this._scene.add(initiatedSceneEntityGroup);
-        return;
+        return initiatedSceneEntityGroup;
       })
     );
+    initiatedSceneEntityGroups.forEach(group => this._scene.add(group));
 
     // Run updater methods
-    this.setHelpersVisibility();
+    this.setHelpersVisibility(false);
     this._updateCameraAspect();
 
     // Begin Animation
@@ -153,6 +155,8 @@ export abstract class AbstractSceneManager {
 
     // Enable superclass constructor to adjust settings after to initialization sequence
     this._postInitHook();
+
+    console.log('FInished initing');
   }
 
   protected registerSceneEntities = (sceneEntities: ISceneEntity[]) => {
@@ -164,7 +168,8 @@ export abstract class AbstractSceneManager {
    * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
    * on any object you want to be classified as a helper
    */
-  public setHelpersVisibility = () => {
+  public setHelpersVisibility = (isHelpersShown: boolean) => {
+    this._isHelpersShown = !!isHelpersShown;
     this._scene.traverse(child => {
       return child.userData.isHelper && (child.visible = this._isHelpersShown);
     });
@@ -172,7 +177,7 @@ export abstract class AbstractSceneManager {
 
   public toggleHelpersVisibility = () => {
     this._isHelpersShown = !this._isHelpersShown;
-    this.setHelpersVisibility();
+    this.setHelpersVisibility(this._isHelpersShown);
   };
 
   public setFramesPerSecond(newFps: number) {

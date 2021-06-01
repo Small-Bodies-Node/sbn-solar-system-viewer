@@ -41,7 +41,7 @@ delete distPackageJson['size-limit'];
 
 fs.writeFileSync('dist/package.json', JSON.stringify(distPackageJson, null, 2));
 
-// "module": "dist/tsdx-threejs-template.esm.js",
+// "module": "dist/sbn-solar-system-viewer.esm.js",
 // "main": "dist/index.js",
 // "typings": "dist/index.d.ts",
 // "files": [

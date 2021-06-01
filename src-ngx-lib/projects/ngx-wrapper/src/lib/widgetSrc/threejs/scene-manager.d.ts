@@ -1,18 +1,17 @@
 import { AbstractSceneManager } from './abstract-scene/abstract-scene-manager';
-import { ISceneManager } from './abstract-scene/models';
+import { ISceneManager } from './models/ISceneManager';
 /**
  * Implement a scene for this app with 'real' scene entities
  */
 export declare class SceneManager extends AbstractSceneManager implements ISceneManager {
-    private isRotating;
-    private demoInterval;
-    private toggleLightsButton;
-    private toggleRotationButton;
-    private toggleHelpersButton;
-    private _directionalLight?;
-    private _isDirectionalLightOn;
-    private _demoLoadedObject;
+    private starField?;
+    private sun?;
+    private planets?;
+    private asteroids?;
+    private isToyScale;
+    private tCenturiesSinceJ2000;
     constructor(containerId: string);
-    _updateCamera: (time: number) => void;
-    toggleRotation: () => void;
+    toggleIsToyScale: () => void;
+    setIsToyScale: (isToyScale: boolean) => void;
+    _updateCamera: (_time: number) => void;
 }

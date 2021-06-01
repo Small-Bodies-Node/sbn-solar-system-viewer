@@ -20,9 +20,9 @@
     "lib": ["es2018", "dom"],
     "paths": {
       "ngx-wrapper": ["dist/ngx-wrapper/ngx-wrapper", "dist/ngx-wrapper"],
-      "tsdx-threejs-template": [
-        "dist/tsdx-threejs-template/tsdx-threejs-template",
-        "dist/tsdx-threejs-template"
+      "sbn-solar-system-viewer": [
+        "dist/sbn-solar-system-viewer/sbn-solar-system-viewer",
+        "dist/sbn-solar-system-viewer"
       ]
     }
   },

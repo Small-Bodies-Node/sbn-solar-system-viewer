@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { TsdxThreejsTemplate } from 'tsdx-threejs-template';
+import { SbnSolarSystemViewer } from 'sbn-solar-system-viewer';
 import './App.css';
 
 export function App() {
@@ -25,7 +25,7 @@ export function App() {
       >
         {isVisible ? (
           <div style={{ width: 350, height: 300 }}>
-            <TsdxThreejsTemplate backgroundColor="green" />
+            <SbnSolarSystemViewer backgroundColor="green" />
           </div>
         ) : (
           <div>Not visible</div>

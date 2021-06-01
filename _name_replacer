@@ -5,8 +5,8 @@
 
 ### Vars you need to name:
 ### CAUTION! Try to make your names 'unique'
-NEW_NAME='tsdx-threejs-template'
-NEW_CAMEL_NAME='TsdxThreejsTemplate'
+NEW_NAME='sbn-solar-system-viewer'
+NEW_CAMEL_NAME='SbnSolarSystemViewer'
 
 ### Extract old names form package.json
 OLD_NAME=$(cat "package.json" | jq -r '.name')

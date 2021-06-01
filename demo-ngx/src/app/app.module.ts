@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { NgxWrapperModule } from 'tsdx-threejs-template/ngx/ngx-wrapper/';
+import { NgxWrapperModule } from 'sbn-solar-system-viewer/ngx/ngx-wrapper/';
 
 @NgModule({
   declarations: [AppComponent],

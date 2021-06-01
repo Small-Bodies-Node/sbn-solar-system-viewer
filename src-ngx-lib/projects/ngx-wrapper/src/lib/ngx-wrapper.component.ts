@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { init } from './widgetSrc/tsdxthreejstemplate.esm';
+import { init } from './widgetSrc/sbnsolarsystemviewer.esm';
 
 @Component({
-  selector: 'tsdx-threejs-template',
+  selector: 'sbn-solar-system-viewer',
   template: `
     <div [ngStyle]="styles" [id]="id"></div>
   `,

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { MTLOBJLoader } from '../utils/MTLOBJLoader';
 import { FBXLoader } from '../utils/FBXLoader';
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
-import { ISceneEntity } from '../abstract-scene/models';
+import { ISceneEntity } from '../models/ISceneEntity';
 
 export class DemoLoadedObject extends AbstractSceneEntity
   implements ISceneEntity {
@@ -76,7 +76,7 @@ export class DemoLoadedObject extends AbstractSceneEntity
       // Test loader-wrappers for MTL-OBJ and FBX files
       if (!true) {
         MTLOBJLoader(
-          'https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.mtl',
+          'https://raw.githubusercontent.com/d-w-d/sbtsdx-threejs-template/main/images/low-poly-well.mtl',
           'https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.obj',
           // 'https://threejs.org/examples/models/obj/male02/male02_dds.mtl',
           // 'https://threejs.org/examples/models/obj/male02/male02.obj',

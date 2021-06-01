@@ -6,8 +6,8 @@
 ./_library_manager --build-umd
 
 ### Details to deploy client to github pages
-GITHUB_USER_NAME='d-w-d'
-GITHUB_REPO_NAME='tsdx-threejs-template'
+GITHUB_USER_NAME='small-bodies-node'
+GITHUB_REPO_NAME='sbn-solar-system-viewer'
 
 ### Build commmand gh-pages to deploy `demo-umd` dir
 read -r -d '' NODECMD <<EOM

@@ -9,7 +9,7 @@ interface IProps {
 /**
  *  React wrapper
  */
-export function TsdxThreejsTemplate(props: IProps) {
+export function SbnSolarSystemViewer(props: IProps) {
   // --->>>
 
   const { width, height, backgroundColor } = {

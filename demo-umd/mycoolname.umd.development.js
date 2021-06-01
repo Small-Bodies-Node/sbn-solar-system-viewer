@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three'), require('react')) :
   typeof define === 'function' && define.amd ? define(['exports', 'three', 'react'], factory) :
-  (global = global || self, factory(global.TsdxThreejsTemplate = {}, global.THREE, global.React));
+  (global = global || self, factory(global.SbnSolarSystemViewer = {}, global.THREE, global.React));
 }(this, (function (exports, THREE, React) { 'use strict';
 
   React = React && Object.prototype.hasOwnProperty.call(React, 'default') ? React['default'] : React;
@@ -4961,8 +4961,8 @@
 
                   // Test loader-wrappers for MTL-OBJ and FBX files
                   {
-                    MTLOBJLoader( // 'https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.mtl',
-                    // 'https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.obj',
+                    MTLOBJLoader( // 'https://raw.githubusercontent.com/d-w-d/sbn-solar-system-viewer/main/images/low-poly-well.mtl',
+                    // 'https://raw.githubusercontent.com/d-w-d/sbn-solar-system-viewer/main/images/low-poly-well.obj',
                     'https://threejs.org/examples/models/obj/male02/male02_dds.mtl', 'https://threejs.org/examples/models/obj/male02/male02.obj', onObjectLoad, 5, true, true);
                   }
                 }));
@@ -5289,7 +5289,7 @@
    *  React wrapper
    */
 
-  function TsdxThreejsTemplate(props) {
+  function SbnSolarSystemViewer(props) {
     // --->>>
     var _width$height$backgro = _extends({
       width: '100%',
@@ -5344,11 +5344,11 @@
     threejsScene.destroy();
   }
 
-  exports.TsdxThreejsTemplate = TsdxThreejsTemplate;
+  exports.SbnSolarSystemViewer = SbnSolarSystemViewer;
   exports.destroy = destroy;
   exports.init = init;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=tsdxthreejstemplate.umd.development.js.map
+//# sourceMappingURL=sbnsolarsystemviewer.umd.development.js.map

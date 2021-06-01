@@ -7,5 +7,5 @@ interface IProps {
 /**
  *  React wrapper
  */
-export declare function TsdxThreejsTemplate(props: IProps): JSX.Element;
+export declare function SbnSolarSystemViewer(props: IProps): JSX.Element;
 export {};
