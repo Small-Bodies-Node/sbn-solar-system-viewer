@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three'), require('kepler-utils'), require('three/src/materials/SpriteMaterial'), require('julian'), require('react')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'three', 'kepler-utils', 'three/src/materials/SpriteMaterial', 'julian', 'react'], factory) :
-  (global = global || self, factory(global.SbnSolarSystemViewer = {}, global.THREE, global.keplerUtils, global.SpriteMaterial, global.julian, global.React));
-}(this, (function (exports, THREE, keplerUtils, SpriteMaterial, julian, React) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three'), require('kepler-utils'), require('julian'), require('react')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'three', 'kepler-utils', 'julian', 'react'], factory) :
+  (global = global || self, factory(global.SbnSolarSystemViewer = {}, global.THREE, global.keplerUtils, global.julian, global.React));
+}(this, (function (exports, THREE, keplerUtils, julian, React) { 'use strict';
 
   julian = julian && Object.prototype.hasOwnProperty.call(julian, 'default') ? julian['default'] : julian;
   React = React && Object.prototype.hasOwnProperty.call(React, 'default') ? React['default'] : React;
@@ -3480,7 +3480,7 @@
 
                           case 2:
                             texture = _context.sent;
-                            sprite = new THREE.Sprite(new SpriteMaterial.SpriteMaterial({
+                            sprite = new THREE.Sprite(new THREE.SpriteMaterial({
                               blending: THREE.AdditiveBlending,
                               depthWrite: false,
                               map: texture
