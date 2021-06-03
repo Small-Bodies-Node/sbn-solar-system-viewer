@@ -23,7 +23,12 @@ export function createEarthCloudMesh(
     const imageMap = new Image();
     imageMap.crossOrigin = 'Anonymous';
 
-    const geometry = new THREE.SphereGeometry(cloudPlanetRadius, 32, 32);
+    const geometry = new THREE.SphereGeometry(
+      cloudPlanetRadius,
+      32,
+      32,
+      Math.PI / 2
+    );
     const material = new THREE.MeshPhongMaterial({
       map: new THREE.Texture(canvasResult),
       side: THREE.DoubleSide,

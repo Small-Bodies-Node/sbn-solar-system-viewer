@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
 import { imageBaseUrl } from '../data/basic-planet-data';
 import { ISceneEntity } from '../models/ISceneEntity';
-import { getTexture } from '../utils/getTexture';
+import { getTextureFromImageUrl } from '../utils/getTextureFromImageUrl';
 
 export class StarField extends AbstractSceneEntity implements ISceneEntity {
   // ~~~>>>
@@ -29,7 +29,7 @@ export class StarField extends AbstractSceneEntity implements ISceneEntity {
 
   async init() {
     return new Promise<THREE.Group>(async resolve => {
-      const texture = await getTexture(
+      const texture = await getTextureFromImageUrl(
         `${imageBaseUrl}galaxy_starfield.png`,
         'star field image'
       );

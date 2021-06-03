@@ -45,6 +45,7 @@ export abstract class AbstractToyModel extends AbstractSceneEntity {
       sphereSegments,
       sphereSegments
     );
+    this._geometry.rotateX(Math.PI / 2);
 
     this._wires = new THREE.LineSegments(
       new THREE.EdgesGeometry(this._geometry),
@@ -76,6 +77,8 @@ export abstract class AbstractToyModel extends AbstractSceneEntity {
     if (!!this._wires) this._wires.scale.set(t, t, t);
     if (!!this._clouds) this._clouds.scale.set(t, t, t);
   }
+
+  //
 
   protected _updateMeshScale() {
     // Test if planet is already at target scale

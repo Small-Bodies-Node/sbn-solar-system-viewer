@@ -53,6 +53,10 @@ export const orbitalParams = {
     radiusMeters: 1188300,
     periodDays: 90560,
   },
+  HAUMEA: {
+    radiusMeters: 1188300 * 100,
+    periodDays: 90560,
+  },
   // Moons
   MOON: {
     radiusMeters: 350000,
@@ -71,6 +75,7 @@ export const planets = [
   'URANUS',
   'NEPTUNE',
   'PLUTO',
+  'HAUMEA',
 ] as const;
 
 export const isKeplerUtils = true;

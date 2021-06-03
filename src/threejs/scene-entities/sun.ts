@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import { SpriteMaterial } from 'three/src/materials/SpriteMaterial';
 
-import { getTexture } from '../utils/getTexture';
+import { getTextureFromImageUrl } from '../utils/getTextureFromImageUrl';
 import { imageBaseUrl, orbitalParams } from '../data/basic-planet-data';
 import { ISceneEntity } from '../models/ISceneEntity';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
@@ -34,7 +34,7 @@ export class Sun extends AbstractToyModel implements ISceneEntity {
       // --->>>
 
       //  Create sun sprite
-      const texture = await getTexture(`${imageBaseUrl}sun.png`);
+      const texture = await getTextureFromImageUrl(`${imageBaseUrl}sun.png`);
       const sprite = new THREE.Sprite(
         new THREE.SpriteMaterial({
           blending: THREE.AdditiveBlending,

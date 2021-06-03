@@ -6,7 +6,7 @@ import { resizeThreeJsObject } from './resizeThreeJsObject';
 
 export function GLTFLoader(
   gltfUrl: string,
-  cbOnReady: (obj: THREE.Object3D) => void,
+  cbOnReady: (obj: THREE.Group) => void,
   targetRadius?: number,
   isCenteredOnBoundingBox?: boolean,
   isShadowShown?: boolean

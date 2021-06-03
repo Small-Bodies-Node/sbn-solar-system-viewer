@@ -194,4 +194,17 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
+  HAUMEA: new SKEphem(
+    {
+      epoch: 2454000.5,
+      a: 39.4450697257,
+      e: 0.250248713478,
+      i: 17.0890009196,
+      om: 110.376957955,
+      w: 112.597141677,
+      ma: 25.2471897122,
+    },
+    'deg',
+    true /* locked */
+  ),
 };

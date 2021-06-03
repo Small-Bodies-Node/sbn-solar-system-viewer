@@ -51,7 +51,8 @@ export class SceneManager extends AbstractSceneManager
       new Planet('SATURN'),
       new Planet('URANUS'),
       new Planet('NEPTUNE'),
-      new Planet('PLUTO'),
+      // new Planet('PLUTO'),
+      new Planet('HAUMEA'),
     ];
     this.asteroids = [new Asteroid('65P')];
 
@@ -86,9 +87,14 @@ export class SceneManager extends AbstractSceneManager
       this.setHelpersVisibility(!true);
       //
       this._camera.position.set(
+        // Earth
         -180595912325.3482,
         34587914945.44637,
         3906449321.9052143
+        // Haumea
+        // -4514678652999.103,
+        // -996799575287.2986,
+        // 1431642047889.7205
       );
     };
 
