@@ -1,4 +1,4 @@
-export const imageBaseUrl = `https://sbn-solar-system-viewer.s3.amazonaws.com/`;
+export const imageBaseUrl = `https://sbn-solar-system-viewer.s3.amazonaws.com`;
 
 // This is the size of each unit in this solar system
 // This choice was made because there is a minimum size you can make a sphere in threeJs
@@ -28,6 +28,10 @@ export const orbitalParams = {
   MARS: {
     radiusMeters: 3389500,
     periodDays: 686.971,
+  },
+  CERES: {
+    radiusMeters: 470000,
+    periodDays: 1683.14570801,
   },
   JUPITER: {
     radiusMeters: 71492000,
@@ -61,6 +65,7 @@ export const planets = [
   'VENUS',
   'EARTH',
   'MARS',
+  'CERES',
   'JUPITER',
   'SATURN',
   'URANUS',

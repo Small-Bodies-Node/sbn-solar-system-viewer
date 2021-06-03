@@ -9,78 +9,103 @@ import { getPlanetRadiusMeters } from '../utils/getPlanetRadiusMeters';
 import { AbstractOrbital } from '../abstract-scene/abstract-orbital';
 import { EOrbitalType } from '../models/EOrbitalType';
 
+const planetsWithBumpMaps: Partial<TPlanets>[] = [
+  'MERCURY',
+  'VENUS',
+  'EARTH',
+  'MARS',
+  'CERES',
+  'PLUTO',
+];
+
+const planetsAsObjects: Partial<TPlanets>[] = [];
+
+/**
+ * "Cloud Radius Factor": ratio of cloud radius to planet radius
+ */
+const crf = 1.05;
+
+const getPlanetToyScale = (name: TPlanets) => {
+  if (name === 'PLUTO') return 10000;
+  if (name === 'CERES') return 10000;
+  return 3000;
+};
+
 export class Planet extends AbstractOrbital implements IOrbital {
   // ~~~>>>
-
-  private earthCloudMesh: THREE.Mesh | undefined;
 
   constructor(private readonly name: TPlanets) {
     super(
       name,
       EOrbitalType.PLANET,
       getPlanetRadiusMeters(name),
-      name === 'PLUTO' ? 10000 : 3000
+      getPlanetToyScale(name)
     );
   }
 
   async init() {
     return new Promise<THREE.Group>(async resolve => {
+      // --->>>
+
       // Load planet texture from image
-      const texture = await getTexture(
-        `${imageBaseUrl}${this.name.toLowerCase()}${
-          this.name === 'EARTH' ? '3' : '_small'
-        }.jpg`,
-        // `${imageBaseUrl}${this.name.toLowerCase()}.jpg`,
-        this._name + ' IMAGE'
+      const name = this.name.toLowerCase();
+      this._material.map = await getTexture(
+        `${imageBaseUrl}/planets/${name}/${name}-map-1024.jpg`,
+        this.name + ' IMAGE'
       );
-      this._material.map = texture;
 
-      //If Earth, then add fancy stuff; see: http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/
-      if (this._name === 'EARTH') {
-        // this.planetMesh.visible = false;
-        //Use pixels in image to determine bumpiness on surface
-        const bumpTexture = await getTexture(
-          // `${imageBaseUrl}earthBump_small.png`
-          `${imageBaseUrl}earthbump2.jpg`,
-          this._name + ' BUMP IMAGE'
+      if (planetsWithBumpMaps.includes(this.name)) {
+        // Add bump maps to rocky planets
+        this._material.bumpMap = await getTexture(
+          `${imageBaseUrl}/planets/${name}/${name}-bump-1024.png`,
+          this.name + ' BUMP IMAGE'
         );
-        this._material.bumpMap = bumpTexture;
-        this._material.bumpScale = 0.95;
-
-        this._material = new THREE.MeshStandardMaterial({
-          // ambient: 0x00aa00,
-          color: 0x00aa00,
-          bumpMap: bumpTexture,
-          bumpScale: 1,
-        });
-
-        console.log('######## >>> ', this._material);
-
-        // Use pixels in image to determine reflections on surface
-        // this._material.specularMap = await getTexture(
-        //   `${imageBaseUrl}earthspecular_small.jpg`,
-        //   'earth specular'
-        // );
-        // this._material.specular = new THREE.Color('grey');
-        // this._material.shininess = 5;
-
-        // Clouds
-        this.earthCloudMesh = await createEarthCloudMesh(1.035 * this._radius);
-        if (!!this.earthCloudMesh) {
-          console.log('>>>>');
-          this._sceneEntityGroup.add(this.earthCloudMesh);
+        // BumpScale needs to be on order of radius since we deal with such large numbers
+        this._material.bumpScale = this._radius * 50;
+        if (this._mesh instanceof THREE.Mesh) {
+          this._mesh.material = this._material;
         }
+        this._sceneEntityGroup.add(this._mesh);
       }
 
-      //
-      this._sceneEntityGroup.add(this._mesh);
+      if (this.name === 'EARTH') {
+        // Make oceans shiny
+        this._material.specularMap = await getTexture(
+          `${imageBaseUrl}/planets/earth/earth-specular-1024.png`,
+          'earth specular'
+        );
+        this._material.shininess = 25;
+        // Add clouds
+        this._clouds = await createEarthCloudMesh(crf * this._radius);
+      }
+
+      if (!false && this.name === 'VENUS') {
+        // Add clouds
+        this._clouds = new THREE.Mesh(
+          new THREE.SphereGeometry(crf * this._radius, 32, 32),
+          new THREE.MeshPhongMaterial({
+            map: await getTexture(
+              `${imageBaseUrl}/planets/venus/venus-clouds-1024.jpg`,
+              this.name + ' IMAGE'
+            ),
+            opacity: 0.6,
+            transparent: true,
+          })
+        );
+      }
+
+      if (planetsAsObjects.includes(this.name)) {
+        //
+        // const obj =
+      }
 
       // Rotate planet so images are right way up
       this._mesh.rotation.x = Math.PI / 2;
-      if (!!this.earthCloudMesh) this.earthCloudMesh.rotation.x = Math.PI / 2;
-      if (!!this._wireframe) this._wireframe.rotation.x = Math.PI / 2;
+      this._wires.rotation.x = Math.PI / 2;
+      if (!!this._clouds) this._clouds.rotation.x = Math.PI / 2;
 
       // Finish
+      if (!!this._clouds) this._sceneEntityGroup.add(this._clouds);
       resolve(this._sceneEntityGroup);
     });
   }
@@ -90,12 +115,9 @@ export class Planet extends AbstractOrbital implements IOrbital {
     this._updateOrbitalPosition(_tCenturiesSinceJ2000);
     this._updateMeshScale();
 
-    // ---
-    const { x, y, z } = this._getOrbitXyz();
-    if (this.earthCloudMesh) this.earthCloudMesh.position.set(x, y, z);
-
     // Spin planet
-    this._mesh.rotateY(0.001);
-    if (!!this.earthCloudMesh) this.earthCloudMesh.rotateY(0.002);
+    this._mesh.rotateY(0.0015);
+    if (!!this._clouds) this._clouds.rotateY(0.0012);
+    if (!!this._clouds) this._clouds.rotateZ(-0.0002);
   }
 }

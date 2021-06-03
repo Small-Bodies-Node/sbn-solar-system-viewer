@@ -19,3 +19,13 @@ BTW -- I suspect that the FBX loader incorrectly imports the intensity of the DL
 ## Misc Notes
 
 - If you want to run `npm run analyze`, you must first run tsdx build without any fancy options, or it will mess up.
+
+- Next level: https://stackoverflow.com/questions/56977686/creating-a-day-night-shader-that-follows-a-light-souce
+
+- Most planet and moon images from: http://planetpixelemporium.com/earth8081.html
+
+- Textures also taken from: https://www.solarsystemscope.com/textures/
+
+- Io bump map from: https://bjj.mmedia.is/data/io/io_dem_4096x2048.png
+
+- Callisto bump map from www.solarsystemscope.com; simply bw & inverted

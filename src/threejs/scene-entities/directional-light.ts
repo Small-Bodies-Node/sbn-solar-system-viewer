@@ -8,25 +8,20 @@ export class DirectionalLight extends AbstractSceneEntity
   implements ISceneEntity {
   // ~~~>>>
 
-  _light?: THREE.DirectionalLight;
+  _light?: THREE.DirectionalLight | THREE.SpotLight;
 
   async init() {
     return new Promise<THREE.Group>(resolve => {
       // Create light
-      this._light = new THREE.DirectionalLight(0xffffff, 10);
+      this._light = new THREE.DirectionalLight(0xffffff, 1);
       const s = auToMeters(4);
-      // this._light.position.set(10, 10, 10);
       this._light.position.set(s, s, s);
       this._light.lookAt(0, 0, 0);
       this._light.castShadow = true;
+
       this._sceneEntityGroup.add(this._light);
 
-      // Add light helper
-      const helper = new THREE.DirectionalLightHelper(
-        this._light.clone(),
-        5,
-        'cyan'
-      );
+      const helper = new THREE.SpotLightHelper(this._light.clone(), 5);
       helper.userData.isHelper = true;
       helper.visible = true;
       helper.userData.name = 'my-directional-light-helper';

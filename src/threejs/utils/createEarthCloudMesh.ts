@@ -3,15 +3,15 @@ import { imageBaseUrl } from '../data/basic-planet-data';
 
 /**
  * This function is adapted from `https://github.com/jeromeetienne/threex.planets/blob/master/threex.planets.js`, based on instructions from `http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/`
- * Jpg doesnt have channel, so the idea is to load cloud image from jpg and remove pixels manually to create an alpha-channel effect; I havent worked through exactly how the details work, but it does
+ * Jpegs don't have an alpha channel, so the idea is to load cloud image from jpg and remove pixels manually to create an alpha-channel effect
  */
 export function createEarthCloudMesh(
   cloudPlanetRadius: number
-): Promise<THREE.Mesh<THREE.SphereGeometry>> {
-  // ---------------------------------------------------->>>
+): Promise<THREE.Mesh<THREE.SphereGeometry> | undefined> {
+  // --->>>
 
-  return new Promise(resolve => {
-    // ----------------------->>>
+  return new Promise(async resolve => {
+    // --->>>
 
     // create destination canvas
     const canvasResult = document.createElement('canvas');
@@ -28,14 +28,14 @@ export function createEarthCloudMesh(
       map: new THREE.Texture(canvasResult),
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.8,
     });
     const mesh = new THREE.Mesh<THREE.SphereGeometry>(geometry, material);
 
     imageMap.addEventListener(
       'load',
       function() {
-        // ---->>>
+        // --->>>
 
         // create dataMap ImageData for earthcloudmap
         const canvasMap = document.createElement('canvas');
@@ -54,7 +54,7 @@ export function createEarthCloudMesh(
         const imageTrans = new Image();
         imageTrans.crossOrigin = 'Anonymous';
         imageTrans.addEventListener('load', function() {
-          // ---------------------------------------->>>
+          // --->>>
 
           // create dataTrans ImageData for earthcloudmaptrans
           const canvasTrans = document.createElement('canvas');
@@ -70,7 +70,7 @@ export function createEarthCloudMesh(
               canvasTrans.height
             );
             // merge dataMap + dataTrans into dataResult
-            const dataResult = contextMap!.createImageData(
+            let dataResult = contextMap!.createImageData(
               canvasMap.width,
               canvasMap.height
             );
@@ -88,16 +88,14 @@ export function createEarthCloudMesh(
             if (!!material && !!material.map) material.map.needsUpdate = true;
           } catch (error) {
             console.log('Error: ', error);
-            resolve(mesh);
+            resolve(undefined);
           }
-
           resolve(mesh);
         });
-        imageTrans.src = `${imageBaseUrl}earthcloudmaptrans.jpg`;
+        imageTrans.src = `${imageBaseUrl}/planets/earth/earth-clouds-trans-1024.png`;
       },
       false
     );
-
-    imageMap.src = imageBaseUrl + `earthcloudcolor.jpg`;
+    imageMap.src = `${imageBaseUrl}/planets/earth/earth-clouds-color-1024.png`;
   });
 }

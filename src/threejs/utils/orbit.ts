@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import { orbitalParams } from '../data/basic-planet-data';
-import { EOrbitalType } from '../models/EOrbitalType';
 
+import { orbitalParams } from '../data/basic-planet-data';
+import { EphemPresets } from '../data/ephem-presets';
+import { EOrbitalType } from '../models/EOrbitalType';
 import { IXYZ } from '../models/IXYZ';
 import { auToMeters } from './conversions';
 import { getPlanetPosition, TPlanets } from './getPlanetPosition';
 import { SKEphem } from './SKEphem';
-import { EphemPresets } from './SKEphemPresets';
 import { SKOrbit } from './SKOrbit';
 
 export class Orbit {
@@ -31,10 +31,6 @@ export class Orbit {
   constructor(private name: string, private orbitalType = EOrbitalType.PLANET) {
     // --->>>
 
-    // this.calcRevolutionPath();
-
-    console.log('>>>> 0', name, orbitalType);
-
     switch (this.orbitalType) {
       case EOrbitalType.ASTEROID: {
         this.loadAsteroid();
@@ -53,6 +49,7 @@ export class Orbit {
     //
     // @ts-ignore
     // console.log('>>>>', this.projectedOrbitLine, this.SKprojectedOrbitLine);
+    //
   }
 
   loadPlanet = () => {

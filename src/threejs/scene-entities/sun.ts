@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { getTexture } from '../utils/getTexture';
 import { imageBaseUrl, orbitalParams } from '../data/basic-planet-data';
 import { ISceneEntity } from '../models/ISceneEntity';
-import { AbstractToyMesh } from '../abstract-scene/abstract-toy-mesh';
+import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 
 /**
  * When a sprite is loaded it is given a size of '1'
@@ -17,7 +17,7 @@ const sunRadiusMeters = orbitalParams.SUN.radiusMeters;
 const sunToyScale = sunRadiusMeters * imageToSunRatio * 40;
 const sunRealScale = sunRadiusMeters * imageToSunRatio;
 
-export class Sun extends AbstractToyMesh implements ISceneEntity {
+export class Sun extends AbstractToyModel implements ISceneEntity {
   // ~~~>>>
 
   private readonly name = 'SUN';

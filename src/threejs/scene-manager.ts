@@ -46,6 +46,7 @@ export class SceneManager extends AbstractSceneManager
       new Planet('VENUS'),
       new Planet('EARTH'),
       new Planet('MARS'),
+      new Planet('CERES'),
       new Planet('JUPITER'),
       new Planet('SATURN'),
       new Planet('URANUS'),
@@ -58,12 +59,12 @@ export class SceneManager extends AbstractSceneManager
     this.registerSceneEntities([
       new DirectionalLight(),
       new MiscHelpers(),
-      // new SimpleLight(),
+      new SimpleLight(),
       ...this.planets,
       ...this.asteroids,
-      this.starField,
+      // this.starField,
       /** Sun MUST come last due to its sprite-blending settings **/
-      this.sun,
+      // this.sun,
     ]);
 
     // Logic to run before scene initialization

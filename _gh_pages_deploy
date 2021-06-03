@@ -9,16 +9,20 @@
 GITHUB_USER_NAME='small-bodies-node'
 GITHUB_REPO_NAME='sbn-solar-system-viewer'
 
+### Copy output to time-stamped edition of code to be deployed
+distDir="demo-umd-"$(date "+%F-%T")
+cp -R "demo-umd" "dist-gh/$distDir"
+
 ### Build commmand gh-pages to deploy `demo-umd` dir
 read -r -d '' NODECMD <<EOM
   const ghpages = require("gh-pages");
-  ghpages.publish("demo-umd", function (err) {
+  ghpages.publish("dist-gh", function (err) {
     if (!!err) {
       console.log("OH NO! STH WENT WRONG :(", err);
       process.exit(1);
     }
-    console.log("DEPLOYED TO: https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/");
-    console.log("             https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/bundled.html");
+    console.log("DEPLOYED TO: https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/${distDir}/");
+    console.log("             https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/${distDir}/bundled.html");
   })
 EOM
 

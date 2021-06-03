@@ -1,4 +1,4 @@
-import { Ephem } from '../utils/SKEphem';
+import { SKEphem } from '../utils/SKEphem';
 
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.
@@ -9,7 +9,7 @@ import { Ephem } from '../utils/SKEphem';
  */
 export const EphemPresets = {
   // See https://ssd.jpl.nasa.gov/?planet_pos and https://ssd.jpl.nasa.gov/txt/p_elem_t1.txt
-  MERCURY: new Ephem(
+  MERCURY: new SKEphem(
     {
       epoch: 2458426.5,
       a: 3.870968969437096e-1,
@@ -22,7 +22,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  VENUS: new Ephem(
+  VENUS: new SKEphem(
     {
       epoch: 2458426.5,
       a: 7.233458663591554e-1,
@@ -35,7 +35,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  EARTH: new Ephem(
+  EARTH: new SKEphem(
     {
       // Taken from https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
       /*
@@ -70,7 +70,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  MOON: new Ephem(
+  MOON: new SKEphem(
     {
       // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
       GM: 0.3986e6,
@@ -98,7 +98,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  MARS: new Ephem(
+  MARS: new SKEphem(
     {
       epoch: 2458426.5,
       a: 1.52371401537107,
@@ -111,7 +111,25 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  JUPITER: new Ephem(
+  ///
+  CERES: new SKEphem(
+    {
+      // Sources:
+      // https://www.princeton.edu/~willman/planetary_systems/Sol/Ceres/
+      // https://en.wikipedia.org/wiki/Ceres_(dwarf_planet)
+      epoch: 2458600.5,
+      a: 2.7658,
+      e: 0.078,
+      i: 10.607,
+      om: 80.7,
+      w: 73.1,
+      ma: 77.37209589,
+    },
+    'deg',
+    true /* locked */
+  ),
+  ///
+  JUPITER: new SKEphem(
     {
       epoch: 2458426.5,
       a: 5.20180355911023,
@@ -124,7 +142,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  SATURN: new Ephem(
+  SATURN: new SKEphem(
     {
       epoch: 2458426.5,
       a: 9.577177295536776,
@@ -137,7 +155,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  URANUS: new Ephem(
+  URANUS: new SKEphem(
     {
       epoch: 2458426.5,
       a: 1.914496966635462e1,
@@ -150,7 +168,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  NEPTUNE: new Ephem(
+  NEPTUNE: new SKEphem(
     {
       epoch: 2458426.5,
       a: 3.00962226342805e1,
@@ -163,7 +181,7 @@ export const EphemPresets = {
     'deg',
     true /* locked */
   ),
-  PLUTO: new Ephem(
+  PLUTO: new SKEphem(
     {
       epoch: 2454000.5,
       a: 39.4450697257,

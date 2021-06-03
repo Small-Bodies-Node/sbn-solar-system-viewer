@@ -1,6 +1,6 @@
 import { EOrbitalType } from '../models/EOrbitalType';
 import { Orbit } from '../utils/orbit';
-import { AbstractToyMesh } from './abstract-toy-mesh';
+import { AbstractToyModel } from './abstract-toy-model';
 
 const getSphereSegments = (orbitalType: EOrbitalType) => {
   if (orbitalType === EOrbitalType.ASTEROID) return 8;
@@ -10,7 +10,7 @@ const getSphereSegments = (orbitalType: EOrbitalType) => {
 /**
  * Base class for orbiting object (planet, asteroid, etc.) with toy-scale presentation
  */
-export abstract class AbstractOrbital extends AbstractToyMesh {
+export abstract class AbstractOrbital extends AbstractToyModel {
   // ~~~>>>
 
   protected _orbit: Orbit;
@@ -46,6 +46,7 @@ export abstract class AbstractOrbital extends AbstractToyMesh {
     const t = tCenturiesSinceJ2000;
     const { x, y, z } = this._orbit.getXyzMeters(t);
     this._mesh.position.set(x, y, z);
-    this._wireframe.position.set(x, y, z);
+    this._wires.position.set(x, y, z);
+    if (!!this._clouds) this._clouds.position.set(x, y, z);
   }
 }
