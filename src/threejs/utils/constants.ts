@@ -16,3 +16,8 @@ export const buttonFadeInSpecs = '1s ease-in-out';
 export const buttonFontFamily = "'Odibee Sans', cursive";
 export const buttonCssUrl =
   'https://fonts.googleapis.com/css2?family=Odibee+Sans';
+
+/**
+ * Root url of file server with copy of /images
+ */
+export const imageBaseUrl = `https://sbn-solar-system-viewer.s3.amazonaws.com`;

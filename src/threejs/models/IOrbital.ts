@@ -6,6 +6,5 @@ import { ISceneEntity } from './ISceneEntity';
  * Only the sun returns null
  */
 export interface IOrbital extends ISceneEntity {
-  getOrbit: () => Orbit;
-  setIsToyScale: (value: boolean) => void;
+  orbit: Orbit;
 }

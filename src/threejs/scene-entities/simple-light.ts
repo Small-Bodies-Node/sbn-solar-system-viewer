@@ -7,7 +7,10 @@ export class SimpleLight extends AbstractSceneEntity implements ISceneEntity {
   // ~~~>>>
 
   private _light?: THREE.AmbientLight;
-  private _defaultIntensity = 0.3;
+
+  constructor(private _defaultIntensity = 0.3) {
+    super();
+  }
 
   async init() {
     return new Promise<THREE.Group>(resolve => {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-import { MTLOBJLoader } from '../utils/MTLOBJLoader';
-import { FBXLoader } from '../utils/FBXLoader';
+import { mtlObjLoader } from '../utils/mtl-obj-loader';
+import { fbxLoader } from '../utils/fbx-loader';
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
 import { ISceneEntity } from '../models/ISceneEntity';
 
@@ -75,7 +75,7 @@ export class DemoLoadedObject extends AbstractSceneEntity
 
       // Test loader-wrappers for MTL-OBJ and FBX files
       if (!true) {
-        MTLOBJLoader(
+        mtlObjLoader(
           'https://raw.githubusercontent.com/d-w-d/sbtsdx-threejs-template/main/images/low-poly-well.mtl',
           'https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.obj',
           // 'https://threejs.org/examples/models/obj/male02/male02_dds.mtl',
@@ -86,7 +86,7 @@ export class DemoLoadedObject extends AbstractSceneEntity
           true
         );
       } else {
-        FBXLoader(
+        fbxLoader(
           'https://raw.githubusercontent.com/d-w-d/tsdx-threejs-template/main/images/low-poly-well.fbx',
           onObjectLoad,
           // 1,

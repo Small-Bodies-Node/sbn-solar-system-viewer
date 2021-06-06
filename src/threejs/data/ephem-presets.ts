@@ -1,4 +1,4 @@
-import { SKEphem } from '../utils/SKEphem';
+import { SKEphem } from '../utils/sk-ephem';
 
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.

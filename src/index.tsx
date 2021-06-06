@@ -1,13 +1,22 @@
+import { TOptions, setOptions } from './options';
 import { SceneManager } from './threejs/scene-manager';
-import { SKEphem } from './threejs/utils/SKEphem';
+import { SKEphem } from './threejs/utils/sk-ephem';
 
 let threejsScene: SceneManager;
+export let initDate = new Date();
+export const setInitDate = (date: Date) => (initDate = date);
+export const getInitDate = () => initDate;
 
 /**
  * Create threeJs canvas and inject into container
  */
-export function init(containerId = 'threejs-canvas-container') {
+export function init(
+  containerId = 'threejs-canvas-container',
+  options?: TOptions
+) {
   // --->>>
+
+  if (!!options) setOptions(options);
 
   // Get div to contain canvas
   const canvasContainer = document.getElementById(containerId);
@@ -30,16 +39,6 @@ export function init(containerId = 'threejs-canvas-container') {
     'deg',
     true /* locked */
   );
-
-  //
-  // const xxx = new SKOrbit(eph, {
-  //   color: undefined,
-  //   eclipticLineColor: undefined,
-  //   orbitPathSettings: undefined,
-  // });
-  // // const xyz = xxx.getPositionAtTime(0);
-  // const aaa = xxx.getOrbitShape();
-  // console.log('>>>>> ', xyz, aaa);
 }
 
 /**

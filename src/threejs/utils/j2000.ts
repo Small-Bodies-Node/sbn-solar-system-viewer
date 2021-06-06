@@ -3,7 +3,7 @@
 // https://github.com/typpo/j2000/blob/master/index.js
 // ------------------------------------------------------------- \\
 
-import { secondsPerCentury } from '../data/basic-planet-data';
+import { secondsPerCentury } from '../data/time-units';
 
 // Last updated: 1 Jan 2017
 const LEAP_SEC_SINCE_J2000 = 5;

@@ -15,7 +15,7 @@ ReactDOM.render(
       justifyContent: 'center',
     }}
   >
-    <SbnSolarSystemViewer width={500} height={500} backgroundColor="black" />
+    <SbnSolarSystemViewer width={500} height={500} backgroundColor="none" />
   </div>,
   document.getElementById('root')
 );

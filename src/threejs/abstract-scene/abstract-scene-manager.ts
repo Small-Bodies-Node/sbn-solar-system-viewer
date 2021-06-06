@@ -2,8 +2,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { ISceneEntity } from '../models/ISceneEntity';
-import { asciiError } from '../utils/asciiError';
+import { asciiError } from '../utils/ascii-error';
 import { auToMeters } from '../utils/conversions';
+import { getInitDate, initDate, setInitDate } from '../../index';
+import { getLoaderDiv } from '../html/get-loader-div';
+import { removeLoaderDiv } from '../html/remove-loader-div';
 
 const initialCameraParams = {
   aspectRatio: 2,
@@ -24,7 +27,7 @@ const initialCameraParams = {
  *
  */
 export abstract class AbstractSceneManager {
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>>
+  // ~~~>>>
 
   protected _scene: THREE.Scene = new THREE.Scene();
   protected _renderer?: THREE.WebGLRenderer;
@@ -67,6 +70,9 @@ export abstract class AbstractSceneManager {
     if (!!this._isInit) return;
     this._isInit = true;
 
+    // Time initialization
+    setInitDate(new Date());
+
     // Enable superclass constructor to adjust settings prior to initialization sequence
     this._preInitHook();
 
@@ -75,13 +81,15 @@ export abstract class AbstractSceneManager {
     if (!this._container) {
       throw new Error('No container found with id: ' + this._containerId);
     }
+
     this._canvas.style.width = '100%';
     this._canvas.style.height = '100%';
     this._container.append(this._canvas);
     this._container.style.setProperty('position', 'relative');
+    this._container.style.setProperty('background-color', 'black');
+    this._container.append(getLoaderDiv());
 
     // React to resize events on window
-    // this._updateCameraAspect = this.updateCameraAspect.bind(this);
     window.addEventListener('resize', this._updateCameraAspect);
 
     // Build Renderer
@@ -143,7 +151,14 @@ export abstract class AbstractSceneManager {
           );
         return initiatedSceneEntityGroup;
       })
-    );
+    )
+      .then(
+        _ =>
+          new Promise<THREE.Group[]>(resolve =>
+            setTimeout(() => resolve(_), 100)
+          )
+      )
+      .then(_ => _);
     initiatedSceneEntityGroups.forEach(group => this._scene.add(group));
 
     // Run updater methods
@@ -156,7 +171,12 @@ export abstract class AbstractSceneManager {
     // Enable superclass constructor to adjust settings after to initialization sequence
     this._postInitHook();
 
-    console.log('FInished initing');
+    // Remove loader div
+    removeLoaderDiv();
+
+    //
+    const dt = +new Date() - +getInitDate();
+    console.log('Finished initiating', dt);
   }
 
   protected registerSceneEntities = (sceneEntities: ISceneEntity[]) => {
