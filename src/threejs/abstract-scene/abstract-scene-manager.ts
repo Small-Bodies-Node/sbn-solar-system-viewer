@@ -5,15 +5,15 @@ import { ISceneEntity } from '../models/ISceneEntity';
 import { asciiError } from '../utils/ascii-error';
 import { auToMeters } from '../utils/conversions';
 import { getInitDate, initDate, setInitDate } from '../../index';
-import { getLoaderDiv } from '../html/get-loader-div';
+import { appendLoaderDiv } from '../html/get-loader-div';
 import { removeLoaderDiv } from '../html/remove-loader-div';
+import { daysPerCentury } from '../data/time-units';
 
-const initialCameraParams = {
-  aspectRatio: 2,
-  fieldOfView: 60,
-  nearPlane: auToMeters(0.00001), // Wow! Beware: changing this causes/fixes flickering/artifact-ing !!!
-  farPlane: auToMeters(3000),
-};
+// Initial Camera Params
+const ar = 2; // Aspect Ratio
+const fov = 60; // Field of View
+const near = auToMeters(0.00001); // Near Plane
+const far = auToMeters(3000); // Far Plane
 
 /**
  * This abstract class is to be inherited by the SceneManager instance.
@@ -29,39 +29,28 @@ const initialCameraParams = {
 export abstract class AbstractSceneManager {
   // ~~~>>>
 
-  protected _scene: THREE.Scene = new THREE.Scene();
+  /* Do NOT init OR re-init _controls till scene is set up or they will be erratic */
+  protected _controls!: OrbitControls;
+  protected _scene = new THREE.Scene();
   protected _renderer?: THREE.WebGLRenderer;
-  protected _canvas: HTMLCanvasElement = document.createElement('canvas');
+  protected _canvas = document.createElement('canvas');
   protected _requestAnimationFrameId: undefined | number;
   protected _clock = new THREE.Clock(false);
-  protected _initialViewingVector: THREE.Vector3 = new THREE.Vector3(
-    10,
-    10,
-    10
-  );
+  protected _initialViewingVector = new THREE.Vector3();
   protected _isSceneReady = false;
   protected _isRendering = false;
   protected _isHelpersShown = false;
   protected _isInit = false;
-  protected _container: HTMLElement | null = null;
+  protected _container!: HTMLElement;
   protected _fps = 60;
-  protected _camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(
-    initialCameraParams.fieldOfView,
-    initialCameraParams.aspectRatio,
-    initialCameraParams.nearPlane,
-    initialCameraParams.farPlane
-  );
-  protected _controls?: OrbitControls | TrackballControls;
+  protected _camera = new THREE.PerspectiveCamera(fov, ar, near, far);
   protected _sceneEntities: ISceneEntity[] = [];
   protected _preInitHook: () => void = () => {};
   protected _postInitHook: () => void = () => {};
   protected _destroyHook: () => void = () => {};
-  _updateCamera: (time: number) => void = () => {};
+  protected updateCamera: () => void = () => {};
 
-  constructor(
-    protected _containerId: string,
-    protected _isWorldFlippable = false
-  ) {}
+  constructor(protected _containerId: string) {}
 
   public async init() {
     // ------>>>
@@ -77,7 +66,7 @@ export abstract class AbstractSceneManager {
     this._preInitHook();
 
     // Get container and add fitting canvas to it
-    this._container = document.getElementById(this._containerId);
+    this._container = document.getElementById(this._containerId)!;
     if (!this._container) {
       throw new Error('No container found with id: ' + this._containerId);
     }
@@ -87,7 +76,7 @@ export abstract class AbstractSceneManager {
     this._container.append(this._canvas);
     this._container.style.setProperty('position', 'relative');
     this._container.style.setProperty('background-color', 'black');
-    this._container.append(getLoaderDiv());
+    appendLoaderDiv(this._container);
 
     // React to resize events on window
     window.addEventListener('resize', this._updateCameraAspect);
@@ -110,25 +99,13 @@ export abstract class AbstractSceneManager {
     this._camera.up = new THREE.Vector3(0, 0, 1); // Vector defining up direction of camera
     this._camera.lookAt(0, 0, 0);
 
-    // Define and configure orbitControls
-    // Do NOT attempt to create controls until
-    // dependencies are set, or you'll get erratic behavior.
-    // OrbitControls => Can't flip upside down
-    // TrackballControls => Can flip upside down
-    this._controls = !this._isWorldFlippable
-      ? new OrbitControls(this._camera, this._renderer.domElement)
-      : new TrackballControls(this._camera, this._renderer.domElement);
-    if (this._controls instanceof OrbitControls) {
-      this._controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-      this._controls.dampingFactor = 0.25;
-    } else if (this._controls instanceof TrackballControls) {
-      this._controls.rotateSpeed = 10.0;
-      this._controls.zoomSpeed = 1.2;
-      this._controls.panSpeed = 0.8;
-      this._controls.keys = ['65', '83', '68']; // a s d
-    } else {
-      throw Error('Poor Logic');
-    }
+    // Configure orbitControls
+    // ! Don't move this code to earlier position or controls will be screwy
+    // ! Note sure why; treat as brute fact supervening on inscrutable metaphysical states of affair
+    this._controls = new OrbitControls(this._camera, this._renderer.domElement);
+    this._controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    this._controls.dampingFactor = 0.25;
+    this._controls.target = new THREE.Vector3();
 
     // Initiate Scene Entities
     if (!this._sceneEntities.length) {
@@ -224,17 +201,12 @@ export abstract class AbstractSceneManager {
   };
 
   private _update() {
-    // Get time
-    const elapsedTime = this._clock.getElapsedTime();
-
     // Loop through scene entities and trigger their update methods
-    this._sceneEntities.forEach(el => el.update(elapsedTime));
+    // If they need 'universal' time, they can access this._clock, etc.
+    this._sceneEntities.forEach(el => el.update());
 
     // Update camera
-    this._updateCamera(elapsedTime);
-
-    // Needed for TrackballControls
-    this._controls?.update();
+    this.updateCamera();
 
     // Finish loop
     if (!this._camera || !this._renderer) throw new Error('Poor Logic');

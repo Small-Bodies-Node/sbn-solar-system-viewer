@@ -10,6 +10,8 @@ export const planets = [
   'NEPTUNE',
   'PLUTO',
   'HAUMEA',
+  'MAKEMAKE',
+  'ERIS',
 ] as const;
 
 export type TPlanets = typeof planets[number];

@@ -6,7 +6,7 @@
 export type TOptions = typeof options;
 
 let options = {
-  isAsyncLoad: !true,
+  isAsyncLoad: true,
 };
 
 export const getOptions = () => options;

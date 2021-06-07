@@ -1,8 +1,8 @@
-import { planetData } from '../data/basic-planet-data';
+import { solarSystemData } from '../data/basic-solar-system-data';
 import { TPlanets } from '../models/TPlanets';
 
 export function getPlanetRadiusMeters(name: TPlanets): number {
   // --->>>
 
-  return planetData[name].radiusMeters;
+  return solarSystemData[name].radiusMeters;
 }

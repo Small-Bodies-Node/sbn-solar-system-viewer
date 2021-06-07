@@ -11,6 +11,8 @@ import { getInitDate } from '../..';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 import { Orbit } from '../utils/orbit';
 import { ISceneEntity } from '../models/ISceneEntity';
+import { IOrbital } from '../models/IOrbital';
+import { IZoomable } from '../models/IZoomable';
 
 const planetsWithBumpMaps: Partial<TPlanets>[] = [
   'MERCURY',
@@ -24,7 +26,23 @@ const planetsWithBumpMaps: Partial<TPlanets>[] = [
 const planetsAsLoadableObjects: Partial<TPlanets>[] = [
   //
   'HAUMEA',
+  'MAKEMAKE',
+  'ERIS',
 ];
+
+const dwarfPlanets: Partial<TPlanets>[] = [
+  'CERES',
+  'PLUTO',
+  'HAUMEA',
+  'MAKEMAKE',
+  'ERIS',
+];
+
+const getPlanetType = (name: TPlanets) => {
+  return dwarfPlanets.includes(name)
+    ? EOrbitalType.DWARF_PLANET
+    : EOrbitalType.PLANET;
+};
 
 /**
  * "Cloud Radius Factor": ratio of cloud radius to planet radius
@@ -43,10 +61,12 @@ const getPlanetToyScale = (name: TPlanets) => {
   if (name === 'PLUTO') return 10000;
   if (name === 'CERES') return 10000;
   if (name === 'HAUMEA') return 15000;
+  if (name === 'MAKEMAKE') return 15000;
+  if (name === 'ERIS') return 15000;
   return 3000;
 };
 
-export class Planet extends AbstractToyModel implements ISceneEntity {
+export class Planet extends AbstractToyModel implements IZoomable {
   // ~~~>>>
 
   private helper: THREE.LineSegments;
@@ -55,13 +75,13 @@ export class Planet extends AbstractToyModel implements ISceneEntity {
   private orbit: Orbit;
   private radius: number;
 
-  constructor(private readonly NAME: TPlanets) {
+  constructor(public readonly NAME: TPlanets) {
     // --->>>
 
     super(getPlanetToyScale(NAME));
 
     this.radius = getPlanetRadiusMeters(NAME);
-    this.orbit = new Orbit(this.NAME, EOrbitalType.PLANET);
+    this.orbit = new Orbit(this.NAME, getPlanetType(NAME));
     this._sceneEntityGroup.add(this.orbit.getProjectedOrbitLine());
 
     // Make the model toy-scalable
@@ -187,7 +207,15 @@ export class Planet extends AbstractToyModel implements ISceneEntity {
     }
   };
 
-  update(_tCenturiesSinceJ2000: number) {
+  public getPosition = () => {
+    // const { x, y, z } = this.orbit.getXyzMeters();
+    // return new THREE.Vector3(x, y, z);
+    return this.model.position;
+  };
+
+  public getRadius = () => this.radius;
+
+  update() {
     // Update planet position
     const { x, y, z } = this.orbit.getXyzMeters();
     this.model.position.set(x, y, z);

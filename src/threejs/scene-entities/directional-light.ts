@@ -8,7 +8,8 @@ export class DirectionalLight extends AbstractSceneEntity
   implements ISceneEntity {
   // ~~~>>>
 
-  _light?: THREE.DirectionalLight | THREE.SpotLight;
+  public readonly NAME = 'Directional Light';
+  private _light?: THREE.DirectionalLight | THREE.SpotLight;
 
   async init() {
     return new Promise<THREE.Group>(resolve => {
@@ -33,10 +34,7 @@ export class DirectionalLight extends AbstractSceneEntity
     });
   }
 
-  update = (_time: number) => {
-    // this._sceneEntityGroup.position.x += time * 0;
-    // this._sceneEntityGroup.rotateZ(_time * 0 + 0.001);
-  };
+  update = () => {};
 
   setIsOn(isOn: boolean) {
     this._light!.visible = isOn;

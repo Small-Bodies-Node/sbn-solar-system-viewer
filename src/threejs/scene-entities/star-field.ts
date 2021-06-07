@@ -10,7 +10,7 @@ import { invertTextureColor } from '../utils/invert-texture-color';
 export class StarField extends AbstractSceneEntity implements ISceneEntity {
   // ~~~>>>
 
-  readonly name = 'STARFIELD';
+  public readonly NAME = 'STARFIELD';
   private mesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshPhongMaterial>;
   private material: THREE.MeshPhongMaterial;
   private texture: THREE.Texture | null = null;
@@ -76,5 +76,5 @@ export class StarField extends AbstractSceneEntity implements ISceneEntity {
     this.material.needsUpdate = true;
   };
 
-  update(_time: number) {}
+  update() {}
 }

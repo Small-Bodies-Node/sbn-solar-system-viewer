@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Artificial delay to simulate poor networks, etc.
 // Can also be used to buffer planet load
-export const delayMs = 500;
+export const delayMs = 5;
 
 export const getTextureFromImageUrl = (
   url: string,

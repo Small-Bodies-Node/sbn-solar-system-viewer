@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
-import { planetData } from '../data/basic-planet-data';
+import { solarSystemData } from '../data/basic-solar-system-data';
 import { ISceneEntity } from '../models/ISceneEntity';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 import { imageBaseUrl } from '../utils/constants';
 import { getInitDate } from '../..';
+import { IZoomable } from '../models/IZoomable';
 
 /**
  * When a sprite is loaded it is given a size of '1'
@@ -15,12 +16,13 @@ import { getInitDate } from '../..';
  */
 const realToToyRatio = 30;
 const imageToSunRatio = 20;
-const sunRadiusMeters = planetData.SUN.radiusMeters;
 
-export class Sun extends AbstractToyModel implements ISceneEntity {
+export class Sun extends AbstractToyModel implements IZoomable {
   // ~~~>>>
 
-  private readonly name = 'SUN';
+  public readonly NAME = 'SUN';
+  private readonly position = new THREE.Vector3(0, 0, 0);
+  private readonly sunRadiusMeters = solarSystemData.SUN.radiusMeters;
   private model = new THREE.Group();
   private helper: THREE.LineSegments;
   private sprite = new THREE.Sprite(
@@ -35,18 +37,24 @@ export class Sun extends AbstractToyModel implements ISceneEntity {
     super(realToToyRatio);
 
     // Set up sun sprite size
-    this.sprite.scale.multiplyScalar(sunRadiusMeters * imageToSunRatio);
+    this.sprite.scale.multiplyScalar(this.sunRadiusMeters * imageToSunRatio);
     this.model.add(this.sprite);
 
     // Set up helper
     this.helper = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.SphereGeometry(sunRadiusMeters, 32)),
+      new THREE.EdgesGeometry(
+        new THREE.SphereGeometry(this.sunRadiusMeters, 32)
+      ),
       new THREE.LineBasicMaterial({ color: new THREE.Color('cyan') })
     );
     this.helper.userData.isHelper = true;
     this.helper.rotateX(Math.PI / 2);
     this.model.add(this.helper);
   }
+
+  getRadius = () => this.sunRadiusMeters;
+
+  getPosition = () => this.position;
 
   async init() {
     return new Promise<THREE.Group>(async resolve => {
@@ -68,19 +76,14 @@ export class Sun extends AbstractToyModel implements ISceneEntity {
       }
 
       this._toyModel = this.model;
-      this._sceneEntityGroup.name = this.name;
+      this._sceneEntityGroup.name = this.NAME;
       this._sceneEntityGroup.add(this.model);
       console.log('Sun resolved', +new Date() - +getInitDate());
       resolve(this._sceneEntityGroup);
     });
   }
 
-  update(_tCenturiesSinceJ200: number) {
+  update() {
     this._updateModelScale();
-
-    this.sprite.rotateX(0.1 * _tCenturiesSinceJ200);
-    this.sprite.rotateY(0.1 * _tCenturiesSinceJ200);
-    this.sprite.rotateZ(0.1 * _tCenturiesSinceJ200);
-    this.sprite.material.rotation = 0.1 * _tCenturiesSinceJ200;
   }
 }

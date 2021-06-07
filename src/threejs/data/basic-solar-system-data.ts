@@ -1,4 +1,4 @@
-export const planetData = {
+export const solarSystemData = {
   SUN: {
     radiusMeters: 696342000,
     periodDays: undefined,
@@ -44,8 +44,16 @@ export const planetData = {
     periodDays: 90560,
   },
   HAUMEA: {
-    radiusMeters: 620000,
-    periodDays: 103410,
+    radiusMeters: 620_000,
+    periodDays: 103_410,
+  },
+  MAKEMAKE: {
+    radiusMeters: 720_000,
+    periodDays: 111_845,
+  },
+  ERIS: {
+    radiusMeters: 1_163_000,
+    periodDays: 204_199,
   },
   // Moons
   MOON: {

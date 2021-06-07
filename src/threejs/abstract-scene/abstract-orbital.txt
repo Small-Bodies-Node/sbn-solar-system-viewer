@@ -1,0 +1,35 @@
+import { EOrbitalType } from '../models/EOrbitalType';
+import { Orbit } from '../utils/orbit';
+import { AbstractSceneEntity } from './abstract-scene-entity';
+import { AbstractToyModel } from './abstract-toy-model';
+
+const getSphereSegments = (orbitalType: EOrbitalType) => {
+  if (orbitalType === EOrbitalType.ASTEROID) return 8;
+  return 32;
+};
+
+/**
+ * Base class for orbiting object (planet, asteroid, etc.) with toy-model presentation
+ */
+export abstract class AbstractOrbital extends AbstractToyModel {
+  // ~~~>>>
+
+  protected _orbit: Orbit;
+
+  constructor(
+    name: string,
+    orbitalType: EOrbitalType,
+    toyScale: number,
+    realScale = 1
+  ) {
+    super(toyScale, realScale);
+    this._orbit = new Orbit(name, orbitalType);
+    this._sceneEntityGroup.add(this._orbit.getProjectedOrbitLine());
+  }
+
+  public getOrbit = () => this._orbit;
+
+  public getXyz = (t: number) => {
+    return this._orbit.getXyzMeters(t);
+  };
+}

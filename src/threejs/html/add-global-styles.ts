@@ -25,6 +25,10 @@ export const addGlobalStyles = () => {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .sbn-solar-system-viewer-input:focus{
+        outline-width: 0;
+    }
   `;
 
   document.head.append(globalStyle);

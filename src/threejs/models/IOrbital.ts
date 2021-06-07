@@ -6,5 +6,5 @@ import { ISceneEntity } from './ISceneEntity';
  * Only the sun returns null
  */
 export interface IOrbital extends ISceneEntity {
-  orbit: Orbit;
+  getPosition: () => THREE.Vector3;
 }

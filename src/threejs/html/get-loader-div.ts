@@ -2,7 +2,6 @@ import { addGlobalStyles } from './add-global-styles';
 
 export const loaderDivId = 'sbn-solar-system-loader-div-id';
 
-const radius = '15%';
 const borderWidthPxls = 5;
 const spinSpeedMs = 2000;
 
@@ -12,7 +11,7 @@ const spinSpeedMs = 2000;
  * for centering the div with the actual animation, and the 'animDiv'
  * that does the spinning, etc.
  */
-export const getLoaderDiv = () => {
+export const appendLoaderDiv = (containerDiv: HTMLElement) => {
   // --->>>
 
   // Injects key frames for spin animation
@@ -21,6 +20,7 @@ export const getLoaderDiv = () => {
   // Create divs
   const loaderDiv = document.createElement('div');
   const animDiv = document.createElement('div');
+  containerDiv.append(loaderDiv);
   loaderDiv.append(animDiv);
   // Style loaderDiv
   loaderDiv.id = loaderDivId;
@@ -32,12 +32,16 @@ export const getLoaderDiv = () => {
   loaderDiv.style.setProperty('display', 'flex');
   loaderDiv.style.setProperty('align-items', 'center');
   loaderDiv.style.setProperty('justify-content', 'center');
+  // Calc size of radius based on size of container
+  const width = loaderDiv.offsetWidth;
+  const height = loaderDiv.offsetHeight;
+  const shorterLength = width < height ? width : height;
   // Style animation div
+  animDiv.style.setProperty('width', shorterLength * 0.25 + 'px');
+  animDiv.style.setProperty('height', shorterLength * 0.25 + 'px');
   animDiv.style.setProperty('border', `${borderWidthPxls}px solid #f3f3f3`);
   animDiv.style.setProperty('border-top', `${borderWidthPxls}px solid #3498db`);
-  animDiv.style.setProperty('border-radius', '50%');
-  animDiv.style.setProperty('width', radius);
-  animDiv.style.setProperty('height', radius);
+  animDiv.style.setProperty('border-radius', '100px');
   animDiv.style.setProperty(
     'animation',
     `sbn-solar-system-viewer-loader-spin ${spinSpeedMs}ms linear infinite`

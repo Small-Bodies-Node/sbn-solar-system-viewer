@@ -196,15 +196,54 @@ export const EphemPresets = {
   ),
   HAUMEA: new SKEphem(
     {
-      epoch: 2454000.5,
-      a: 39.4450697257,
-      e: 0.250248713478,
-      i: 17.0890009196,
-      om: 110.376957955,
-      w: 112.597141677,
-      ma: 25.2471897122,
+      epoch: 2459200.5,
+      a: 43.116,
+      e: 0.19642,
+      i: 28.2137,
+      om: 122.167,
+      w: 239.041,
+      ma: 218.205,
+    },
+    'deg',
+    true /* locked */
+  ),
+  MAKEMAKE: new SKEphem(
+    {
+      epoch: 2458900.5,
+      a: 45.43,
+      e: 0.16126,
+      i: 28.9835,
+      om: 79.62,
+      w: 294.834,
+      ma: 165.514,
+    },
+    'deg',
+    true /* locked */
+  ),
+  ERIS: new SKEphem(
+    {
+      epoch: 2459000.5,
+      a: 67.864,
+      e: 0.43607,
+      i: 44.04,
+      om: 35.951,
+      w: 151.639,
+      ma: 205.989,
     },
     'deg',
     true /* locked */
   ),
 };
+
+// a?: number; // Semimajor axis
+// e?: number; // Eccentricity
+// i?: number; // Inclination
+// epoch?: number; // Epoch in JD
+// period?: number; // Period in days
+// ma?: number; // Mean anomaly
+// n?: number; // Mean motion
+// L?: number; // Mean longitude
+// om?: number; // Longitude of Ascending Node
+// w?: number; // Argument of Perihelion
+// wBar?: number; // Longitude of Perihelion
+// GM?: number; // Standard gravitational parameter in km^3/s^2.

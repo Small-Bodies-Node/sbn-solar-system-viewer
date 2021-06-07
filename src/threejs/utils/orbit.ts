@@ -27,6 +27,10 @@ export class Orbit {
         this.loadPlanet();
         break;
       }
+      case EOrbitalType.DWARF_PLANET: {
+        this.loadPlanet();
+        break;
+      }
       default: {
         this.loadPlanet();
         break;
@@ -37,7 +41,7 @@ export class Orbit {
   loadPlanet = () => {
     this.SKEph = EphemPresets[this.name as TPlanets];
     this.SKOrbit = new SKOrbit(this.SKEph, {
-      color: 'white',
+      color: this.orbitalType === EOrbitalType.PLANET ? 'white' : 'pink',
       eclipticLineColor: undefined,
       orbitPathSettings: undefined,
     });

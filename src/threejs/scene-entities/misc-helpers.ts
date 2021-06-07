@@ -5,6 +5,10 @@ import { ISceneEntity } from '../models/ISceneEntity';
 import { auToMeters } from '../utils/conversions';
 
 export class MiscHelpers extends AbstractSceneEntity implements ISceneEntity {
+  // ~~~>>>
+
+  public readonly NAME = 'Misc Helpers';
+
   async init() {
     return new Promise<THREE.Group>(resolve => {
       const axesHelper = new THREE.AxesHelper(auToMeters(100));
@@ -15,7 +19,5 @@ export class MiscHelpers extends AbstractSceneEntity implements ISceneEntity {
     });
   }
 
-  update = (time: number) => {
-    this._sceneEntityGroup.position.x += time * 0;
-  };
+  update = () => {};
 }

@@ -23,6 +23,10 @@ export abstract class AbstractToyModel extends AbstractSceneEntity {
     this._isZoomToToyScale = value;
   }
 
+  public getScale() {
+    return this._isZoomToToyScale ? this._toyScale : this._realScale;
+  }
+
   protected _setToToyScale() {
     if (!this._toyModel) return;
     // Update scale instantly (rather than depending on animated transition)

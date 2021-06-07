@@ -6,6 +6,7 @@ import { ISceneEntity } from '../models/ISceneEntity';
 export class PointLight extends AbstractSceneEntity implements ISceneEntity {
   // ~~~>>>
 
+  public readonly NAME = 'Point Light';
   private _light?: THREE.PointLight;
 
   constructor(private _defaultIntensity = 0.3, private _radius = 1) {
@@ -27,10 +28,6 @@ export class PointLight extends AbstractSceneEntity implements ISceneEntity {
     });
   }
 
-  update = (time: number) => {
-    this._sceneEntityGroup.position.x += time * 0;
-  };
-
   setPower = (intensity?: number) => {
     const newIntensity = intensity || this._defaultIntensity;
     this._light!.intensity = newIntensity;
@@ -39,4 +36,6 @@ export class PointLight extends AbstractSceneEntity implements ISceneEntity {
   setIsOn(isOn: boolean) {
     this._light!.visible = isOn;
   }
+
+  update = () => {};
 }

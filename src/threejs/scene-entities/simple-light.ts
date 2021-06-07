@@ -6,6 +6,7 @@ import { ISceneEntity } from '../models/ISceneEntity';
 export class SimpleLight extends AbstractSceneEntity implements ISceneEntity {
   // ~~~>>>
 
+  public readonly NAME = 'Simple Light';
   private _light?: THREE.AmbientLight;
 
   constructor(private _defaultIntensity = 0.3) {
@@ -21,10 +22,6 @@ export class SimpleLight extends AbstractSceneEntity implements ISceneEntity {
     });
   }
 
-  update = (time: number) => {
-    this._sceneEntityGroup.position.x += time * 0;
-  };
-
   setPower = (intensity?: number) => {
     const newIntensity = intensity || this._defaultIntensity;
     this._light!.intensity = newIntensity;
@@ -33,4 +30,6 @@ export class SimpleLight extends AbstractSceneEntity implements ISceneEntity {
   setIsOn(isOn: boolean) {
     this._light!.visible = isOn;
   }
+
+  update = () => {};
 }
