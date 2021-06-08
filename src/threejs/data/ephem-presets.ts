@@ -243,7 +243,7 @@ export const EphemPresets = {
 // ma?: number; // Mean anomaly
 // n?: number; // Mean motion
 // L?: number; // Mean longitude
-// om?: number; // Longitude of Ascending Node
-// w?: number; // Argument of Perihelion
+// om?: number; // Longitude of Ascending Node ===> "Node" in MPC asteroids
+// w?: number; // Argument of Perihelion ===> "Peri" in MPC asteroids
 // wBar?: number; // Longitude of Perihelion
 // GM?: number; // Standard gravitational parameter in km^3/s^2.

@@ -1,3 +1,4 @@
+import { SKEphem } from '../utils/sk-ephem';
 /**
  * A dictionary containing ephemerides of planets and other well-known objects.
  * @example
@@ -6,14 +7,18 @@
  * });
  */
 export declare const EphemPresets: {
-    MERCURY: any;
-    VENUS: any;
-    EARTH: any;
-    MOON: any;
-    MARS: any;
-    JUPITER: any;
-    SATURN: any;
-    URANUS: any;
-    NEPTUNE: any;
-    PLUTO: any;
+    MERCURY: SKEphem;
+    VENUS: SKEphem;
+    EARTH: SKEphem;
+    MOON: SKEphem;
+    MARS: SKEphem;
+    CERES: SKEphem;
+    JUPITER: SKEphem;
+    SATURN: SKEphem;
+    URANUS: SKEphem;
+    NEPTUNE: SKEphem;
+    PLUTO: SKEphem;
+    HAUMEA: SKEphem;
+    MAKEMAKE: SKEphem;
+    ERIS: SKEphem;
 };

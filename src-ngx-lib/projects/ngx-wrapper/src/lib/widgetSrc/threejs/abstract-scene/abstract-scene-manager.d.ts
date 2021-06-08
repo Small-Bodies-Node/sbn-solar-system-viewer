@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { ISceneEntity } from '../models/ISceneEntity';
 /**
  * This abstract class is to be inherited by the SceneManager instance.
@@ -15,7 +14,7 @@ import { ISceneEntity } from '../models/ISceneEntity';
  */
 export declare abstract class AbstractSceneManager {
     protected _containerId: string;
-    protected _isWorldFlippable: boolean;
+    protected _controls: OrbitControls;
     protected _scene: THREE.Scene;
     protected _renderer?: THREE.WebGLRenderer;
     protected _canvas: HTMLCanvasElement;
@@ -26,16 +25,15 @@ export declare abstract class AbstractSceneManager {
     protected _isRendering: boolean;
     protected _isHelpersShown: boolean;
     protected _isInit: boolean;
-    protected _container: HTMLElement | null;
+    protected _container: HTMLElement;
     protected _fps: number;
     protected _camera: THREE.PerspectiveCamera;
-    protected _controls?: OrbitControls | TrackballControls;
     protected _sceneEntities: ISceneEntity[];
     protected _preInitHook: () => void;
     protected _postInitHook: () => void;
     protected _destroyHook: () => void;
-    _updateCamera: (time: number) => void;
-    constructor(_containerId: string, _isWorldFlippable?: boolean);
+    protected updateCamera: () => void;
+    constructor(_containerId: string);
     init(): Promise<void>;
     protected registerSceneEntities: (sceneEntities: ISceneEntity[]) => void;
     /**

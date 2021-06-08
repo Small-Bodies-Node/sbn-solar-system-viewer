@@ -12,5 +12,5 @@ import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
 export interface ISceneEntity extends AbstractSceneEntity {
   NAME: string;
   init: () => Promise<THREE.Group>;
-  update: () => void;
+  update: (camera?: THREE.Camera, time?: number) => void;
 }

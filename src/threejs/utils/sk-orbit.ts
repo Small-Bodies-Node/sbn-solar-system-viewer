@@ -435,7 +435,10 @@ export class SKOrbit {
    * @param {boolean} forceCompute forces the recomputing of the orbit on this call
    * @return {THREE.Line}
    */
-  getOrbitShape(jd?: number, forceCompute = false) {
+  getOrbitShape(
+    jd?: number,
+    forceCompute = false
+  ): THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> {
     if (forceCompute) {
       if (this._orbitShape) {
         this._orbitShape.geometry.dispose();
@@ -622,7 +625,9 @@ export class SKOrbit {
   /**
    * @private
    */
-  generateAndCacheOrbitShape(pointGeometry: THREE.BufferGeometry) {
+  generateAndCacheOrbitShape(
+    pointGeometry: THREE.BufferGeometry
+  ): THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> {
     // --->>>
 
     this._orbitPoints = pointGeometry;
@@ -631,7 +636,6 @@ export class SKOrbit {
       new THREE.LineBasicMaterial({
         color: new THREE.Color(this._options.color || 0x444444),
       })
-      // THREE.LineStrip
     );
     return this._orbitShape;
   }

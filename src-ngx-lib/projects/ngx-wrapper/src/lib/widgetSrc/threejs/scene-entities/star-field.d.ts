@@ -2,10 +2,12 @@ import * as THREE from 'three';
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
 import { ISceneEntity } from '../models/ISceneEntity';
 export declare class StarField extends AbstractSceneEntity implements ISceneEntity {
-    readonly name = "STARFIELD";
+    readonly NAME = "STARFIELD";
     private mesh;
     private material;
+    private texture;
     constructor(radius: number);
     init(): Promise<THREE.Group>;
-    update(_time: number): void;
+    invertColor: () => void;
+    update(): void;
 }

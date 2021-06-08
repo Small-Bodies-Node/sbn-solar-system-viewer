@@ -10,9 +10,7 @@ import { imageBaseUrl } from '../utils/constants';
 import { getInitDate } from '../..';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 import { Orbit } from '../utils/orbit';
-import { ISceneEntity } from '../models/ISceneEntity';
-import { IOrbital } from '../models/IOrbital';
-import { IZoomable } from '../models/IZoomable';
+import { IZoomableOrbital } from '../models/IZoomableOrbital';
 
 const planetsWithBumpMaps: Partial<TPlanets>[] = [
   'MERCURY',
@@ -66,13 +64,17 @@ const getPlanetToyScale = (name: TPlanets) => {
   return 3000;
 };
 
-export class Planet extends AbstractToyModel implements IZoomable {
+export class Planet extends AbstractToyModel implements IZoomableOrbital {
   // ~~~>>>
 
   private helper: THREE.LineSegments;
   private model = new THREE.Group();
   private clouds?: THREE.Mesh;
   private orbit: Orbit;
+  private SKprojectedOrbitLine: THREE.Line<
+    THREE.BufferGeometry,
+    THREE.LineBasicMaterial
+  >;
   private radius: number;
 
   constructor(public readonly NAME: TPlanets) {
@@ -82,7 +84,8 @@ export class Planet extends AbstractToyModel implements IZoomable {
 
     this.radius = getPlanetRadiusMeters(NAME);
     this.orbit = new Orbit(this.NAME, getPlanetType(NAME));
-    this._sceneEntityGroup.add(this.orbit.getProjectedOrbitLine());
+    this.SKprojectedOrbitLine = this.orbit.getProjectedOrbitLine();
+    this._sceneEntityGroup.add(this.SKprojectedOrbitLine);
 
     // Make the model toy-scalable
     this._toyModel = this.model;
@@ -214,6 +217,12 @@ export class Planet extends AbstractToyModel implements IZoomable {
   };
 
   public getRadius = () => this.radius;
+
+  public getOrbit = () => this.orbit;
+
+  public setIsOrbitVisible = (val: boolean) => {
+    this.SKprojectedOrbitLine.visible = val;
+  };
 
   update() {
     // Update planet position

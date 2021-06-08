@@ -12,10 +12,9 @@ interface IVertices {
  * Function to take a dodecahedron and warp the points to createa jagged
  * asteroid shape
  */
-export const createAsteroidGeometry = (size: number) => {
+export const createAsteroidGeometry = (size: number, warpFactor = 0.25) => {
   // --->>>
 
-  const wf = 0.25; // Warp Factor
   const geometry = new THREE.DodecahedronGeometry(size, 1);
   const positionAttribute = geometry.getAttribute('position');
   const point = new THREE.Vector3();
@@ -27,9 +26,9 @@ export const createAsteroidGeometry = (size: number) => {
     let key = [point.x, point.y, point.z].join(',');
     if (!vertices[key])
       vertices[key] = {
-        x: point.x += Math.random() * size * wf,
-        y: point.y += Math.random() * size * wf,
-        z: point.z += Math.random() * size * wf,
+        x: point.x += Math.random() * size * warpFactor,
+        y: point.y += Math.random() * size * warpFactor,
+        z: point.z += Math.random() * size * warpFactor,
       };
   }
 
@@ -39,6 +38,12 @@ export const createAsteroidGeometry = (size: number) => {
     let { x, y, z } = vertices[key];
     positionAttribute.setXYZ(i, x, y, z);
   }
+
+  // Stretch/flatten asteroid randomly
+  const sx = 0.5 + Math.random();
+  const sy = 0.5 + Math.random();
+  const sz = 0.5 + Math.random();
+  geometry.scale(sx, sy, sz);
 
   return geometry;
 };

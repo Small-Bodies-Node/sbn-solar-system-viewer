@@ -11,11 +11,21 @@ import { SKOrbit } from './sk-orbit';
 export class Orbit {
   // ~~~>>>
 
-  private SKprojectedOrbitLine!: THREE.Line;
+  private SKprojectedOrbitLine!: THREE.Line<
+    THREE.BufferGeometry,
+    THREE.LineBasicMaterial
+  >;
   private SKEph?: SKEphem;
   private SKOrbit?: SKOrbit;
 
-  constructor(private name: string, private orbitalType = EOrbitalType.PLANET) {
+  constructor(
+    //
+    private name: string,
+    private orbitalType = EOrbitalType.PLANET,
+    private skephem?: SKEphem,
+    private color?: string,
+    private opacity?: number
+  ) {
     // --->>>
 
     switch (this.orbitalType) {
@@ -46,27 +56,35 @@ export class Orbit {
       orbitPathSettings: undefined,
     });
     this.SKprojectedOrbitLine = this.SKOrbit.getOrbitShape();
+    this.SKprojectedOrbitLine.material.transparent = true;
+    this.SKprojectedOrbitLine.material.opacity = this.opacity || 1;
+    this.SKprojectedOrbitLine.material.needsUpdate = true;
   };
 
   loadAsteroid = () => {
-    this.SKEph = new SKEphem(
-      {
-        epoch: 2458600.5,
-        a: 5.38533,
-        e: 0.19893,
-        i: 22.11137,
-        om: 294.42992,
-        w: 314.2889,
-        ma: 229.14238,
-      },
-      'deg'
-    );
+    this.SKEph =
+      this.skephem ||
+      new SKEphem(
+        {
+          epoch: 2458600.5,
+          a: 5.38533,
+          e: 0.19893,
+          i: 22.11137,
+          om: 294.42992,
+          w: 314.2889,
+          ma: 229.14238,
+        },
+        'deg'
+      );
     this.SKOrbit = new SKOrbit(this.SKEph, {
-      color: 'cyan',
+      color: this.color || 'cyan',
       eclipticLineColor: undefined,
       orbitPathSettings: undefined,
     });
     this.SKprojectedOrbitLine = this.SKOrbit.getOrbitShape();
+    this.SKprojectedOrbitLine.material.transparent = true;
+    this.SKprojectedOrbitLine.material.opacity = this.opacity || 1;
+    this.SKprojectedOrbitLine.material.needsUpdate = true;
   };
 
   getProjectedOrbitLine = () => this.SKprojectedOrbitLine;

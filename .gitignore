@@ -9,3 +9,7 @@ dist-gh-pages
 
 .notes
 redundant
+
+# Data
+src/threejs/data/json/asteroids/*
+rawData/*.json

@@ -203,7 +203,9 @@ export abstract class AbstractSceneManager {
   private _update() {
     // Loop through scene entities and trigger their update methods
     // If they need 'universal' time, they can access this._clock, etc.
-    this._sceneEntities.forEach(el => el.update());
+    this._sceneEntities.forEach(el =>
+      el.update(this._camera, this._clock.elapsedTime)
+    );
 
     // Update camera
     this.updateCamera();

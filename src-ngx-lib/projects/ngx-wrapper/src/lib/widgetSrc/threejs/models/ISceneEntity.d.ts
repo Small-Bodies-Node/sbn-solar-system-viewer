@@ -9,6 +9,7 @@ import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
  * of the threeJs meshes, lights, etc. within the scene entity's THREE.Group
  */
 export interface ISceneEntity extends AbstractSceneEntity {
+    NAME: string;
     init: () => Promise<THREE.Group>;
-    update: (time: number) => void;
+    update: (camera?: THREE.Camera, time?: number) => void;
 }

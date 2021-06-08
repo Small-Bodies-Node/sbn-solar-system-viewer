@@ -4,6 +4,8 @@ import * as THREE from 'three';
  * might get added to the threeJs scene owned by the manager
  */
 export declare abstract class AbstractSceneEntity {
+    private static _isAsyncLoad;
+    protected _isAsyncLoad: () => boolean;
     protected _sceneEntityGroup: THREE.Group;
     getSceneEntityGroup: () => THREE.Group;
 }

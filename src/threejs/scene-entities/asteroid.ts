@@ -3,19 +3,22 @@ import * as THREE from 'three';
 import { EOrbitalType } from '../models/EOrbitalType';
 import { Orbit } from '../utils/orbit';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
-import { IOrbital } from '../models/IOrbital';
-import { IZoomable } from '../models/IZoomable';
 import { createAsteroidGeometry } from '../utils/create-asteroid-geometry';
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
 import { imageBaseUrl } from '../utils/constants';
+import { IZoomableOrbital } from '../models/IZoomableOrbital';
 
 const defaultRadiusMeters = 10000;
 
-export class Asteroid extends AbstractToyModel implements IZoomable {
+export class Asteroid extends AbstractToyModel implements IZoomableOrbital {
   // ~~~>>>
 
-  orbit: Orbit;
-  model = new THREE.Group();
+  private model = new THREE.Group();
+  private orbit: Orbit;
+  private SKprojectedOrbitLine: THREE.Line<
+    THREE.BufferGeometry,
+    THREE.LineBasicMaterial
+  >;
 
   constructor(
     public readonly NAME: string,
@@ -23,6 +26,8 @@ export class Asteroid extends AbstractToyModel implements IZoomable {
   ) {
     super(30000 * 100);
     this.orbit = new Orbit(NAME, EOrbitalType.ASTEROID);
+    this.SKprojectedOrbitLine = this.orbit.getProjectedOrbitLine();
+    this._sceneEntityGroup.add(this.SKprojectedOrbitLine);
   }
 
   async init() {
@@ -33,7 +38,7 @@ export class Asteroid extends AbstractToyModel implements IZoomable {
 
       const geometry = createAsteroidGeometry(this.radius);
       const mesh = new THREE.Mesh(
-        geometry.clone(),
+        geometry,
         new THREE.MeshPhongMaterial({
           // color: new THREE.Color('red'),
           map: await getTextureFromImageUrl(url),
@@ -44,7 +49,6 @@ export class Asteroid extends AbstractToyModel implements IZoomable {
       this._toyModel = this.model;
       this._sceneEntityGroup.add(this.model);
 
-      this._sceneEntityGroup.add(this.orbit.getProjectedOrbitLine());
       resolve(this._sceneEntityGroup);
     });
   }
@@ -55,6 +59,12 @@ export class Asteroid extends AbstractToyModel implements IZoomable {
   };
 
   public getRadius = () => this.radius;
+
+  public getOrbit = () => this.orbit;
+
+  public setIsOrbitVisible = (val: boolean) => {
+    this.SKprojectedOrbitLine.visible = val;
+  };
 
   update() {
     // Update planet position

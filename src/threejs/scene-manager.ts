@@ -7,7 +7,7 @@ import { Sun } from './scene-entities/sun';
 import { Planet } from './scene-entities/planet';
 import { StarField } from './scene-entities/star-field';
 import { auToMeters } from './utils/conversions';
-import { jsDateToCenturiesSinceJ2000 } from './utils/j2000';
+import { dateToJ2000, jsDateToCenturiesSinceJ2000 } from './utils/j2000';
 import { MiscHelpers } from './scene-entities/misc-helpers';
 import { SimpleLight } from './scene-entities/simple-light';
 import { DirectionalLight } from './scene-entities/directional-light';
@@ -19,6 +19,11 @@ import { IZoomable } from './models/IZoomable';
 import { updateTraversalFraction } from './utils/update-traversal-fraction';
 import { updateCameraPosition } from './utils/update-camera-position';
 import { updateCameraViewingAngle } from './utils/update-camera-viewing-angle';
+import { AsteroidBelt } from './scene-entities/asteroid-belt';
+import julian from 'julian';
+import { AbstractToyModel } from './abstract-scene/abstract-toy-model';
+import { buttonToggleOrbits } from './html/button-toggle-orbits';
+import { IZoomableOrbital } from './models/IZoomableOrbital';
 
 /**
  * Implement a scene for this app with 'real' scene entities
@@ -26,15 +31,21 @@ import { updateCameraViewingAngle } from './utils/update-camera-viewing-angle';
 export class SceneManager extends AbstractSceneManager {
   // ~~~>>>
 
-  private starField?: StarField;
+  // Toy-scalable bodies
   private sun = new Sun();
   private planets: Planet[];
   private asteroids: Asteroid[];
+  private asteroidBelts: AsteroidBelt[];
+
+  private starField?: StarField;
   private isToyScale = true;
+  private isOrbitsVisible = true;
   private tCenturiesSinceJ2000 = jsDateToCenturiesSinceJ2000(new Date());
+  private toyScalables: AbstractToyModel[];
 
   // Zooming logic
-  private zoomableBodies: IZoomable[] = [];
+  private zoomables: IZoomable[] = [];
+  private zoomableOrbitals: IZoomableOrbital[] = [];
   private zoomTarget: IZoomable = this.sun;
   private isZoomingPosition = false;
   private isZoomingAngle = false;
@@ -65,18 +76,27 @@ export class SceneManager extends AbstractSceneManager {
       new Planet('MAKEMAKE'),
       new Planet('ERIS'),
     ];
+    this.asteroidBelts = [new AsteroidBelt('MBA')];
     this.asteroids = [new Asteroid('65P')];
     this.starField = new StarField(auToMeters(999));
-    this.zoomableBodies = [...this.planets, ...this.asteroids, this.sun];
+    this.zoomables = [...this.planets, ...this.asteroids, this.sun];
+    this.zoomableOrbitals = [...this.planets, ...this.asteroids];
+    this.toyScalables = [
+      ...this.planets,
+      ...this.asteroids,
+      // ...this.asteroidBelts,
+      this.sun,
+    ];
 
     this.registerSceneEntities([
-      this.starField,
-      ...this.planets,
-      new DirectionalLight(),
+      // this.starField,
+      // new DirectionalLight(),
       new MiscHelpers(),
       new SimpleLight(0.4),
       new PointLight(5, solarSystemData.SUN.radiusMeters),
+      ...this.planets,
       ...this.asteroids,
+      ...this.asteroidBelts,
       /** Sun MUST come last due to its sprite-blending settings **/
       this.sun,
     ]);
@@ -94,6 +114,7 @@ export class SceneManager extends AbstractSceneManager {
       searchField(this._container, this.tryToStartZooming);
       buttonToggleToyScale(this._container, this.toggleIsToyScale);
       buttonToggleHelpers(this._container, this.toggleHelpersVisibility);
+      buttonToggleOrbits(this._container, this.toggleIsOrbitsVisible);
       // Misc
       this._controls!.maxDistance = auToMeters(100);
       this.setIsToyScale(true);
@@ -125,9 +146,7 @@ export class SceneManager extends AbstractSceneManager {
 
   setIsToyScale = (isToyScale: boolean) => {
     this.isToyScale = !!isToyScale;
-    this.sun.setIsZoomToToyScale(this.isToyScale);
-    this.planets.forEach(_ => _.setIsZoomToToyScale(this.isToyScale));
-    this.asteroids.forEach(_ => _.setIsZoomToToyScale(this.isToyScale));
+    this.toyScalables.forEach(_ => _.setIsZoomToToyScale(this.isToyScale));
   };
 
   toggleIsToyScale = () => {
@@ -135,9 +154,21 @@ export class SceneManager extends AbstractSceneManager {
     this.setIsToyScale(this.isToyScale);
   };
 
+  setIsOrbitsVisible = (isOrbitsVisible: boolean) => {
+    this.isOrbitsVisible = !!isOrbitsVisible;
+    this.zoomableOrbitals.forEach(_ =>
+      _.setIsOrbitVisible(this.isOrbitsVisible)
+    );
+  };
+
+  toggleIsOrbitsVisible = () => {
+    this.isOrbitsVisible = !this.isOrbitsVisible;
+    this.setIsOrbitsVisible(this.isOrbitsVisible);
+  };
+
   tryToStartZooming = (text: string) => {
     const TEXT = text.toUpperCase();
-    const foundTarget = this.zoomableBodies.find(el => el.NAME === TEXT);
+    const foundTarget = this.zoomables.find(el => el.NAME === TEXT);
     if (foundTarget) {
       this.isZoomingPosition = true;
       this.isZoomingAngle = true;

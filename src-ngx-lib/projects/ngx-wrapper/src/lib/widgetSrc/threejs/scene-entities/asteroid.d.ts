@@ -1,8 +1,18 @@
 import * as THREE from 'three';
-import { IOrbital } from '../models/IOrbital';
-import { AbstractOrbital } from '../abstract-scene/abstract-orbital';
-export declare class Asteroid extends AbstractOrbital implements IOrbital {
-    constructor(name: string, radius?: number);
+import { Orbit } from '../utils/orbit';
+import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
+import { IZoomableOrbital } from '../models/IZoomableOrbital';
+export declare class Asteroid extends AbstractToyModel implements IZoomableOrbital {
+    readonly NAME: string;
+    private radius;
+    private model;
+    private orbit;
+    private SKprojectedOrbitLine;
+    constructor(NAME: string, radius?: number);
     init(): Promise<THREE.Group>;
-    update(_tCenturiesSinceJ2000: number): void;
+    getPosition: () => THREE.Vector3;
+    getRadius: () => number;
+    getOrbit: () => Orbit;
+    setIsOrbitVisible: (val: boolean) => void;
+    update(): void;
 }

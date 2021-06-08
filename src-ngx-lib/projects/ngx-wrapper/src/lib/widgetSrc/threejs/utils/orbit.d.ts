@@ -1,21 +1,19 @@
 import * as THREE from 'three';
 import { EOrbitalType } from '../models/EOrbitalType';
 import { IXYZ } from '../models/IXYZ';
+import { SKEphem } from './sk-ephem';
 export declare class Orbit {
     private name;
     private orbitalType;
-    private cachedPositions;
-    private projectedOrbitPoints;
-    private projectedOrbitMaterial;
-    private projectedOrbitLine;
+    private skephem?;
+    private color?;
+    private opacity?;
     private SKprojectedOrbitLine;
     private SKEph?;
     private SKOrbit?;
-    constructor(name: string, orbitalType?: EOrbitalType);
+    constructor(name: string, orbitalType?: EOrbitalType, skephem?: SKEphem | undefined, color?: string | undefined, opacity?: number | undefined);
     loadPlanet: () => void;
     loadAsteroid: () => void;
-    calcRevolutionPath(tCenturiesSinceJ200?: number): void;
-    getProjectedOrbitLine: () => THREE.Line<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
-    getPlanetXyzMeters(tCenturiesSinceJ200?: number): IXYZ;
+    getProjectedOrbitLine: () => THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
     getXyzMeters(tCenturiesSinceJ200?: number): IXYZ;
 }
