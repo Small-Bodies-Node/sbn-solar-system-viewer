@@ -18,11 +18,11 @@ export const searchField = (
   div.style.setProperty('position', 'absolute');
   div.style.setProperty('top', '10px');
   div.style.setProperty('left', '10px');
-  div.style.setProperty('width', '250px');
+  div.style.setProperty('width', '120px');
   div.style.setProperty('height', '40px');
   div.style.setProperty('background-color', 'green');
   //
-  input.value = 'Earth';
+  input.value = 'Ceres';
   input.style.setProperty('width', '100%');
   input.style.setProperty('height', '100%');
   input.style.setProperty('font-size', '20px');

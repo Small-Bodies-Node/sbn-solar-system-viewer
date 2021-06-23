@@ -2,6 +2,8 @@
  * Constants for widget
  */
 
+import { auToMeters } from './conversions';
+
 /**
  * Properties common to all html buttons
  */
@@ -21,3 +23,8 @@ export const buttonCssUrl =
  * Root url of file server with copy of /images
  */
 export const imageBaseUrl = `https://sbn-solar-system-viewer.s3.amazonaws.com`;
+
+/**
+ * Often handy to use this as a scale
+ */
+export const au = auToMeters(1);

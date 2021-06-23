@@ -1,123 +1,220 @@
 import * as THREE from 'three';
+import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 
-import { EOrbitalType } from '../models/EOrbitalType';
 import { Orbit } from '../utils/orbit';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
-import { IZoomable } from '../models/IZoomable';
 import { createAsteroidGeometry } from '../utils/create-asteroid-geometry';
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
-import { imageBaseUrl } from '../utils/constants';
-import { SKEphem } from '../utils/sk-ephem';
-import { auToMeters } from '../utils/conversions';
+import { imageBaseUrl, au } from '../utils/constants';
 import { getPlanetRadiusMeters } from '../utils/get-planet-radius-meters';
-import asteroidData from '../data/json/asteroids/asteroids-MBA-h-11.json';
 import { IAsteroidDatum } from '../models/IAsteroidDatum';
-// import asteroidData from '../data/json/asteroids/asteroids-MBA-h-14.json';
+import { ISceneEntity } from '../models/ISceneEntity';
+import { getInitDate } from '../..';
+import { addLogMorphsToGeometry } from '../utils/add-log-morphs-to-geometry';
+import { TAsteroidBeltType } from '../models/TAsteroidBeltType';
+import { getAsteroidBeltColor } from '../utils/get-asteroid-belt-color';
+import { getOrbitFromAsteroidDatum } from '../utils/get-orbit-from-asteroid-datum';
 
-const au = auToMeters(1);
+// Lots of Data
+import mba_data from '../data/json/asteroids/asteroids-MBA-h-11.json';
+import neo1km_data from '../data/json/asteroids/asteroids-1kmNEO-h-20.json';
+import pha_data from '../data/json/asteroids/asteroids-PHA-h-999.json';
+import do_data from '../data/json/asteroids/asteroids-distantObject-h-7.json';
 
-export class AsteroidBelt extends AbstractToyModel implements IZoomable {
+// Absolute Minimum data
+// import mba_data from '../data/json/asteroids/asteroids-MBA-h-4.json';
+// import neo1km_data from '../data/json/asteroids/asteroids-1kmNEO-h-10.json';
+// import pha_data from '../data/json/asteroids/asteroids-PHA-h-15.json';
+// import do_data from '../data/json/asteroids/asteroids-distantObject-h-5.json';
+
+// Same number each
+// import mba_data from '../data/json/asteroids/asteroids-MBA-h-10.json';
+// import neo1km_data from '../data/json/asteroids/asteroids-1kmNEO-h-18.json';
+// import pha_data from '../data/json/asteroids/asteroids-PHA-h-20.json';
+// import do_data from '../data/json/asteroids/asteroids-distantObject-h-7.json';
+
+type TData = { [K in TAsteroidBeltType]: IAsteroidDatum[] };
+
+const asteroidData: TData = {
+  MBA: mba_data,
+  NEO1KM: neo1km_data,
+  PHA: pha_data,
+  DISTANTOBJECT: do_data,
+};
+
+Object.keys(asteroidData).forEach(key =>
+  console.log('>>>>', key, asteroidData[key as TAsteroidBeltType].length)
+);
+
+export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
   // --->>>
 
   private orbits: Orbit[] = [];
-  private model = new THREE.Group();
-  private radius = getPlanetRadiusMeters('CERES') * 500;
+  private radius = getPlanetRadiusMeters('CERES') / 2;
+  private geometries: {
+    geometry: THREE.BufferGeometry;
+    position: THREE.Vector3;
+  }[] = [];
+  private tailGeometries: {
+    geometry: THREE.BufferGeometry;
+    position: THREE.Vector3;
+  }[] = [];
+  private mergedMesh!: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshPhongMaterial
+  >;
+  private mergedTailsMesh!: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshPhongMaterial
+  >;
 
-  constructor(public readonly NAME: string) {
+  constructor(public readonly NAME: string, private belt: TAsteroidBeltType) {
     super(3000);
-    this._toyModel = this.model;
   }
 
   async init() {
     return new Promise<THREE.Group>(async resolve => {
       // --->>
 
-      const url = `${imageBaseUrl}/misc/asteroid-texture-1024.jpg`;
+      // const url = `${imageBaseUrl}/misc/asteroid-texture-1024.jpg`;
+      const url = `${imageBaseUrl}/misc/rock-texture-512.png`;
       const texture = await getTextureFromImageUrl(url).catch(_ => null);
-      const meshes = [];
+      const color = getAsteroidBeltColor(this.belt);
 
-      const data = asteroidData as IAsteroidDatum[];
-      const promises = data.map(async (datum, ind) => {
+      const data = asteroidData[this.belt] as IAsteroidDatum[];
+      data.forEach(datum => {
         // --->>
 
-        const orbit = getOrbit(datum, 'red', 0.01);
-        this.orbits.push(orbit);
+        // Filter on H
+        const { H } = datum;
+        // if (H <= 0) return;
 
-        // const geometry = getSphereGeometry();
+        // Compute radius for this object
+        const r = ((this.radius * 15) / (H + 1)) * (0.1 + 5 * Math.random());
+        if (!r || r <= 0) console.log('!!!!!!!!!!', datum.name);
+
+        // Create orbit
+        const orbit = getOrbitFromAsteroidDatum(datum, 'red', 0.01);
+        this.orbits.push(orbit);
+        const position = orbit.getPosition();
+        const { x, y, z } = position;
+
+        // Reject failed orbits
+        if (!x || !y || !z) {
+          // console.log('>>>>', datum.name, x, y, z);
+          return;
+        }
+
+        // Get tail for asteroid
+        // const tailGeometry = orbit.getTail(r * 50000);
+        const tailGeometry = orbit.getTail(r * 5000);
+        this.tailGeometries.push(tailGeometry);
+
+        // Create geometry
         const geometry = createAsteroidGeometry(
-          this.radius * (0.1 + 5 * Math.random()),
+          r,
           0.25 * (1.5 - Math.random())
         );
-        const mesh = new THREE.Mesh(
-          geometry,
-          new THREE.MeshPhongMaterial({
-            color: new THREE.Color('grey'),
-            map: texture,
-            shininess: 0,
-            transparent: true,
-          })
-        );
-        const { x, y, z } = orbit.getXyzMeters();
-        mesh.position.set(x, y, z);
-        meshes.push(mesh);
-        this.model.add(mesh);
-
-        // const orbitLine = orbit.getProjectedOrbitLine();
-        // this._sceneEntityGroup.add(orbitLine);
+        geometry.name = datum.name || 'unknown';
+        this.geometries.push({ geometry, position });
       });
 
-      this._sceneEntityGroup.add(this.model);
+      // Merge meshes
+      this.mergedMesh = new THREE.Mesh(
+        this.getMergedGeometries(),
+        new THREE.MeshPhongMaterial({
+          color: new THREE.Color(color),
+          map: texture,
+          shininess: 0,
+          transparent: true,
+          morphTargets: true,
+        })
+      );
+      this.mergedTailsMesh = new THREE.Mesh(
+        this.getMergedTailGeometries(),
+        new THREE.MeshPhongMaterial({
+          color: new THREE.Color(color),
+          shininess: 0,
+          transparent: true,
+          opacity: 1,
+          depthTest: false,
+          morphTargets: true,
+        })
+      );
+
+      // Finish
+      this._sceneEntityGroup.add(this.mergedMesh);
+      this._sceneEntityGroup.add(this.mergedTailsMesh);
+
+      console.log('---->>>', this.tailGeometries.length);
+      console.log(this.NAME, ' RESOLVED', +new Date() - +getInitDate());
       resolve(this._sceneEntityGroup);
     });
   }
 
-  public getPosition = () => {
-    return new THREE.Vector3();
-  };
+  getMergedGeometries() {
+    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
+      this.geometries.map(el => {
+        const { geometry, position } = el;
+        const { x, y, z } = position;
+        const newGeometry = geometry.clone();
+        const s = 1000;
+        newGeometry.scale(s, s, s);
+        newGeometry.translate(x, y, z);
+        newGeometry.name = 'Merged mesh geometry';
+        return newGeometry;
+      }),
+      true
+    );
+    addLogMorphsToGeometry(mergedGeometry);
+    // getGeometryByteLength(mergedGeometry);
+    return mergedGeometry;
+  }
+
+  getMergedTailGeometries() {
+    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
+      this.tailGeometries.map(el => {
+        const { geometry } = el;
+        const newGeometry = geometry.clone();
+        newGeometry.name = 'Merged tails geometry';
+        return newGeometry;
+      }),
+      true
+    );
+    addLogMorphsToGeometry(mergedGeometry);
+    return mergedGeometry;
+  }
+
+  public getPosition = () => new THREE.Vector3();
 
   public getRadius = () => this.radius;
 
+  updateMeshes() {
+    // Interpolate between log and normal scale
+    const u = this.getLogInterpolationParam();
+    this.mergedMesh.morphTargetInfluences![0] = u;
+    this.mergedTailsMesh.morphTargetInfluences![0] = u;
+  }
+
   update(_camera?: THREE.Camera) {
-    // Toy Model Scale
-    // this._updateModelScale();
+    // --->>
+
+    this._updateModelScale();
+
+    this.updateMeshes();
 
     if (!_camera) return;
+
+    // Update mesh opacity based on distance from camera
     const dist = _camera.position.distanceTo(new THREE.Vector3());
-    if (!false)
-      this.model.traverse(child => {
-        if (child instanceof THREE.Mesh) {
-          // --->
-
-          // Scaling size linearly with dist <=> belt visibility ~constant
-          // const mu = 1;
-          // const s = dist ** mu / au;
-          const s = dist / au;
-          child.scale.set(s, s, s);
-
-          // Scale opacity to peak when camera is in belt, and then
-          // tend toward zero when moving away; takes a bit of tuning
-          // in the exponential if you change asteroid size
-          const p = 2.8 * au; // 'Peak' distance to belt based on Ceres
-          const opacity = 1 / Math.abs((dist - p) / p) ** 1.1;
-          child.material.opacity = opacity;
-          child.material.needsUpdate = true;
-          // if (Math.random() < 0.00001) console.log('dist', dist / au, s, opacity);
-        }
-      });
+    const cutoff = 4 * au;
+    let opacity = 0;
+    opacity = (dist - cutoff) / (1 * au);
+    if (opacity < 0) opacity = 0;
+    if (opacity > 1) opacity = 1;
+    this.mergedTailsMesh.material.opacity = opacity;
+    this.mergedTailsMesh.visible = opacity !== 0;
+    // this.mergedTailsMesh.material.opacity = 1;
+    this.mergedTailsMesh.material.needsUpdate = true;
   }
-}
-
-function getSKEphem(datum: any) {
-  const { epoch, a, e, i, om, w, ma } = datum;
-  return new SKEphem({ epoch, a, e, i, om, w, ma }, 'deg', true);
-}
-
-function getOrbit(datum: IAsteroidDatum, color: string, opacity: number) {
-  return new Orbit(
-    datum.desig,
-    EOrbitalType.ASTEROID,
-    getSKEphem(datum),
-    color,
-    opacity
-  );
 }

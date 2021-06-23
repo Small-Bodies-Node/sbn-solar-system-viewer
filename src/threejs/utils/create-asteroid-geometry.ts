@@ -24,18 +24,14 @@ export const createAsteroidGeometry = (size: number, warpFactor = 0.25) => {
   for (let i = 0; i < positionAttribute.count; i++) {
     point.fromBufferAttribute(positionAttribute, i); // read vertex
     let key = [point.x, point.y, point.z].join(',');
-    if (!vertices[key])
+    if (!vertices[key]) {
       vertices[key] = {
         x: point.x += Math.random() * size * warpFactor,
         y: point.y += Math.random() * size * warpFactor,
         z: point.z += Math.random() * size * warpFactor,
       };
-  }
-
-  for (let i = 0; i < positionAttribute.count; i++) {
-    point.fromBufferAttribute(positionAttribute, i); // read vertex
-    let key = [point.x, point.y, point.z].join(',');
-    let { x, y, z } = vertices[key];
+    }
+    const { x, y, z } = vertices[key];
     positionAttribute.setXYZ(i, x, y, z);
   }
 

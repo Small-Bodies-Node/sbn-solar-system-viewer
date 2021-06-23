@@ -75,7 +75,7 @@ export class Sun extends AbstractToyModel implements IZoomable {
         onTextureLoad(await getTextureFromImageUrl(spriteUrl).catch(_ => null));
       }
 
-      this._toyModel = this.model;
+      this._toyGroup.push(this.model);
       this._sceneEntityGroup.name = this.NAME;
       this._sceneEntityGroup.add(this.model);
       console.log('Sun resolved', +new Date() - +getInitDate());

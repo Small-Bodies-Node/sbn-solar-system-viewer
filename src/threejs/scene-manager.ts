@@ -7,10 +7,9 @@ import { Sun } from './scene-entities/sun';
 import { Planet } from './scene-entities/planet';
 import { StarField } from './scene-entities/star-field';
 import { auToMeters } from './utils/conversions';
-import { dateToJ2000, jsDateToCenturiesSinceJ2000 } from './utils/j2000';
+import { jsDateToCenturiesSinceJ2000 } from './utils/j2000';
 import { MiscHelpers } from './scene-entities/misc-helpers';
 import { SimpleLight } from './scene-entities/simple-light';
-import { DirectionalLight } from './scene-entities/directional-light';
 import { Asteroid } from './scene-entities/asteroid';
 import { PointLight } from './scene-entities/point-light';
 import { solarSystemData } from './data/basic-solar-system-data';
@@ -19,29 +18,33 @@ import { IZoomable } from './models/IZoomable';
 import { updateTraversalFraction } from './utils/update-traversal-fraction';
 import { updateCameraPosition } from './utils/update-camera-position';
 import { updateCameraViewingAngle } from './utils/update-camera-viewing-angle';
-import { AsteroidBelt } from './scene-entities/asteroid-belt';
-import julian from 'julian';
 import { AbstractToyModel } from './abstract-scene/abstract-toy-model';
 import { buttonToggleOrbits } from './html/button-toggle-orbits';
 import { IZoomableOrbital } from './models/IZoomableOrbital';
+import { BirdsEye } from './scene-entities/birds-eye';
+import { getDestinationLookPosition } from './utils/get-destination-look-position';
+import { buttonToggleLogScale } from './html/button-toggle-log-scale';
+import { AsteroidBelt } from './scene-entities/asteroid-belt';
 
 /**
  * Implement a scene for this app with 'real' scene entities
  */
 export class SceneManager extends AbstractSceneManager {
-  // ~~~>>>
+  // --->>>
 
   // Toy-scalable bodies
   private sun = new Sun();
   private planets: Planet[];
   private asteroids: Asteroid[];
   private asteroidBelts: AsteroidBelt[];
+  private birdsEyes: BirdsEye[];
 
   private starField?: StarField;
   private isToyScale = true;
   private isOrbitsVisible = true;
-  private tCenturiesSinceJ2000 = jsDateToCenturiesSinceJ2000(new Date());
+  private isLogScale = false;
   private toyScalables: AbstractToyModel[];
+  private logScalables: AbstractToyModel[] = [];
 
   // Zooming logic
   private zoomables: IZoomable[] = [];
@@ -50,17 +53,14 @@ export class SceneManager extends AbstractSceneManager {
   private isZoomingPosition = false;
   private isZoomingAngle = false;
   private zoomTraversalFraction = 0;
-  private destinationCameraPosition = new THREE.Vector3();
   private zoomClock = new THREE.Clock(); //Controls movement of camera when touring planets
-  private lookDirection = new THREE.Vector3();
 
   constructor(containerId: string) {
     // --->>>
 
     super(containerId);
 
-    this._camera.getWorldDirection(this.lookDirection);
-
+    this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [
       new Planet('MERCURY'),
       new Planet('VENUS'),
@@ -76,28 +76,45 @@ export class SceneManager extends AbstractSceneManager {
       new Planet('MAKEMAKE'),
       new Planet('ERIS'),
     ];
-    this.asteroidBelts = [new AsteroidBelt('MBA')];
-    this.asteroids = [new Asteroid('65P')];
+    this.asteroidBelts = [
+      new AsteroidBelt('Main Asteroid Belt', 'MBA'),
+      new AsteroidBelt('Near Earth Orbit >1Km', 'NEO1KM'),
+      new AsteroidBelt('Potentially Hazardous Objects', 'PHA'),
+      new AsteroidBelt('Distant Objects', 'DISTANTOBJECT'),
+    ];
+    this.asteroids = [
+      //
+      new Asteroid('65P'),
+    ];
     this.starField = new StarField(auToMeters(999));
-    this.zoomables = [...this.planets, ...this.asteroids, this.sun];
+    this.zoomables = [
+      ...this.planets,
+      ...this.asteroids,
+      ...this.birdsEyes,
+      this.sun,
+    ];
     this.zoomableOrbitals = [...this.planets, ...this.asteroids];
     this.toyScalables = [
       ...this.planets,
       ...this.asteroids,
-      // ...this.asteroidBelts,
+      ...this.asteroidBelts,
       this.sun,
+    ];
+    this.logScalables = [
+      ...this.planets,
+      ...this.asteroids,
+      ...this.asteroidBelts,
     ];
 
     this.registerSceneEntities([
       // this.starField,
-      // new DirectionalLight(),
       new MiscHelpers(),
       new SimpleLight(0.4),
       new PointLight(5, solarSystemData.SUN.radiusMeters),
       ...this.planets,
       ...this.asteroids,
       ...this.asteroidBelts,
-      /** Sun MUST come last due to its sprite-blending settings **/
+      /** Sun MUST come last due to its sprite-blending quirks **/
       this.sun,
     ]);
 
@@ -115,10 +132,11 @@ export class SceneManager extends AbstractSceneManager {
       buttonToggleToyScale(this._container, this.toggleIsToyScale);
       buttonToggleHelpers(this._container, this.toggleHelpersVisibility);
       buttonToggleOrbits(this._container, this.toggleIsOrbitsVisible);
+      buttonToggleLogScale(this._container, this.toggleIsLogScale);
       // Misc
       this._controls!.maxDistance = auToMeters(100);
       this.setIsToyScale(true);
-      // this.setHelpersVisibility(!true);
+      this.setHelpersVisibility(!true);
       //
       this._camera.position.set(
         // Earth
@@ -140,6 +158,11 @@ export class SceneManager extends AbstractSceneManager {
       );
     };
 
+    // Temp
+    // setTimeout(() => this.tryToStartZooming('CERES'), 500);
+    setTimeout(() => this.tryToStartZooming('BIRDSEYE'), 500);
+    this._camera.up.set(1, 1, 1);
+
     // Clean up on instance destruction
     this._destroyHook = () => {};
   }
@@ -156,14 +179,25 @@ export class SceneManager extends AbstractSceneManager {
 
   setIsOrbitsVisible = (isOrbitsVisible: boolean) => {
     this.isOrbitsVisible = !!isOrbitsVisible;
-    this.zoomableOrbitals.forEach(_ =>
-      _.setIsOrbitVisible(this.isOrbitsVisible)
+    this.zoomableOrbitals.forEach(
+      _ => _ instanceof Asteroid || _.setIsOrbitVisible(this.isOrbitsVisible)
     );
   };
 
   toggleIsOrbitsVisible = () => {
     this.isOrbitsVisible = !this.isOrbitsVisible;
     this.setIsOrbitsVisible(this.isOrbitsVisible);
+  };
+
+  setIsLogScale = (isLogScale: boolean) => {
+    this.isLogScale = !!isLogScale;
+    this.logScalables.forEach(el => el.toggleIsLogScale());
+    this.tryToStartZooming(this.isLogScale ? 'BIRDSEYELOG' : 'BIRDSEYE');
+  };
+
+  toggleIsLogScale = () => {
+    this.isLogScale = !this.isLogScale;
+    this.setIsLogScale(this.isLogScale);
   };
 
   tryToStartZooming = (text: string) => {
@@ -180,7 +214,11 @@ export class SceneManager extends AbstractSceneManager {
 
   tryToStopZooming = () => {
     if (!this.isZoomingAngle && !this.isZoomingPosition) {
-      this._controls.target = this.zoomTarget.getPosition();
+      console.log('Stopping');
+      this._controls.target =
+        this.zoomTarget instanceof BirdsEye
+          ? new THREE.Vector3(0, 0, 0)
+          : this.zoomTarget.getPosition();
       this._controls.enabled = true;
     }
   };
@@ -204,8 +242,10 @@ export class SceneManager extends AbstractSceneManager {
         );
       } else {
         // Keep looking at target even if position is still updating
-        const { x, y, z } = this.zoomTarget.getPosition();
+        const { x, y, z } = getDestinationLookPosition(this.zoomTarget);
         this._camera.lookAt(x, y, z);
+        // this._camera.up.set(1, 1, 1);
+        // console.log('0 >>>>', this._camera.up, this._camera.position);
       }
       this.tryToStopZooming();
     } else {
@@ -214,10 +254,9 @@ export class SceneManager extends AbstractSceneManager {
     }
 
     // Debug
-    // if (this._clock.elapsedTime < 5) console.log(this._scene);
-    if (Math.random() < 0.1 && this._clock.elapsedTime < 50) {
-      // console.log(this._camera.position);
-      // console.log('>>> ', this._sceneEntities);
+    if (!true && Math.random() < 0.1 && this._clock.elapsedTime < 50) {
+      console.log(this._camera.position);
+      console.log('>>> ', this._sceneEntities);
     }
   };
 }

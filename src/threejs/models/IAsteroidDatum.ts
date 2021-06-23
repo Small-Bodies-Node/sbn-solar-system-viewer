@@ -11,4 +11,6 @@ export interface IAsteroidDatum {
   om: number;
   w: number;
   ma: number;
+  //
+  H: number;
 }

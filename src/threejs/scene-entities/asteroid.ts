@@ -7,6 +7,7 @@ import { createAsteroidGeometry } from '../utils/create-asteroid-geometry';
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
 import { imageBaseUrl } from '../utils/constants';
 import { IZoomableOrbital } from '../models/IZoomableOrbital';
+import { getLoggedPosition } from '../utils/get-logged-position';
 
 const defaultRadiusMeters = 10000;
 
@@ -26,7 +27,8 @@ export class Asteroid extends AbstractToyModel implements IZoomableOrbital {
   ) {
     super(30000 * 100);
     this.orbit = new Orbit(NAME, EOrbitalType.ASTEROID);
-    this.SKprojectedOrbitLine = this.orbit.getProjectedOrbitLine();
+    // this.SKprojectedOrbitLine = this.orbit.getProjectedOrbitLine();
+    this.SKprojectedOrbitLine = this.orbit.getMorphedOrbitLine();
     this._sceneEntityGroup.add(this.SKprojectedOrbitLine);
   }
 
@@ -35,6 +37,7 @@ export class Asteroid extends AbstractToyModel implements IZoomableOrbital {
       // --->>>
 
       const url = `${imageBaseUrl}/misc/asteroid-texture-1024.jpg`;
+      // const url = `${imageBaseUrl}/misc/rock-texture-512.png`;
 
       const geometry = createAsteroidGeometry(this.radius);
       const mesh = new THREE.Mesh(
@@ -46,7 +49,7 @@ export class Asteroid extends AbstractToyModel implements IZoomableOrbital {
         })
       );
       this.model.add(mesh);
-      this._toyModel = this.model;
+      this._toyGroup.push(this.model);
       this._sceneEntityGroup.add(this.model);
 
       resolve(this._sceneEntityGroup);
@@ -66,10 +69,25 @@ export class Asteroid extends AbstractToyModel implements IZoomableOrbital {
     this.SKprojectedOrbitLine.visible = val;
   };
 
+  updateOrbitLine() {
+    //
+    const u = this.getLogInterpolationParam();
+    this.SKprojectedOrbitLine.morphTargetInfluences![0] = u;
+  }
+
+  // Gets position of planet in either normal or logged coords
+  getDestinationPosition(_tCenturiesSinceJ200 = 0) {
+    const u = this.getLogInterpolationParam();
+    const position = this.orbit.getPosition(_tCenturiesSinceJ200);
+    const logpos = getLoggedPosition(position);
+    return position.lerp(logpos, u);
+  }
+
   update() {
-    // Update planet position
-    const { x, y, z } = this.orbit.getXyzMeters();
+    const { x, y, z } = this.getDestinationPosition();
     this.model.position.set(x, y, z);
+
+    this.updateOrbitLine();
 
     // Toy Model Scale
     this._updateModelScale();

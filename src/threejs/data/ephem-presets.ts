@@ -117,13 +117,24 @@ export const EphemPresets = {
       // Sources:
       // https://www.princeton.edu/~willman/planetary_systems/Sol/Ceres/
       // https://en.wikipedia.org/wiki/Ceres_(dwarf_planet)
-      epoch: 2458600.5,
-      a: 2.7658,
-      e: 0.078,
-      i: 10.607,
-      om: 80.7,
-      w: 73.1,
-      ma: 77.37209589,
+      // epoch: 2458600.5,
+      // a: 2.7658,
+      // e: 0.078,
+      // i: 10.607,
+      // om: 80.7,
+      // w: 73.1,
+      // ma: 77.37209589,
+      //
+      //
+
+      // From MPC data
+      epoch: 2459200.5,
+      a: 2.7660891,
+      e: 0.0781685,
+      i: 10.5879,
+      om: 80.27236,
+      w: 73.72487,
+      ma: 205.54542,
     },
     'deg',
     true /* locked */

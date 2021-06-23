@@ -6,11 +6,12 @@ import { getPlanetRadiusMeters } from '../utils/get-planet-radius-meters';
 import { EOrbitalType } from '../models/EOrbitalType';
 import { gltfLoader } from '../utils/gltf-loader';
 import { TPlanets } from '../models/TPlanets';
-import { imageBaseUrl } from '../utils/constants';
+import { imageBaseUrl, au } from '../utils/constants';
 import { getInitDate } from '../..';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 import { Orbit } from '../utils/orbit';
 import { IZoomableOrbital } from '../models/IZoomableOrbital';
+import { getLoggedPosition } from '../utils/get-logged-position';
 
 const planetsWithBumpMaps: Partial<TPlanets>[] = [
   'MERCURY',
@@ -22,7 +23,6 @@ const planetsWithBumpMaps: Partial<TPlanets>[] = [
 ];
 
 const planetsAsLoadableObjects: Partial<TPlanets>[] = [
-  //
   'HAUMEA',
   'MAKEMAKE',
   'ERIS',
@@ -76,19 +76,23 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
     THREE.LineBasicMaterial
   >;
   private radius: number;
+  // private isLogScale = false;
+  // private logTransitionClock = new THREE.Clock();
 
   constructor(public readonly NAME: TPlanets) {
     // --->>>
 
     super(getPlanetToyScale(NAME));
+    // super(getPlanetToyScale('MERCURY'));
 
     this.radius = getPlanetRadiusMeters(NAME);
+    // this.radius = getPlanetRadiusMeters('MERCURY');
     this.orbit = new Orbit(this.NAME, getPlanetType(NAME));
     this.SKprojectedOrbitLine = this.orbit.getProjectedOrbitLine();
     this._sceneEntityGroup.add(this.SKprojectedOrbitLine);
 
     // Make the model toy-scalable
-    this._toyModel = this.model;
+    this._toyGroup.push(this.model);
 
     // Set up helper
     this.helper = new THREE.LineSegments(
@@ -189,6 +193,7 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.6,
+            depthWrite: false, // Prevents mesh from blocking background sprites
           })
         );
         this.model.add(this.clouds);
@@ -211,8 +216,6 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
   };
 
   public getPosition = () => {
-    // const { x, y, z } = this.orbit.getXyzMeters();
-    // return new THREE.Vector3(x, y, z);
     return this.model.position;
   };
 
@@ -224,10 +227,49 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
     this.SKprojectedOrbitLine.visible = val;
   };
 
+  // public setIsLogScale(val: boolean) {
+  //   // Update flag
+  //   this.isLogScale = val;
+  //   // Restart clock
+  //   this.logTransitionClock = new THREE.Clock(true);
+  //   this.logTransitionClock.start();
+  //   // Update toyScale for log
+  //   const nonLogToyScale = getPlanetToyScale(this.NAME);
+  //   const logToyScale = 1000;
+  //   this.setToyScale(this.isLogScale ? logToyScale : nonLogToyScale);
+  // }
+
+  // public toggleIsLogScale() {
+  //   console.log('Working???');
+  //   this.setIsLogScale(!this.isLogScale);
+  // }
+
+  // Gets position of planet in either normal or logged coords
+  getDestinationPosition(_tCenturiesSinceJ200 = 0) {
+    const u = this.getLogInterpolationParam();
+    const position = this.orbit.getPosition(_tCenturiesSinceJ200);
+    const logpos = getLoggedPosition(position);
+    return position.lerp(logpos, u);
+  }
+
+  // getLogInterpolationParam() {
+  //   const t =
+  //     this.logTransitionClock.getElapsedTime() / timeToCompleteTransition;
+  //   const v = t < 1 ? t : 1;
+  //   return this.isLogScale ? v : 1 - v;
+  // }
+
+  updateOrbitLine() {
+    //
+    const u = this.getLogInterpolationParam();
+    this.SKprojectedOrbitLine.morphTargetInfluences![0] = u;
+  }
+
   update() {
-    // Update planet position
-    const { x, y, z } = this.orbit.getXyzMeters();
+    const { x, y, z } = this.getDestinationPosition();
     this.model.position.set(x, y, z);
+
+    this.updateOrbitLine();
 
     // Toy Model Scale
     this._updateModelScale();

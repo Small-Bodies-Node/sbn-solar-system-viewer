@@ -1,6 +1,5 @@
 import { TOptions, setOptions } from './options';
 import { SceneManager } from './threejs/scene-manager';
-import { SKEphem } from './threejs/utils/sk-ephem';
 
 let threejsScene: SceneManager;
 export let initDate = new Date();
@@ -24,21 +23,25 @@ export function init(
 
   threejsScene = new SceneManager(containerId);
   threejsScene.init();
+}
 
-  //@ts-ignore
-  const eph = new SKEphem(
-    {
-      epoch: 2458426.5,
-      a: 3.870968969437096e-1,
-      e: 2.056515875393916e-1,
-      i: 7.003891682749818,
-      om: 4.830774804443502e1,
-      w: 2.917940253442659e1,
-      ma: 2.56190975209273e2,
-    },
-    'deg',
-    true /* locked */
-  );
+if (process.env.NODE_ENV === 'development') displayFpsStats();
+/**
+ * Loads and runs stats.min.js to display FPS, etc.
+ */
+function displayFpsStats() {
+  const script = document.createElement('script');
+  script.onload = () => {
+    // @ts-ignore
+    const stats = new Stats();
+    document.body.appendChild(stats.dom);
+    requestAnimationFrame(function loop() {
+      stats.update();
+      requestAnimationFrame(loop);
+    });
+  };
+  script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
+  document.head.appendChild(script);
 }
 
 /**

@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { IZoomable } from '../models/IZoomable';
+import { BirdsEye } from '../scene-entities/birds-eye';
 
 /**
  * By providing a zoomable target, this function will compute a 'scenic'
  * position that will be used by other functions to move the camera.
  */
-export const updateDestinationCameraPosition = (zoomTarget: IZoomable) => {
+export const getDestinationCameraPosition = (zoomTarget: IZoomable) => {
   const scale = zoomTarget.getScale();
   const radius = zoomTarget.getRadius();
 
@@ -13,6 +14,10 @@ export const updateDestinationCameraPosition = (zoomTarget: IZoomable) => {
     // Position around sun is arbitrary
     const { x, y, z } = zoomTarget.getPosition();
     return new THREE.Vector3(x + 3 * radius * scale, y + 3 * radius * scale, z);
+  }
+
+  if (zoomTarget instanceof BirdsEye) {
+    return zoomTarget.getPosition();
   }
 
   // Logic to find 'scenic' destination with sun in view in the distance

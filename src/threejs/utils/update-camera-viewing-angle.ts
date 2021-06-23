@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { IZoomable } from '../models/IZoomable';
+import { BirdsEye } from '../scene-entities/birds-eye';
+import { getDestinationLookPosition } from './get-destination-look-position';
 
 /**
  * By providing a zoomable target, your camera, and a 'traversal fraction',
@@ -13,7 +15,7 @@ export const updateCameraViewingAngle = (
 ) => {
   // Get vector from where you are to where you want to look
   const camPos = camera.position;
-  const destinationLookPosition = zoomTarget.getPosition();
+  const destinationLookPosition = getDestinationLookPosition(zoomTarget);
   const destinationLookVector = new THREE.Vector3(
     destinationLookPosition.x - camPos.x,
     destinationLookPosition.y - camPos.y,

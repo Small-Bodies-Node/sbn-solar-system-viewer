@@ -13,6 +13,14 @@ GITHUB_REPO_NAME='sbn-solar-system-viewer'
 distDir="demo-umd-"$(date "+%F-%T")
 cp -R "demo-umd" "dist-gh/$distDir"
 
+cat >"dist-gh/index.html" <<EOM
+<html>
+<head>
+  <meta http-equiv="refresh" content="0; url=https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/${distDir}/bundled.html" />
+</head>
+</html>
+EOM
+
 ### Build commmand gh-pages to deploy `demo-umd` dir
 read -r -d '' NODECMD <<EOM
   const ghpages = require("gh-pages");

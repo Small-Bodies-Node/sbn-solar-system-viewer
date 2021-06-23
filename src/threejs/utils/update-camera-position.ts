@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { IZoomable } from '../models/IZoomable';
 import { distanceBetweenTwoVector3s } from './threejs-geometry-functions';
-import { updateDestinationCameraPosition } from './update-desination-camera-position';
+import { getDestinationCameraPosition } from './get-destination-camera-position';
+import { au } from './constants';
 
 /**
  * Function to compute the next position for a camera given a zoomable target
@@ -14,7 +15,7 @@ export const updateCameraPosition = (
   zoomTraversalFraction: number
 ) => {
   // Determine where you want to end up
-  const { x, y, z } = updateDestinationCameraPosition(zoomTarget);
+  const { x, y, z } = getDestinationCameraPosition(zoomTarget);
 
   // Get vector between present and destination positions
   // This is the vector "to-be-fractionally-traversed"
@@ -40,7 +41,7 @@ export const updateCameraPosition = (
     newCameraPosition,
     new THREE.Vector3(x, y, z)
   );
-  const smallThresholdSeparation = 0.001;
+  const smallThresholdSeparation = 0.0001 * au;
   if (separation < smallThresholdSeparation) {
     isZoomingPosition = false;
     newCameraPosition = new THREE.Vector3(x, y, z);
