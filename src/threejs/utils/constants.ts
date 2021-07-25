@@ -22,7 +22,25 @@ export const buttonCssUrl =
 /**
  * Root url of file server with copy of /images
  */
-export const imageBaseUrl = `https://sbn-solar-system-viewer.s3.amazonaws.com`;
+export const assetsBaseUrl: string = getAssetsBaseUrl();
+
+function getAssetsBaseUrl(): string {
+  return `https://sbn-solar-system-viewer.s3.amazonaws.com`;
+  let assetsBaseUrl: string = 'http://localhost:3001';
+
+  try {
+    // @ts-ignore
+    if (__IS_PRODUCTION__) {
+      assetsBaseUrl = `https://sbn-solar-system-viewer.s3.amazonaws.com`;
+    }
+  } catch (err) {
+    //
+  }
+
+  console.log('assetsBaseUrl: ', assetsBaseUrl);
+
+  return assetsBaseUrl;
+}
 
 /**
  * Often handy to use this as a scale

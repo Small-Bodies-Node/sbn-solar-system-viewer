@@ -5,6 +5,10 @@
 import fs from 'fs';
 import readline from 'readline';
 import path from 'path';
+import {
+  asteroidBeltTypes,
+  TAsteroidBeltType,
+} from './src/threejs/models/TAsteroidBeltType';
 
 // Data Paths
 const pathToInputJson = path.join(__dirname, 'rawData', 'mpc-asteroids.json');
@@ -45,14 +49,6 @@ const HVals = [
 type THVals = typeof HVals[number];
 
 const histo: any = { max: -999999999999, min: 999999999999 };
-const orbitTypes = [
-  'MBA',
-  'distantObject',
-  '1kmNEO',
-  'not1kmNEO',
-  'PHA',
-] as const;
-type TOrbitTypes = typeof orbitTypes[number];
 
 interface IWriteStreams {
   [index: string]: {
@@ -66,11 +62,11 @@ async function processLineByLine() {
 
   // Create a writeStream for each value of H and orbitType
   const writeStreams: IWriteStreams = {};
-  for (let j = 0; j < orbitTypes.length; j++) {
+  for (let j = 0; j < asteroidBeltTypes.length; j++) {
     for (let k = 0; k < HVals.length; k++) {
       const H = HVals[k];
-      const orbitType = orbitTypes[j];
-      const key = getWriteStreamKey(orbitType, H);
+      const asteroidBeltType = asteroidBeltTypes[j];
+      const key = getWriteStreamKey(asteroidBeltType, H);
       const file = `${pathToOutputJson}/${key}`;
       console.log('file: ', file);
       writeStreams[key] = {
@@ -127,22 +123,22 @@ async function processLineByLine() {
           // Only record bodies below this H
           if (newObj.H > H) continue;
 
-          let orbitType: TOrbitTypes | undefined;
+          let asteroidBeltType: TAsteroidBeltType | undefined;
 
           if (newObj.NEO_flag) {
-            orbitType = newObj.One_km_NEO_flag ? '1kmNEO' : 'not1kmNEO';
+            asteroidBeltType = newObj.One_km_NEO_flag ? 'NEO1KM' : 'NOT_NEO1KM';
           }
           if (newObj.Orbit_type === 'MBA') {
-            orbitType = 'MBA';
+            asteroidBeltType = 'MBA';
           }
           if (newObj.Orbit_type === 'Distant Object') {
-            orbitType = 'distantObject';
+            asteroidBeltType = 'DISTANTOBJECT';
           }
           if (newObj.PHA_flag) {
-            orbitType = 'PHA';
+            asteroidBeltType = 'PHA';
           }
 
-          if (orbitType) {
+          if (asteroidBeltType) {
             // Only copy needed data for output:
             const outObj = {
               H: newObj.H,
@@ -158,7 +154,7 @@ async function processLineByLine() {
             };
 
             // Logic to avoid first comma in array
-            const key = getWriteStreamKey(orbitType, H);
+            const key = getWriteStreamKey(asteroidBeltType, H);
             let sep = ',\n';
             if (!writeStreams[key].isFirstObjWritten) {
               sep = '\n';
@@ -197,6 +193,6 @@ function printProgress(i: number) {
   }
 }
 
-function getWriteStreamKey(orbitType: TOrbitTypes, H: THVals) {
-  return `asteroids-${orbitType}-h-${H}.json`;
+function getWriteStreamKey(asteroidBeltType: TAsteroidBeltType, H: THVals) {
+  return `asteroids-${asteroidBeltType}-h-${H}.json`;
 }

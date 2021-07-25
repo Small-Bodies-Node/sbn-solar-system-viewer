@@ -3,7 +3,8 @@
   "include": ["src", "types", "./*.ts"],
   "compilerOptions": {
     "module": "esnext",
-    "lib": ["dom", "esnext"],
+    // "lib": ["dom", "esnext"],
+    "lib": ["webworker", "dom", "esnext"],
     "importHelpers": true,
     // output .d.ts declaration files for consumers
     "declaration": true,

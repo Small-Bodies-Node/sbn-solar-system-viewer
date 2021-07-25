@@ -2,7 +2,6 @@ import { injectCommonButtonProperties } from './inject-common-button-properties'
 
 /**
  *
- * @param container
  */
 export const buttonToggleHelpers = (
   container: HTMLElement,

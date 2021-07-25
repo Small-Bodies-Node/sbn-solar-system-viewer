@@ -5,7 +5,7 @@ import { Orbit } from '../utils/orbit';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 import { createAsteroidGeometry } from '../utils/create-asteroid-geometry';
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
-import { imageBaseUrl } from '../utils/constants';
+import { assetsBaseUrl } from '../utils/constants';
 import { IZoomableOrbital } from '../models/IZoomableOrbital';
 import { getLoggedPosition } from '../utils/get-logged-position';
 
@@ -36,12 +36,12 @@ export class Asteroid extends AbstractToyModel implements IZoomableOrbital {
     return new Promise<THREE.Group>(async resolve => {
       // --->>>
 
-      const url = `${imageBaseUrl}/misc/asteroid-texture-1024.jpg`;
+      const url = `${assetsBaseUrl}/misc/asteroid-texture-1024.jpg`;
       // const url = `${imageBaseUrl}/misc/rock-texture-512.png`;
 
       const geometry = createAsteroidGeometry(this.radius);
       const mesh = new THREE.Mesh(
-        geometry,
+        geometry.realGeometry,
         new THREE.MeshPhongMaterial({
           // color: new THREE.Color('red'),
           map: await getTextureFromImageUrl(url),

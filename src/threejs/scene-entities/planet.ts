@@ -6,12 +6,13 @@ import { getPlanetRadiusMeters } from '../utils/get-planet-radius-meters';
 import { EOrbitalType } from '../models/EOrbitalType';
 import { gltfLoader } from '../utils/gltf-loader';
 import { TPlanets } from '../models/TPlanets';
-import { imageBaseUrl, au } from '../utils/constants';
+import { assetsBaseUrl, au } from '../utils/constants';
 import { getInitDate } from '../..';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
 import { Orbit } from '../utils/orbit';
 import { IZoomableOrbital } from '../models/IZoomableOrbital';
 import { getLoggedPosition } from '../utils/get-logged-position';
+import { myprint } from '../utils/myprint';
 
 const planetsWithBumpMaps: Partial<TPlanets>[] = [
   'MERCURY',
@@ -65,7 +66,7 @@ const getPlanetToyScale = (name: TPlanets) => {
 };
 
 export class Planet extends AbstractToyModel implements IZoomableOrbital {
-  // ~~~>>>
+  // --->>>
 
   private helper: THREE.LineSegments;
   private model = new THREE.Group();
@@ -76,11 +77,9 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
     THREE.LineBasicMaterial
   >;
   private radius: number;
-  // private isLogScale = false;
-  // private logTransitionClock = new THREE.Clock();
 
   constructor(public readonly NAME: TPlanets) {
-    // --->>>
+    // --->>
 
     super(getPlanetToyScale(NAME));
     // super(getPlanetToyScale('MERCURY'));
@@ -115,7 +114,7 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
         await this.loadPlanetAsTexturedSphere();
       }
 
-      console.log(this.NAME, ' RESOLVED', +new Date() - +getInitDate());
+      myprint('RESOLVED ' + this.NAME);
       this._sceneEntityGroup.add(this.model);
       resolve(this._sceneEntityGroup);
     });
@@ -123,7 +122,7 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
 
   loadPlanetAsObject = async () => {
     const name = this.NAME.toLowerCase();
-    const objUrl = `${imageBaseUrl}/planets/${name}/${name}.glb`;
+    const objUrl = `${assetsBaseUrl}/planets/${name}/${name}.glb`;
 
     // Add temporary sphere till object is loaded
     const tempMesh = new THREE.Mesh(
@@ -149,8 +148,8 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
 
   loadPlanetAsTexturedSphere = async () => {
     const name = this.NAME.toLowerCase();
-    const imageUrl = `${imageBaseUrl}/planets/${name}/${name}-map-1024.jpg`;
-    const bumpUrl = `${imageBaseUrl}/planets/${name}/${name}-bump-1024.png`;
+    const imageUrl = `${assetsBaseUrl}/planets/${name}/${name}-map-1024.jpg`;
+    const bumpUrl = `${assetsBaseUrl}/planets/${name}/${name}-bump-1024.png`;
     const isBumpy = planetsWithBumpMaps.includes(this.NAME);
     const isEarth = this.NAME === 'EARTH';
     const pNull = Promise.resolve(null);
@@ -227,23 +226,6 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
     this.SKprojectedOrbitLine.visible = val;
   };
 
-  // public setIsLogScale(val: boolean) {
-  //   // Update flag
-  //   this.isLogScale = val;
-  //   // Restart clock
-  //   this.logTransitionClock = new THREE.Clock(true);
-  //   this.logTransitionClock.start();
-  //   // Update toyScale for log
-  //   const nonLogToyScale = getPlanetToyScale(this.NAME);
-  //   const logToyScale = 1000;
-  //   this.setToyScale(this.isLogScale ? logToyScale : nonLogToyScale);
-  // }
-
-  // public toggleIsLogScale() {
-  //   console.log('Working???');
-  //   this.setIsLogScale(!this.isLogScale);
-  // }
-
   // Gets position of planet in either normal or logged coords
   getDestinationPosition(_tCenturiesSinceJ200 = 0) {
     const u = this.getLogInterpolationParam();
@@ -252,15 +234,7 @@ export class Planet extends AbstractToyModel implements IZoomableOrbital {
     return position.lerp(logpos, u);
   }
 
-  // getLogInterpolationParam() {
-  //   const t =
-  //     this.logTransitionClock.getElapsedTime() / timeToCompleteTransition;
-  //   const v = t < 1 ? t : 1;
-  //   return this.isLogScale ? v : 1 - v;
-  // }
-
   updateOrbitLine() {
-    //
     const u = this.getLogInterpolationParam();
     this.SKprojectedOrbitLine.morphTargetInfluences![0] = u;
   }

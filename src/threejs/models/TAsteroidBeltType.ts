@@ -1,4 +1,13 @@
 /**
  * Permissible types of asteroid belt
  */
-export type TAsteroidBeltType = 'MBA' | 'NEO1KM' | 'PHA' | 'DISTANTOBJECT';
+
+export const asteroidBeltTypes = [
+  'MBA',
+  'NEO1KM',
+  'NOT_NEO1KM',
+  'PHA',
+  'DISTANTOBJECT',
+] as const;
+
+export type TAsteroidBeltType = typeof asteroidBeltTypes[number];

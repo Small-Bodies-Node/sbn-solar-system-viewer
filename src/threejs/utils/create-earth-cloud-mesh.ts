@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { imageBaseUrl } from './constants';
+import { assetsBaseUrl } from './constants';
 
 /**
  * This function is adapted from `https://github.com/jeromeetienne/threex.planets/blob/master/threex.planets.js`, based on instructions from `http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/`
@@ -29,7 +29,7 @@ export function createEarthCloudMesh(): Promise<THREE.Texture> {
     // });
     // const mesh = new THREE.Mesh<THREE.SphereGeometry>(geometry, material);
 
-    imageMap.onerror = error => {
+    imageMap.onerror = (error: any) => {
       console.log('Error: ', error);
       reject();
     };
@@ -91,8 +91,8 @@ export function createEarthCloudMesh(): Promise<THREE.Texture> {
         }
         resolve(new THREE.CanvasTexture(canvasResult));
       });
-      imageTrans.src = `${imageBaseUrl}/planets/earth/earth-clouds-trans-1024.png`;
+      imageTrans.src = `${assetsBaseUrl}/planets/earth/earth-clouds-trans-1024.png`;
     };
-    imageMap.src = `${imageBaseUrl}/planets/earth/earth-clouds-color-1024.png`;
+    imageMap.src = `${assetsBaseUrl}/planets/earth/earth-clouds-color-1024.png`;
   });
 }

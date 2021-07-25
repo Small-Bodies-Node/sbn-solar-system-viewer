@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getLoggedPosition } from './get-logged-position';
 
 interface IVertices {
   [index: string]: {
@@ -12,11 +13,15 @@ interface IVertices {
  * Function to take a dodecahedron and warp the points to createa jagged
  * asteroid shape
  */
-export const createAsteroidGeometry = (size: number, warpFactor = 0.25) => {
+export const createAsteroidGeometry = (
+  size: number,
+  warpFactor = 0.25,
+  position = new THREE.Vector3()
+) => {
   // --->>>
 
-  const geometry = new THREE.DodecahedronGeometry(size, 1);
-  const positionAttribute = geometry.getAttribute('position');
+  const realGeometry = new THREE.DodecahedronGeometry(size, 1);
+  const positionAttribute = realGeometry.getAttribute('position');
   const point = new THREE.Vector3();
   const vertices: IVertices = {};
 
@@ -39,7 +44,24 @@ export const createAsteroidGeometry = (size: number, warpFactor = 0.25) => {
   const sx = 0.5 + Math.random();
   const sy = 0.5 + Math.random();
   const sz = 0.5 + Math.random();
-  geometry.scale(sx, sy, sz);
+  realGeometry.scale(sx, sy, sz);
 
-  return geometry;
+  // Get create logged stuff
+  const loggedGeometry = realGeometry.clone();
+  const loggedPosition = getLoggedPosition(position);
+
+  // Translate geometries
+  {
+    const { x, y, z } = position;
+    realGeometry.translate(x, y, z);
+  }
+  {
+    const { x, y, z } = loggedPosition;
+    loggedGeometry.translate(x, y, z);
+  }
+
+  return {
+    realGeometry,
+    loggedGeometry,
+  };
 };

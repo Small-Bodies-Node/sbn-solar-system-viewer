@@ -1,6 +1,7 @@
-import { loaderDivId } from './get-loader-div';
+import { loaderDivId } from './add-loader-div';
 
 const fadeOutTimeMs = 3000;
+// const fadeOutTimeMs = 0;
 
 export const removeLoaderDiv = () => {
   // --->>>

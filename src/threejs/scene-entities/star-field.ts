@@ -3,12 +3,12 @@ import * as THREE from 'three';
 import { getInitDate } from '../..';
 import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
 import { ISceneEntity } from '../models/ISceneEntity';
-import { imageBaseUrl } from '../utils/constants';
+import { assetsBaseUrl } from '../utils/constants';
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
 import { invertTextureColor } from '../utils/invert-texture-color';
 
 export class StarField extends AbstractSceneEntity implements ISceneEntity {
-  // ~~~>>>
+  // --->>>
 
   public readonly NAME = 'STARFIELD';
   private mesh: THREE.Mesh<THREE.SphereGeometry, THREE.MeshPhongMaterial>;
@@ -22,7 +22,8 @@ export class StarField extends AbstractSceneEntity implements ISceneEntity {
       side: THREE.DoubleSide,
       transparent: true,
       color: 'black',
-      opacity: 0,
+      // opacity: 0,
+      opacity: 1,
       shininess: 0,
     });
 
@@ -39,24 +40,19 @@ export class StarField extends AbstractSceneEntity implements ISceneEntity {
     return new Promise<THREE.Group>(async resolve => {
       // --->>>
 
+      // const url = `${assetsBaseUrl}/stars/galaxy_starfield6.png`;
+      const url = `${assetsBaseUrl}/stars/galaxy-starfield-4096.jpg`;
+
       if (this._isAsyncLoad()) {
-        getTextureFromImageUrl(
-          `${imageBaseUrl}/stars/galaxy_starfield6.png`,
-          // `${imageBaseUrl}/stars/galaxy-starfield-4096.jpg`,
-          // galaxy-starfield-4096.jpg
-          'star-field'
-        ).then(texture => {
+        getTextureFromImageUrl(url, 'star-field').then(texture => {
           this.texture = texture;
           texture.encoding = THREE.GammaEncoding;
-          // this.material.map = texture;
+          this.material.map = texture;
           // this.material.color = new THREE.Color();
           this.material.needsUpdate = true;
         });
       } else {
-        this.texture = await getTextureFromImageUrl(
-          `${imageBaseUrl}/stars/galaxy_starfield6.png`,
-          'star-field'
-        );
+        this.texture = await getTextureFromImageUrl(url, 'star-field');
         this.material.map = this.texture;
         this.material.color = new THREE.Color();
         this.material.needsUpdate = true;

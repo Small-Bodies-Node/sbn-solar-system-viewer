@@ -6,6 +6,8 @@ import { ISceneEntity } from '../models/ISceneEntity';
 export class Square extends AbstractSceneEntity implements ISceneEntity {
   // ~~~>>>
 
+  NAME = 'square';
+
   constructor(private sideLength: number) {
     super();
   }
@@ -27,7 +29,7 @@ export class Square extends AbstractSceneEntity implements ISceneEntity {
     });
   }
 
-  update = (time: number) => {
-    this._sceneEntityGroup.position.x += time * 0;
+  update = (_camera?: THREE.Camera, _time?: number) => {
+    if (_time) this._sceneEntityGroup.position.x += _time * 0;
   };
 }

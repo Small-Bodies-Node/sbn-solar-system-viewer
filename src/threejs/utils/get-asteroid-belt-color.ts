@@ -11,6 +11,9 @@ export function getAsteroidBeltColor(belt: TAsteroidBeltType) {
     case 'NEO1KM': {
       return 'orange';
     }
+    case 'NOT_NEO1KM': {
+      return 'pink';
+    }
     case 'PHA': {
       return 'red';
     }

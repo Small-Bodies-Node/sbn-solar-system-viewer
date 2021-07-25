@@ -1,3 +1,5 @@
+const replace = require('@rollup/plugin-replace');
+
 /**
  * This let's you customize externals bundling
  * See here for notes: https://github.com/formium/tsdx/issues/898
@@ -6,6 +8,12 @@
 module.exports = {
   rollup(config) {
     // -------->>>
+
+    config.plugins.push(
+      replace({
+        __IS_PRODUCTION__: 'true',
+      })
+    );
 
     if (config.output.format === 'umd') {
       /**

@@ -4,9 +4,10 @@ import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
 import { solarSystemData } from '../data/basic-solar-system-data';
 import { ISceneEntity } from '../models/ISceneEntity';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
-import { imageBaseUrl } from '../utils/constants';
+import { assetsBaseUrl } from '../utils/constants';
 import { getInitDate } from '../..';
 import { IZoomable } from '../models/IZoomable';
+import { myprint } from '../utils/myprint';
 
 /**
  * When a sprite is loaded it is given a size of '1'
@@ -60,7 +61,7 @@ export class Sun extends AbstractToyModel implements IZoomable {
     return new Promise<THREE.Group>(async resolve => {
       // --->>>
 
-      const spriteUrl = `${imageBaseUrl}/stars/sun3-sprite-512.png`;
+      const spriteUrl = `${assetsBaseUrl}/stars/sun3-sprite-512.png`;
       const onTextureLoad = (texture: THREE.Texture | null) => {
         this.sprite.material.map = texture;
         this.sprite.material.needsUpdate = true;
@@ -78,7 +79,7 @@ export class Sun extends AbstractToyModel implements IZoomable {
       this._toyGroup.push(this.model);
       this._sceneEntityGroup.name = this.NAME;
       this._sceneEntityGroup.add(this.model);
-      console.log('Sun resolved', +new Date() - +getInitDate());
+      myprint('RESOLVED SUN');
       resolve(this._sceneEntityGroup);
     });
   }

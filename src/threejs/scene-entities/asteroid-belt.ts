@@ -1,199 +1,152 @@
 import * as THREE from 'three';
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 
-import { Orbit } from '../utils/orbit';
 import { AbstractToyModel } from '../abstract-scene/abstract-toy-model';
-import { createAsteroidGeometry } from '../utils/create-asteroid-geometry';
 import { getTextureFromImageUrl } from '../utils/get-texture-from-image-url';
-import { imageBaseUrl, au } from '../utils/constants';
-import { getPlanetRadiusMeters } from '../utils/get-planet-radius-meters';
-import { IAsteroidDatum } from '../models/IAsteroidDatum';
+import { assetsBaseUrl, au } from '../utils/constants';
 import { ISceneEntity } from '../models/ISceneEntity';
-import { getInitDate } from '../..';
-import { addLogMorphsToGeometry } from '../utils/add-log-morphs-to-geometry';
-import { TAsteroidBeltType } from '../models/TAsteroidBeltType';
+import {
+  TAsteroidBeltType,
+  asteroidBeltTypes,
+} from '../models/TAsteroidBeltType';
 import { getAsteroidBeltColor } from '../utils/get-asteroid-belt-color';
-import { getOrbitFromAsteroidDatum } from '../utils/get-orbit-from-asteroid-datum';
+import { getAsteroidBeltMergedGeometries } from '../utils/get-asteroid-belt-merged-geometries';
+import { myprint } from '../utils/myprint';
+import { SceneManager } from '../scene-manager';
 
-// Lots of Data
-import mba_data from '../data/json/asteroids/asteroids-MBA-h-11.json';
-import neo1km_data from '../data/json/asteroids/asteroids-1kmNEO-h-20.json';
-import pha_data from '../data/json/asteroids/asteroids-PHA-h-999.json';
-import do_data from '../data/json/asteroids/asteroids-distantObject-h-7.json';
+type TLabelsDict = { [key in TAsteroidBeltType]: string };
+/* const labelsDict: TLabelsDict = {
+  DISTANTOBJECT: 'Distant Objects',
+  MBA: 'Main Asteroid Belt',
+  NEO1KM: 'Near Earth Orbit >1Km',
+  PHA: 'Potentially Hazardous Objects',
+  NOT_NEO1KM: 'NOT Near Earth Orbit >1Km',
+}; */
 
-// Absolute Minimum data
-// import mba_data from '../data/json/asteroids/asteroids-MBA-h-4.json';
-// import neo1km_data from '../data/json/asteroids/asteroids-1kmNEO-h-10.json';
-// import pha_data from '../data/json/asteroids/asteroids-PHA-h-15.json';
-// import do_data from '../data/json/asteroids/asteroids-distantObject-h-5.json';
-
-// Same number each
-// import mba_data from '../data/json/asteroids/asteroids-MBA-h-10.json';
-// import neo1km_data from '../data/json/asteroids/asteroids-1kmNEO-h-18.json';
-// import pha_data from '../data/json/asteroids/asteroids-PHA-h-20.json';
-// import do_data from '../data/json/asteroids/asteroids-distantObject-h-7.json';
-
-type TData = { [K in TAsteroidBeltType]: IAsteroidDatum[] };
-
-const asteroidData: TData = {
-  MBA: mba_data,
-  NEO1KM: neo1km_data,
-  PHA: pha_data,
-  DISTANTOBJECT: do_data,
+type TMeshes = {
+  [key in TAsteroidBeltType]: THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshPhongMaterial
+  >;
 };
 
-Object.keys(asteroidData).forEach(key =>
-  console.log('>>>>', key, asteroidData[key as TAsteroidBeltType].length)
-);
+const getInitMeshes = () =>
+  asteroidBeltTypes.reduce((acc: any, belt, ind) => {
+    acc[belt] = new THREE.Mesh(
+      new THREE.BufferGeometry(),
+      new THREE.MeshPhongMaterial({ morphTargets: true })
+    );
+    return acc;
+  }, {}) as any;
 
 export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
   // --->>>
 
-  private orbits: Orbit[] = [];
-  private radius = getPlanetRadiusMeters('CERES') / 2;
-  private geometries: {
-    geometry: THREE.BufferGeometry;
-    position: THREE.Vector3;
-  }[] = [];
-  private tailGeometries: {
-    geometry: THREE.BufferGeometry;
-    position: THREE.Vector3;
-  }[] = [];
-  private mergedMesh!: THREE.Mesh<
-    THREE.BufferGeometry,
-    THREE.MeshPhongMaterial
-  >;
-  private mergedTailsMesh!: THREE.Mesh<
-    THREE.BufferGeometry,
-    THREE.MeshPhongMaterial
-  >;
+  public readonly NAME: string;
+  private isMeshesLoaded = false;
+  private isBeltVisible = true;
 
-  constructor(public readonly NAME: string, private belt: TAsteroidBeltType) {
+  mergedAsteroidsMeshes: TMeshes = getInitMeshes();
+  mergedTailsMeshes: TMeshes = getInitMeshes();
+
+  constructor(
+    private belts: TAsteroidBeltType[],
+    private parentSceneManager: SceneManager
+  ) {
     super(3000);
+    this.NAME = 'BELTS';
+    this.belts.forEach(belt => {
+      this._sceneEntityGroup.add(this.mergedAsteroidsMeshes[belt]);
+      this._sceneEntityGroup.add(this.mergedTailsMeshes[belt]);
+    });
+    this.parentSceneManager.updateMessageField('Building asteroid belt');
   }
 
   async init() {
     return new Promise<THREE.Group>(async resolve => {
       // --->>
 
-      // const url = `${imageBaseUrl}/misc/asteroid-texture-1024.jpg`;
-      const url = `${imageBaseUrl}/misc/rock-texture-512.png`;
-      const texture = await getTextureFromImageUrl(url).catch(_ => null);
-      const color = getAsteroidBeltColor(this.belt);
+      const textureUrl = `${assetsBaseUrl}/misc/rock-texture-512.png`;
 
-      const data = asteroidData[this.belt] as IAsteroidDatum[];
-      data.forEach(datum => {
-        // --->>
+      const texture = await getTextureFromImageUrl(textureUrl).catch(_ => null);
 
-        // Filter on H
-        const { H } = datum;
-        // if (H <= 0) return;
+      getAsteroidBeltMergedGeometries(this.belts, this.parentSceneManager)
+        /*         .then(asteroidBeltMergedGeometries => ({
+          asteroidBeltMergedGeometries,
 
-        // Compute radius for this object
-        const r = ((this.radius * 15) / (H + 1)) * (0.1 + 5 * Math.random());
-        if (!r || r <= 0) console.log('!!!!!!!!!!', datum.name);
+        })) */
+        .then(xxx => {
+          // ]).then(([texture, { mergedAsteroidGeometry, mergedTailsGeometry }[]]) => {
+          // --->>
 
-        // Create orbit
-        const orbit = getOrbitFromAsteroidDatum(datum, 'red', 0.01);
-        this.orbits.push(orbit);
-        const position = orbit.getPosition();
-        const { x, y, z } = position;
+          // const { belt, asteroidBeltMergedGeometries } = xxx;
+          xxx.forEach(
+            ({ belt, mergedAsteroidGeometry, mergedTailsGeometry }) => {
+              //
 
-        // Reject failed orbits
-        if (!x || !y || !z) {
-          // console.log('>>>>', datum.name, x, y, z);
-          return;
-        }
+              const color = getAsteroidBeltColor(belt);
 
-        // Get tail for asteroid
-        // const tailGeometry = orbit.getTail(r * 50000);
-        const tailGeometry = orbit.getTail(r * 5000);
-        this.tailGeometries.push(tailGeometry);
+              // Update asteroids mesh with computed geometry, etc.
+              this.mergedAsteroidsMeshes[
+                belt
+              ].geometry = mergedAsteroidGeometry;
+              this.mergedAsteroidsMeshes[
+                belt
+              ].material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(color),
+                map: texture,
+                shininess: 0,
+                transparent: true,
+                morphTargets: true,
+              });
+              this.mergedAsteroidsMeshes[belt].material.needsUpdate = true;
+              this.mergedAsteroidsMeshes[belt].morphTargetInfluences = [0];
 
-        // Create geometry
-        const geometry = createAsteroidGeometry(
-          r,
-          0.25 * (1.5 - Math.random())
-        );
-        geometry.name = datum.name || 'unknown';
-        this.geometries.push({ geometry, position });
-      });
+              // Update tails mesh with computed geometry, etc.
+              this.mergedTailsMeshes[belt].geometry = mergedTailsGeometry;
+              this.mergedTailsMeshes[
+                belt
+              ].material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(color),
+                transparent: true,
+                morphTargets: true,
+              });
+              this.mergedTailsMeshes[belt].material.needsUpdate = true;
+              this.mergedTailsMeshes[belt].morphTargetInfluences = [0];
 
-      // Merge meshes
-      this.mergedMesh = new THREE.Mesh(
-        this.getMergedGeometries(),
-        new THREE.MeshPhongMaterial({
-          color: new THREE.Color(color),
-          map: texture,
-          shininess: 0,
-          transparent: true,
-          morphTargets: true,
-        })
-      );
-      this.mergedTailsMesh = new THREE.Mesh(
-        this.getMergedTailGeometries(),
-        new THREE.MeshPhongMaterial({
-          color: new THREE.Color(color),
-          shininess: 0,
-          transparent: true,
-          opacity: 1,
-          depthTest: false,
-          morphTargets: true,
-        })
-      );
+              myprint(this.NAME + ' LOADED');
+              this.isMeshesLoaded = true;
+            }
+          );
+        });
 
-      // Finish
-      this._sceneEntityGroup.add(this.mergedMesh);
-      this._sceneEntityGroup.add(this.mergedTailsMesh);
-
-      console.log('---->>>', this.tailGeometries.length);
-      console.log(this.NAME, ' RESOLVED', +new Date() - +getInitDate());
+      myprint('RESOLVED ' + this.NAME);
       resolve(this._sceneEntityGroup);
     });
   }
 
-  getMergedGeometries() {
-    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
-      this.geometries.map(el => {
-        const { geometry, position } = el;
-        const { x, y, z } = position;
-        const newGeometry = geometry.clone();
-        const s = 1000;
-        newGeometry.scale(s, s, s);
-        newGeometry.translate(x, y, z);
-        newGeometry.name = 'Merged mesh geometry';
-        return newGeometry;
-      }),
-      true
-    );
-    addLogMorphsToGeometry(mergedGeometry);
-    // getGeometryByteLength(mergedGeometry);
-    return mergedGeometry;
-  }
-
-  getMergedTailGeometries() {
-    const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
-      this.tailGeometries.map(el => {
-        const { geometry } = el;
-        const newGeometry = geometry.clone();
-        newGeometry.name = 'Merged tails geometry';
-        return newGeometry;
-      }),
-      true
-    );
-    addLogMorphsToGeometry(mergedGeometry);
-    return mergedGeometry;
-  }
-
   public getPosition = () => new THREE.Vector3();
 
-  public getRadius = () => this.radius;
+  public getRadius = () => 1;
 
   updateMeshes() {
-    // Interpolate between log and normal scale
+    // Interpolate between log and real scale
     const u = this.getLogInterpolationParam();
-    this.mergedMesh.morphTargetInfluences![0] = u;
-    this.mergedTailsMesh.morphTargetInfluences![0] = u;
+    this.belts.forEach(belt => {
+      this.mergedAsteroidsMeshes[belt].morphTargetInfluences![0] = u;
+      this.mergedTailsMeshes[belt].morphTargetInfluences![0] = u;
+    });
+  }
+
+  setIsBeltVisible(val: boolean) {
+    this.isBeltVisible = val;
+    this.belts.forEach(belt => {
+      this.mergedAsteroidsMeshes[belt].visible = this.isBeltVisible;
+      this.mergedTailsMeshes[belt].visible = this.isBeltVisible;
+    });
+  }
+
+  toggleIsBeltVisible() {
+    this.setIsBeltVisible(!this.isBeltVisible);
   }
 
   update(_camera?: THREE.Camera) {
@@ -201,7 +154,7 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
 
     this._updateModelScale();
 
-    this.updateMeshes();
+    if (this.isMeshesLoaded) this.updateMeshes();
 
     if (!_camera) return;
 
@@ -209,12 +162,18 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
     const dist = _camera.position.distanceTo(new THREE.Vector3());
     const cutoff = 4 * au;
     let opacity = 0;
-    opacity = (dist - cutoff) / (1 * au);
+    opacity = (dist - cutoff) / (0.5 * au);
     if (opacity < 0) opacity = 0;
     if (opacity > 1) opacity = 1;
-    this.mergedTailsMesh.material.opacity = opacity;
-    this.mergedTailsMesh.visible = opacity !== 0;
-    // this.mergedTailsMesh.material.opacity = 1;
-    this.mergedTailsMesh.material.needsUpdate = true;
+    this.belts.forEach(belt => {
+      if (!this.isBeltVisible) return;
+      this.mergedTailsMeshes[belt].material.opacity = opacity;
+      this.mergedTailsMeshes[belt].visible = opacity !== 0;
+      if (!true) {
+        this.mergedTailsMeshes[belt].visible = true;
+        this.mergedTailsMeshes[belt].material.opacity = 1;
+      }
+      this.mergedTailsMeshes[belt].material.needsUpdate = true;
+    });
   }
 }

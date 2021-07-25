@@ -5,9 +5,11 @@ import { ISceneEntity } from '../models/ISceneEntity';
 import { asciiError } from '../utils/ascii-error';
 import { auToMeters } from '../utils/conversions';
 import { getInitDate, initDate, setInitDate } from '../../index';
-import { appendLoaderDiv } from '../html/get-loader-div';
-import { removeLoaderDiv } from '../html/remove-loader-div';
+import { addLoaderDiv } from '../html/add-loader-div';
+// import { removeLoaderDiv } from '../html/remove-loader-div';
 import { daysPerCentury } from '../data/time-units';
+import { myprint } from '../utils/myprint';
+import { setLoaderDivVisibility } from '../html/set-loader-div-visbility';
 
 // Initial Camera Params
 const ar = 2; // Aspect Ratio
@@ -27,7 +29,7 @@ const far = auToMeters(3000); // Far Plane
  *
  */
 export abstract class AbstractSceneManager {
-  // ~~~>>>
+  // --->>>
 
   /* Do NOT init OR re-init _controls till scene is set up or they will be erratic */
   protected _controls!: OrbitControls;
@@ -42,6 +44,7 @@ export abstract class AbstractSceneManager {
   protected _isHelpersShown = false;
   protected _isInit = false;
   protected _container!: HTMLElement;
+  protected _isLoaderVisible = true;
   protected _fps = 60;
   protected _camera = new THREE.PerspectiveCamera(fov, ar, near, far);
   protected _sceneEntities: ISceneEntity[] = [];
@@ -50,7 +53,22 @@ export abstract class AbstractSceneManager {
   protected _destroyHook: () => void = () => {};
   protected updateCamera: () => void = () => {};
 
-  constructor(protected _containerId: string) {}
+  constructor(protected _containerId: string) {
+    // --->>
+
+    // Get container and add fitting canvas to it
+    this._container = document.getElementById(this._containerId)!;
+    if (!this._container) {
+      throw new Error('No container found with id: ' + this._containerId);
+    }
+
+    this._canvas.style.width = '100%';
+    this._canvas.style.height = '100%';
+    this._container.append(this._canvas);
+    this._container.style.setProperty('position', 'relative');
+    this._container.style.setProperty('background-color', 'black');
+    addLoaderDiv(this._container);
+  }
 
   public async init() {
     // ------>>>
@@ -64,19 +82,6 @@ export abstract class AbstractSceneManager {
 
     // Enable superclass constructor to adjust settings prior to initialization sequence
     this._preInitHook();
-
-    // Get container and add fitting canvas to it
-    this._container = document.getElementById(this._containerId)!;
-    if (!this._container) {
-      throw new Error('No container found with id: ' + this._containerId);
-    }
-
-    this._canvas.style.width = '100%';
-    this._canvas.style.height = '100%';
-    this._container.append(this._canvas);
-    this._container.style.setProperty('position', 'relative');
-    this._container.style.setProperty('background-color', 'black');
-    appendLoaderDiv(this._container);
 
     // React to resize events on window
     window.addEventListener('resize', this._updateCameraAspect);
@@ -149,11 +154,12 @@ export abstract class AbstractSceneManager {
     this._postInitHook();
 
     // Remove loader div
-    removeLoaderDiv();
+    this.setIsLoaderDivVisible(false);
 
     //
-    const dt = +new Date() - +getInitDate();
-    console.log('Finished initiating', dt);
+
+    // Finish
+    myprint('Finished initiating scene.');
   }
 
   protected registerSceneEntities = (sceneEntities: ISceneEntity[]) => {
@@ -176,6 +182,11 @@ export abstract class AbstractSceneManager {
     this._isHelpersShown = !this._isHelpersShown;
     this.setHelpersVisibility(this._isHelpersShown);
   };
+
+  public setIsLoaderDivVisible(val: boolean, fadeInOutTimeMs = 3000) {
+    this._isLoaderVisible = val;
+    setLoaderDivVisibility(this._isLoaderVisible, fadeInOutTimeMs);
+  }
 
   public setFramesPerSecond(newFps: number) {
     if (newFps <= 0 || newFps > 100) return;
@@ -226,14 +237,14 @@ export abstract class AbstractSceneManager {
   };
 
   private _startRendering = () => {
-    console.log('Starting animation...');
+    myprint('Starting animation...');
     this._isRendering = true;
     this._clock.start();
     this._render();
   };
 
   private _stopRendering = () => {
-    console.log('Stopping animation...');
+    myprint('Stopping animation...');
     this._isRendering = false;
     this._clock.stop();
   };

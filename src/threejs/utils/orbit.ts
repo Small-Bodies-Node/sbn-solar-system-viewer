@@ -98,7 +98,7 @@ export class Orbit {
 
   getMorphedOrbitLine() {
     if (!!this.orbitLine) return this.orbitLine;
-    if (!this.SKOrbit) throw new Error('Hmmmm');
+    if (!this.SKOrbit) throw new Error('Poor logic mi amigo');
     const geometry = this.SKOrbit.getEllipseGeometry();
     geometry.morphAttributes.position = [];
     const positionAttribute = geometry.attributes.position;
@@ -130,8 +130,6 @@ export class Orbit {
 
   getProjectedOrbitLine = () => this.SKprojectedOrbitLine;
 
-  xxx() {}
-
   getXyzMeters(tCenturiesSinceJ200 = 0): IXYZ {
     // --->>>
 
@@ -148,62 +146,140 @@ export class Orbit {
     return new THREE.Vector3(x, y, z);
   }
 
-  getTail(radius: number, tailLength = au * 0.2, tCenturiesSinceJ200 = 0) {
+  getTail(radius: number, tailLength = au * 0.3, tCenturiesSinceJ200 = 0) {
     // --->>
 
-    let lastR = radius;
-    const geometries = [];
-    let t = tCenturiesSinceJ200;
-    const dt = 1.1;
-    const bodyPosition = this.getPosition(tCenturiesSinceJ200);
-    let lastPosition = bodyPosition.clone();
-    let nextPosition = bodyPosition.clone();
-    let diffLength = 0;
+    // Calc positions
+    const realBodyPosition = this.getPosition(tCenturiesSinceJ200);
+    const loggedBodyPosition = getLoggedPosition(realBodyPosition);
+
+    // Compute times for real and logged positions to stretch out to tailLength
+    let realTargetTime = tCenturiesSinceJ200;
+    let loggedTargetTime = tCenturiesSinceJ200;
+    let realDiffLength = 0;
+    let loggedDiffLength = 0;
+    let isRealSearch = true;
+    let isLoggedSearch = true;
+    while (isRealSearch || isLoggedSearch) {
+      // --->
+
+      isRealSearch = realDiffLength < tailLength;
+      isLoggedSearch = loggedDiffLength < tailLength;
+      if (isRealSearch) {
+        realTargetTime += 0.5;
+        realDiffLength = realBodyPosition.distanceTo(
+          this.getPosition(realTargetTime)
+        );
+      }
+      if (isLoggedSearch) {
+        loggedTargetTime += 0.5;
+        loggedDiffLength = loggedBodyPosition.distanceTo(
+          getLoggedPosition(this.getPosition(loggedTargetTime))
+        );
+      }
+    }
+
+    // Set up loop to generate segments
+    const radialSegments = 3;
+    const heightSegments = 1;
+    const numberOfSegments = 5;
+    const realDt = (realTargetTime - tCenturiesSinceJ200) / numberOfSegments;
+    const loggedDt =
+      (loggedTargetTime - tCenturiesSinceJ200) / numberOfSegments;
+    const dSegmentRadius = radius / numberOfSegments;
+    const geometries: {
+      realSegmentGeometry: THREE.BufferGeometry;
+      loggedSegmentGeometry: THREE.BufferGeometry;
+    }[] = [];
+    let lastRealPosition = realBodyPosition.clone();
+    let lastLoggedPosition = loggedBodyPosition.clone();
+    let nextRealPosition = realBodyPosition.clone();
+    let nextLoggedPosition = loggedBodyPosition.clone();
+    let lastSegmentRadius = radius;
     let i = 0;
-    while (diffLength < tailLength) {
-      //
 
-      let nextR = (1 - diffLength / tailLength) * radius;
-      if (nextR > radius) nextR = radius;
-      if (nextR < 0) nextR = 0;
-
+    // Generate segments
+    for (let segment = 1; segment <= numberOfSegments; segment++) {
       // Extrapolate back in time to compute positions of tail
-      nextPosition = this.getPosition((t -= dt));
-      diffLength = lastPosition.distanceTo(bodyPosition);
-      const height = lastPosition.distanceTo(nextPosition);
+      const tReal = tCenturiesSinceJ200 + segment * realDt;
+      const tLogged = tCenturiesSinceJ200 + segment * loggedDt;
+      nextRealPosition = this.getPosition(tReal);
+      nextLoggedPosition = getLoggedPosition(this.getPosition(tLogged));
 
-      const radialSegments = 3;
-      const heightSegments = 1;
-      const geometry = new THREE.CylinderGeometry(
-        lastR,
-        nextR,
-        height,
+      // Compute radius of the end of this segment
+      let nextSegmentRadius = lastSegmentRadius - dSegmentRadius;
+
+      // Compute height of segment
+      const realSegmentHeight = lastRealPosition.distanceTo(nextRealPosition);
+      const loggedSegmentHeight = lastLoggedPosition.distanceTo(
+        nextLoggedPosition
+      );
+
+      // Create tail segments at coord origin
+      const realSegmentGeometry = new THREE.CylinderGeometry(
+        lastSegmentRadius,
+        nextSegmentRadius,
+        realSegmentHeight,
         radialSegments,
         heightSegments,
         !true
       );
-      const { x, y, z } = lastPosition;
-      const orientation = new THREE.Matrix4();
-      orientation.makeTranslation(x, y, z);
-      orientation.lookAt(
-        lastPosition,
-        nextPosition,
-        new THREE.Vector3(0, 0, 1)
+      const loggedSegmentGeometry = new THREE.CylinderGeometry(
+        lastSegmentRadius,
+        nextSegmentRadius,
+        loggedSegmentHeight,
+        radialSegments,
+        heightSegments,
+        !true
       );
 
-      geometry.rotateX(Math.PI / 2);
-      geometry.applyMatrix4(orientation);
-      geometries.push(geometry);
+      // Position and rotate geometry
+      {
+        const { x, y, z } = lastRealPosition;
+        const orientation = new THREE.Matrix4();
+        orientation.makeTranslation(x, y, z);
+        orientation.lookAt(
+          lastRealPosition,
+          nextRealPosition,
+          new THREE.Vector3(0, 0, 1)
+        );
+        realSegmentGeometry.translate(0, -realSegmentHeight / 2, 0); // Rotate around end
+        realSegmentGeometry.rotateX(Math.PI / 2);
+        realSegmentGeometry.applyMatrix4(orientation);
+      }
+      {
+        const { x, y, z } = lastLoggedPosition;
+        const orientation = new THREE.Matrix4();
+        orientation.makeTranslation(x, y, z);
+        orientation.lookAt(
+          lastLoggedPosition,
+          nextLoggedPosition,
+          new THREE.Vector3(0, 0, 1)
+        );
+        loggedSegmentGeometry.translate(0, -loggedSegmentHeight / 2, 0); // Rotate around end
+        loggedSegmentGeometry.rotateX(Math.PI / 2);
+        loggedSegmentGeometry.applyMatrix4(orientation);
+      }
+
+      // Store segments
+      geometries.push({ realSegmentGeometry, loggedSegmentGeometry });
 
       // End loop
-      i++;
-      lastPosition = nextPosition;
-      lastR = nextR;
+      lastRealPosition = nextRealPosition;
+      lastLoggedPosition = nextLoggedPosition;
+      lastSegmentRadius = nextSegmentRadius;
     }
-    const mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(
-      geometries,
+
+    // Merge segments into single geometry
+    const realGeometry = BufferGeometryUtils.mergeBufferGeometries(
+      geometries.map(el => el.realSegmentGeometry),
       true
     );
-    return { geometry: mergedGeometries, position: bodyPosition };
+    const loggedGeometry = BufferGeometryUtils.mergeBufferGeometries(
+      geometries.map(el => el.loggedSegmentGeometry),
+      true
+    );
+
+    return { realGeometry, loggedGeometry };
   }
 }

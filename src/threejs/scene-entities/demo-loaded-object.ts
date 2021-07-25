@@ -9,6 +9,7 @@ export class DemoLoadedObject extends AbstractSceneEntity
   implements ISceneEntity {
   // ~~~>>>
 
+  NAME = '';
   _loadedObject?: THREE.Object3D;
   _isInternalLightsOn = true;
 
@@ -98,8 +99,8 @@ export class DemoLoadedObject extends AbstractSceneEntity
     });
   }
 
-  update = (time: number) => {
-    this._sceneEntityGroup.rotateY(time * 0 + 0.001);
+  update = (_camera?: THREE.Camera, _time?: number) => {
+    if (_time) this._sceneEntityGroup.rotateY(_time * 0 + 0.001);
   };
 
   toggleInternalLights = () => {

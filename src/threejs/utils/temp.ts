@@ -1,87 +1,65 @@
-function createAsteroids() {
-  var maxWidth = 1000;
-  var maxHeight = 200;
-  var maxDepth = 200;
-  var asteroids = [];
-  for (var i = 0; i < 7; i++) {
-    asteroids.push(createRock(5 + Math.random() * 50, 200, maxWidth, 300, 400));
-  }
-  for (var i = 0; i < 30; i++) {
-    asteroids.push(createRock(5 + Math.random() * 10, 500, maxWidth, 200, 600));
-  }
-  for (var i = 0; i < 160; i++) {
-    asteroids.push(createRock(2 + Math.random() * 5, 1000, maxWidth, 150, 800));
-  }
-  return asteroids;
+const xxx = 'This is xxx ';
+
+//actual function (must be a named function declaration for use w/ toString here)
+function addOne(x: number) {
+  // return x + 1;
+  return xxx;
 }
 
-function createRock(
-  size: number,
-  spreadX: number,
-  maxWidth: number,
-  maxHeight: number,
-  maxDepth: number
-) {
-  let geometry = new THREE.DodecahedronGeometry(size, 1);
-  geometry.vertices.forEach(function(v) {
-    v.x += 0 - Math.random() * (size / 4);
-    v.y += 0 - Math.random() * (size / 4);
-    v.z += 0 - Math.random() * (size / 4);
+console.log('xxx.toString()', xxx.toString(), addOne.toString());
+
+//the actual worker code can be written as a string
+//template literals make that convienient because they support multiline
+//note that the addOne function above can be used in this worker code, since we'll be importing it
+const workerScript = `
+self.addEventListener('message', function(e) {
+  var data = e.data;
+  console.log('worker recieved: ',data);
+  self.postMessage('worker added! :'+ addOne(data.value));
+}, false);
+`;
+
+//main function for creating an inline worker:
+//inlineWorker:: Array -> String -> a -> Promise b
+const inlineWorker = (
+  constDependencies: any[] = [],
+  functionDependencies: any[] = [],
+  scriptString: string,
+  msg: any
+) => {
+  scriptString = constDependencies.reduce((acc, item) => {
+    return acc + getVarString(item);
+  }, '');
+  functionDependencies.reduce((acc, item) => acc + item.toString(), '') +
+    scriptString;
+
+  //promisify the response/error for make things easier to consume
+  const promise = new Promise((resolve, reject) => {
+    var blob = new Blob([scriptString], { type: 'text/javascript' });
+    var bloblurl = window.URL.createObjectURL(blob);
+    var worker = new Worker(bloblurl);
+
+    worker.onmessage = e => {
+      resolve(e.data);
+      window.URL.revokeObjectURL(bloblurl); //remember to free up the blob url as well
+      worker.terminate();
+    };
+    worker.onerror = e => {
+      reject(e);
+      worker.terminate();
+    };
+
+    worker.postMessage(msg);
   });
 
-  geometry.attributes;
+  return promise;
+};
 
-  var color = '#111111';
-  color = ColorLuminance(color, 2 + Math.random() * 10);
-  console.log(color);
-  texture = new THREE.MeshStandardMaterial({
-    color: color,
-    shading: THREE.FlatShading,
-    //   shininess: 0.5,
-    roughness: 0.8,
-    metalness: 1,
-  });
+inlineWorker([xxx], [addOne], workerScript, { msg: 'hi', value: 6 }).then(x =>
+  console.log('msg returned: ', x)
+);
 
-  cube = new THREE.Mesh(geometry, texture);
-  cube.castShadow = true;
-  cube.receiveShadow = true;
-  cube.scale.set(
-    1 + Math.random() * 0.4,
-    1 + Math.random() * 0.8,
-    1 + Math.random() * 0.4
-  );
-  //cube.rotation.y = Math.PI/4;
-  //cube.rotation.x = Math.PI/4;
-  var x = spreadX / 2 - Math.random() * spreadX;
-  var centeredness = 1 - Math.abs(x) / (maxWidth / 2);
-  var y = (maxHeight / 2 - Math.random() * maxHeight) * centeredness;
-  var z = (maxDepth / 2 - Math.random() * maxDepth) * centeredness;
-  cube.position.set(x, y, z);
-  cube.r = {};
-  cube.r.x = Math.random() * 0.005;
-  cube.r.y = Math.random() * 0.005;
-  cube.r.z = Math.random() * 0.005;
-  scene.add(cube);
-  return cube;
-}
-
-function ColorLuminance(hex: string, lum: number) {
-  // validate hex string
-  hex = String(hex).replace(/[^0-9a-f]/gi, '');
-  if (hex.length < 6) {
-    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-  }
-  lum = lum || 0;
-
-  // convert to decimal and change luminosity
-  var rgb = '#',
-    c,
-    i;
-  for (i = 0; i < 3; i++) {
-    c = parseInt(hex.substr(i * 2, 2), 16);
-    c = Math.round(Math.min(Math.max(0, c + c * lum), 255)).toString(16);
-    rgb += ('00' + c).substr(c.length);
-  }
-
-  return rgb;
+function getVarString(variable: any) {
+  const variableName = Object.keys({ variable }).pop();
+  return `const ${variableName} = ${variable};`;
 }

@@ -4,6 +4,7 @@
 
 ### Params and prelims
 FILE_NAME=$(cat "package.json" | jq -r '.name')
+VERSION=$(cat "package.json" | jq -r '.version')
 export BLA="\033[30m"
 export RED="\033[31m"
 export GRE="\033[32m"
@@ -25,13 +26,15 @@ function _usage() {
   =======================================================
     _library_manager usage:
   -------------------------------------------------------
-    ${WHI}--help       ${GRE}-  Show this usage
-    ${WHI}--build-umd  ${GRE}-  Assemble umd & react part in ./dist
-    ${WHI}--build-quick${GRE}-  Assemble min needed for just react
-    ${WHI}--build-ngx  ${GRE}-  Assemble ngx part in ./dist
-    ${WHI}--build      ${GRE}-  Assemble complete lib in ./dist
-    ${WHI}--dev        ${GRE}-  Serve up src code directly
-    ${WHI}--dev-react  ${GRE}-  Watch builds and serve demo-react
+    ${WHI}--help          ${GRE}-  Show this usage
+    ${WHI}--build-umd     ${GRE}-  Assemble umd & react part in ./dist
+    ${WHI}--build-worker  ${GRE}-  Build separate worker script(s)
+    ${WHI}--build-quick   ${GRE}-  Assemble min needed for just react
+    ${WHI}--build-ngx     ${GRE}-  Assemble ngx part in ./dist
+    ${WHI}--build         ${GRE}-  Assemble complete lib in ./dist
+    ${WHI}--dev           ${GRE}-  Serve up src code directly
+    ${WHI}--dev-worker    ${GRE}-  Serve up worker
+    ${WHI}--dev-react     ${GRE}-  Watch builds and serve demo-react
   =======================================================
   """
 }
@@ -62,9 +65,10 @@ function _develop() {
 
 #######################################
 # Start watching builds on src code and
-#   running parel on output; useful
+#   running parralel on output; useful
 #   when you want to develop react
-#   consumption of the lib
+#   consumption of the lib; but makes for
+#   a slow dev experience
 # Globals:
 #   None
 # Arguments:
@@ -101,6 +105,40 @@ function _build_umd() {
 
   _print "Copy umd without threejs to demo-umd"
   cp dist/*.umd.*.*js* demo-umd
+}
+
+#######################################
+# Build
+# Globals:
+#   None
+# Arguments:
+#   All script args
+#######################################
+function _build_worker() {
+  _print "Building worker..."
+
+  _print "Compile worker code..."
+  # BUNDLE_THREE=true ./node_modules/.bin/tsdx build --entry src/threejs/workers/asteroid-belt-worker.ts --format umd --name worker
+  # BUNDLE_THREE=true ./node_modules/.bin/tsdx build --entry src/threejs/workers/asteroid-belt-worker.ts --format esm --name worker
+  ./node_modules/.bin/rollup -c worker-rollup.config.js
+
+  _print "Copy compiled worker to dist-worker ..."
+  # local dist_worker="dist-worker"
+  # [ -d "$dist_worker" ] && rm -rf "$dist_worker"
+  # mkdir "$dist_worker"
+  # cp "./dist/worker.esm.development.js" "${dist_worker}/asteroid-belt-worker-${VERSION}.js"
+}
+
+#######################################
+# Develop worker
+# Globals:
+#   None
+# Arguments:
+#   All script args
+#######################################
+function _dev_worker() {
+  _print "Develop worker..."
+  ./node_modules/.bin/rollup -c worker-rollup.config.js --watch
 }
 
 #######################################
@@ -204,6 +242,9 @@ main() {
   "--build")
     _build
     ;;
+  "--build-worker")
+    _build_worker
+    ;;
   "--build-umd")
     _build_umd
     ;;
@@ -213,10 +254,13 @@ main() {
   "--build-ngx")
     _build_ngx
     ;;
+  "--dev-worker")
+    echo "Developing worker"
+    _dev_worker
+    ;;
   "--dev")
     _develop
     ;;
-
   "--dev-react")
     _develop_react
     ;;
