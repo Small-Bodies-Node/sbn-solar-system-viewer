@@ -20,7 +20,7 @@ export const buttonToggleAdaptiveAsteroids = (
   button.style.setProperty('left', '10px');
 
   // Set properties common to all buttons; append to container when ready
-  injectCommonButtonProperties(button, container, onClickCB);
+  // injectCommonButtonProperties(button, container, onClickCB);
 
   // Finish him
   return button;

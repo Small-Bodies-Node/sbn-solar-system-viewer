@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { AbstractSceneManager } from './abstract-scene/abstract-scene-manager';
 import { buttonToggleHelpers } from './html/button-toggle-helpers';
 import { buttonToggleToyScale } from './html/button-toggle-toy-scale';
+import { buttonToggleOrbits } from './html/button-toggle-orbits';
+import { buttonToggleLogScale } from './html/button-toggle-log-scale';
 import { Sun } from './scene-entities/sun';
 import { Planet } from './scene-entities/planet';
 import { StarField } from './scene-entities/star-field';
@@ -18,11 +20,9 @@ import { updateTraversalFraction } from './utils/update-traversal-fraction';
 import { updateCameraPosition } from './utils/update-camera-position';
 import { updateCameraViewingAngle } from './utils/update-camera-viewing-angle';
 import { AbstractToyModel } from './abstract-scene/abstract-toy-model';
-import { buttonToggleOrbits } from './html/button-toggle-orbits';
 import { IZoomableOrbital } from './models/IZoomableOrbital';
 import { BirdsEye } from './scene-entities/birds-eye';
 import { getDestinationLookPosition } from './utils/get-destination-look-position';
-import { buttonToggleLogScale } from './html/button-toggle-log-scale';
 import { AsteroidBelt } from './scene-entities/asteroid-belt';
 import { myprint } from './utils/myprint';
 import { addHtmlButtonRow } from './html/add-html-button-row';
@@ -73,16 +73,17 @@ export class SceneManager extends AbstractSceneManager {
     this.updateMessageField = addMessageField(this._container);
     this.updateMessageField('Working?');
     addSearchField(this._container, this.tryToStartZooming);
-    addHtmlButtonRow(
-      [
-        { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
-        { label: 'Toggle helpers', cb: this.toggleHelpersVisibility },
-        { label: 'Toggle Orbits', cb: this.toggleIsOrbitsVisible },
-        { label: 'Toggle Log Scale', cb: this.toggleIsLogScale },
-        { label: 'Toggle Asteroids', cb: this.toggleAsteroids },
-      ],
-      this._container
-    );
+    false &&
+      addHtmlButtonRow(
+        [
+          { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
+          { label: 'Toggle helpers', cb: this.toggleHelpersVisibility },
+          { label: 'Toggle Orbits', cb: this.toggleIsOrbitsVisible },
+          { label: 'Toggle Log Scale', cb: this.toggleIsLogScale },
+          { label: 'Toggle Asteroids', cb: this.toggleAsteroids },
+        ],
+        this._container
+      );
 
     this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [

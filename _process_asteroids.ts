@@ -1,6 +1,6 @@
 #! /usr/bin/env ts-node --compiler-options {"module":"CommonJS","lib":["es2020"]}
 //
-//
+// Process raw data; extracts just the orbital elements needed for the H-mag filtered objects
 
 import fs from 'fs';
 import readline from 'readline';
