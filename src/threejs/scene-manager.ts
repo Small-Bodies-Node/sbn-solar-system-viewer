@@ -27,6 +27,8 @@ import { AsteroidBelt } from './scene-entities/asteroid-belt';
 import { myprint } from './utils/myprint';
 import { addHtmlButtonRow } from './html/add-html-button-row';
 import { addMessageField } from './html/add-message-field';
+import { addSettingsButton } from './html/add-settings-button';
+import { addSettingsPanel } from './html/add-settings-panel';
 
 /**
  * Implement a scene for this app with 'real' scene entities
@@ -84,6 +86,8 @@ export class SceneManager extends AbstractSceneManager {
         ],
         this._container
       );
+    addSettingsButton(this._container);
+    addSettingsPanel(this._container);
 
     this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [

@@ -1,7 +1,7 @@
 import { addGlobalStyles } from './add-global-styles';
+import { v4 as uuidv4 } from 'uuid';
 
-export const loaderDivId = 'sbn-solar-system-loader-div-id';
-
+export const loaderDivId = 'loader-div-id' + uuidv4();
 const borderWidthPxls = 5;
 const spinSpeedMs = 2000;
 

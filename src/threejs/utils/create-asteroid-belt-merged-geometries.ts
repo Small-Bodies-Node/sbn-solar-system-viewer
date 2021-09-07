@@ -26,11 +26,20 @@ export async function createAsteroidBeltMergedGeometries(
 
   // Get raw data from remote json
   const hValDict: TBeltHVal = {
+    /*
     MBA: 'h-11',
     NEO1KM: 'h-20',
     NOT_NEO1KM: 'h-20',
     PHA: 'h-999',
     DISTANTOBJECT: 'h-7',
+    */
+    //
+    MBA: 'h-11',
+    NEO1KM: 'h-11',
+    NOT_NEO1KM: 'h-11',
+    PHA: 'h-11',
+    DISTANTOBJECT: 'h-11',
+    //
   };
   const url = `${assetsBaseUrl}/mpc-data/asteroids/asteroids-${belt}-${hValDict[belt]}.json`;
 
@@ -110,6 +119,7 @@ export async function createAsteroidBeltMergedGeometries(
 
   // Finish
   return {
+    belt,
     mergedAsteroidGeometry,
     mergedTailsGeometry,
   };

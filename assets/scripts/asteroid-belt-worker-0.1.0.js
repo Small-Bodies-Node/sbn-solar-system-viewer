@@ -43446,11 +43446,19 @@
                 switch (_a.label) {
                     case 0:
                         hValDict = {
+                            /*
                             MBA: 'h-11',
                             NEO1KM: 'h-20',
                             NOT_NEO1KM: 'h-20',
                             PHA: 'h-999',
-                            DISTANTOBJECT: 'h-7'
+                            DISTANTOBJECT: 'h-7',
+                            */
+                            //
+                            MBA: 'h-11',
+                            NEO1KM: 'h-11',
+                            NOT_NEO1KM: 'h-11',
+                            PHA: 'h-11',
+                            DISTANTOBJECT: 'h-11'
                         };
                         url = assetsBaseUrl + "/mpc-data/asteroids/asteroids-" + belt + "-" + hValDict[belt] + ".json";
                         return [4 /*yield*/, new Promise(function (resolve) {
@@ -43509,6 +43517,7 @@
                         addLoggedMorphsToRealGeometry(mergedTailsGeometry, mergedLoggedTailsGeometry);
                         // Finish
                         return [2 /*return*/, {
+                                belt: belt,
                                 mergedAsteroidGeometry: mergedAsteroidGeometry,
                                 mergedTailsGeometry: mergedTailsGeometry
                             }];

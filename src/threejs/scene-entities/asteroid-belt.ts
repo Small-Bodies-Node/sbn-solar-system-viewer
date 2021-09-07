@@ -69,19 +69,11 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
 
       const texture = await getTextureFromImageUrl(textureUrl).catch(_ => null);
 
-      getAsteroidBeltMergedGeometries(this.belts, this.parentSceneManager)
-        /*         .then(asteroidBeltMergedGeometries => ({
-          asteroidBeltMergedGeometries,
-
-        })) */
-        .then(xxx => {
-          // ]).then(([texture, { mergedAsteroidGeometry, mergedTailsGeometry }[]]) => {
-          // --->>
-
-          // const { belt, asteroidBeltMergedGeometries } = xxx;
-          xxx.forEach(
+      getAsteroidBeltMergedGeometries(this.belts, this.parentSceneManager).then(
+        allAsteroidBeltMergedGeometries => {
+          allAsteroidBeltMergedGeometries.forEach(
             ({ belt, mergedAsteroidGeometry, mergedTailsGeometry }) => {
-              //
+              // --->>
 
               const color = getAsteroidBeltColor(belt);
 
@@ -117,7 +109,8 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
               this.isMeshesLoaded = true;
             }
           );
-        });
+        }
+      );
 
       myprint('RESOLVED ' + this.NAME);
       resolve(this._sceneEntityGroup);
