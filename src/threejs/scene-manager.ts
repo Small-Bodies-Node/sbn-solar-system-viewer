@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 
 import { AbstractSceneManager } from './abstract-scene/abstract-scene-manager';
-import { buttonToggleHelpers } from './html/button-toggle-helpers';
-import { buttonToggleToyScale } from './html/button-toggle-toy-scale';
-import { buttonToggleOrbits } from './html/button-toggle-orbits';
-import { buttonToggleLogScale } from './html/button-toggle-log-scale';
 import { Sun } from './scene-entities/sun';
 import { Planet } from './scene-entities/planet';
 import { StarField } from './scene-entities/star-field';
@@ -36,6 +32,11 @@ import { addSettingsPanel } from './html/add-settings-panel';
 export class SceneManager extends AbstractSceneManager {
   // --->>>
 
+  // User-changeable settings
+  // private abundanceRepresentationMode: EAbundanceRepresentationMode =
+  // EAbundanceRepresentationMode.TOY_REPRESENTATION;
+  // private loadMode: ELoadMode = ELoadMode.BEFORE_ANIMATION;
+
   // Toy-scalable bodies
   private sun = new Sun();
   private planets: Planet[];
@@ -58,10 +59,8 @@ export class SceneManager extends AbstractSceneManager {
   private isZoomingAngle = false;
   private zoomTraversalFraction = 0;
   private zoomClock = new THREE.Clock(); //Controls movement of camera when touring planets
-
   private isScenePaused = false;
 
-  //
   public updateMessageField: (msg: string) => void = () => {
     console.log('denied!');
   };
@@ -91,6 +90,7 @@ export class SceneManager extends AbstractSceneManager {
 
     this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [
+      /*
       new Planet('MERCURY'),
       new Planet('VENUS'),
       new Planet('EARTH'),
@@ -104,13 +104,14 @@ export class SceneManager extends AbstractSceneManager {
       new Planet('HAUMEA'),
       new Planet('MAKEMAKE'),
       new Planet('ERIS'),
+      */
     ];
     this.asteroids = [
       //
       // new Asteroid('65P'),
     ];
     this.asteroidBelts = [
-      new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
+      // new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
     ];
     this.starField = new StarField(auToMeters(999));
     this.zoomables = [

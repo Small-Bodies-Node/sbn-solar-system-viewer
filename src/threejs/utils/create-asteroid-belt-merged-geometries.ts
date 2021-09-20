@@ -9,6 +9,7 @@ import { getPlanetRadiusMeters } from './get-planet-radius-meters';
 import { getOrbitFromAsteroidDatum } from './get-orbit-from-asteroid-datum';
 import { createAsteroidGeometry } from './create-asteroid-geometry';
 import { addLoggedMorphsToRealGeometry } from './add-logged-morphs-to-real-geometry';
+import { myprint } from './myprint';
 
 const radius = getPlanetRadiusMeters('CERES');
 
@@ -34,11 +35,17 @@ export async function createAsteroidBeltMergedGeometries(
     DISTANTOBJECT: 'h-7',
     */
     //
-    MBA: 'h-11',
-    NEO1KM: 'h-11',
-    NOT_NEO1KM: 'h-11',
-    PHA: 'h-11',
-    DISTANTOBJECT: 'h-11',
+    // MBA: 'h-11',
+    // NEO1KM: 'h-11',
+    // NOT_NEO1KM: 'h-11',
+    // PHA: 'h-11',
+    // DISTANTOBJECT: 'h-11',
+    //
+    MBA: 'h-999',
+    NEO1KM: 'h-999',
+    NOT_NEO1KM: 'h-999',
+    PHA: 'h-999',
+    DISTANTOBJECT: 'h-999',
     //
   };
   const url = `${assetsBaseUrl}/mpc-data/asteroids/asteroids-${belt}-${hValDict[belt]}.json`;
@@ -49,6 +56,9 @@ export async function createAsteroidBeltMergedGeometries(
       .then(data => resolve(data))
       .catch(_ => _);
   });
+
+  console.log('BELT LOADED', belt);
+  // myprint('BELT LOADED', belt);
 
   const asteroidGeometries: IRealAndLoggedGeometry[] = [];
   const tailGeometries: IRealAndLoggedGeometry[] = [];

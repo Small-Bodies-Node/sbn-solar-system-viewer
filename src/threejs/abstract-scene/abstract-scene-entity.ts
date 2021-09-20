@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { getOptions } from '../../options';
+import { getAllOptions } from '../utils/get-all-options';
+import { EPlanetLoadingMode } from '../models/EPlanetLoadingMode';
 
 /**
  * Base class that any entity must extend in order that its threeJs group
@@ -8,7 +9,9 @@ import { getOptions } from '../../options';
 export abstract class AbstractSceneEntity {
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>>
 
-  private static _isAsyncLoad = getOptions().isAsyncLoad;
+  private static _isAsyncLoad =
+    getAllOptions().__sbnViewer__planetLoadingMode ===
+    EPlanetLoadingMode.START_ANIMATION_THEN_LOAD_PLANET_ASYNC;
   protected _isAsyncLoad = () => AbstractSceneEntity._isAsyncLoad;
 
   protected _sceneEntityGroup: THREE.Group = new THREE.Group();

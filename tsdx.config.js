@@ -9,11 +9,7 @@ module.exports = {
   rollup(config) {
     // -------->>>
 
-    config.plugins.push(
-      replace({
-        __IS_PRODUCTION__: 'true',
-      })
-    );
+    config.plugins.push(replace({ __IS_PRODUCTION__: 'true' }));
 
     if (config.output.format === 'umd') {
       /**

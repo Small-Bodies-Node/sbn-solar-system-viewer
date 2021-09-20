@@ -1,4 +1,3 @@
-import { TOptions, setOptions } from './options';
 import { SceneManager } from './threejs/scene-manager';
 
 let threejsScene: SceneManager;
@@ -9,13 +8,8 @@ export const getInitDate = () => initDate;
 /**
  * Create threeJs canvas and inject into container
  */
-export function init(
-  containerId = 'threejs-canvas-container',
-  options?: TOptions
-) {
+export function init(containerId = 'threejs-canvas-container') {
   // --->>>
-
-  if (!!options) setOptions(options);
 
   // Get div to contain canvas
   const canvasContainer = document.getElementById(containerId);

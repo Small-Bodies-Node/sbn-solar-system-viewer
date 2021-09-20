@@ -19,7 +19,7 @@ export const buttonToggleHelpers = (
   button.style.setProperty('right', '10px');
 
   // Set properties common to all buttons; append to container when ready
-  injectCommonButtonProperties(button, container, onClickCB);
+  injectCommonButtonProperties(button, onClickCB);
 
   // Finish him
   return button;

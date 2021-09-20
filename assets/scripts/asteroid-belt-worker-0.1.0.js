@@ -43454,11 +43454,17 @@
                             DISTANTOBJECT: 'h-7',
                             */
                             //
-                            MBA: 'h-11',
-                            NEO1KM: 'h-11',
-                            NOT_NEO1KM: 'h-11',
-                            PHA: 'h-11',
-                            DISTANTOBJECT: 'h-11'
+                            // MBA: 'h-11',
+                            // NEO1KM: 'h-11',
+                            // NOT_NEO1KM: 'h-11',
+                            // PHA: 'h-11',
+                            // DISTANTOBJECT: 'h-11',
+                            //
+                            MBA: 'h-999',
+                            NEO1KM: 'h-999',
+                            NOT_NEO1KM: 'h-999',
+                            PHA: 'h-999',
+                            DISTANTOBJECT: 'h-999'
                         };
                         url = assetsBaseUrl + "/mpc-data/asteroids/asteroids-" + belt + "-" + hValDict[belt] + ".json";
                         return [4 /*yield*/, new Promise(function (resolve) {
@@ -43468,6 +43474,7 @@
                             })];
                     case 1:
                         data = _a.sent();
+                        console.log('BELT LOADED', belt);
                         asteroidGeometries = [];
                         tailGeometries = [];
                         // Loop through received data and compute individual geometries
