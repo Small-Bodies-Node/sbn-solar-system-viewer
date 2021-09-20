@@ -60,7 +60,6 @@ function _print() {
 #   None
 #######################################
 function _develop() {
-  rm -rf .nextjs
   ./node_modules/.bin/parcel serve -p 3000 src/dev.html
 }
 

@@ -15,6 +15,7 @@ export const addBinarySwitch = (
   title: string,
   onText: string,
   offText: string,
+  isInitiallyChecked: boolean,
   stateUpdateCallBack: () => any,
   id: string = `switch_created_${new Date().toISOString()}`.replace(/\s+/g, '')
 ): HTMLDivElement => {
@@ -74,7 +75,7 @@ export const addBinarySwitch = (
 
   const switchInput = document.createElement('input');
   switchInput.type = 'checkbox';
-  switchInput.checked = false;
+  switchInput.checked = isInitiallyChecked;
   switchLabel.append(switchInput);
 
   const sliderSpan = document.createElement('span');

@@ -34,7 +34,8 @@ function displayFpsStats() {
       requestAnimationFrame(loop);
     });
   };
-  script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
+  script.src =
+    'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
   document.head.appendChild(script);
 }
 

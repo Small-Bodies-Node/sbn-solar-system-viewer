@@ -49,6 +49,7 @@ export const addSettingsPanel = (container: HTMLElement) => {
     'Planet Loading Mode?',
     'Async (Start Animation Before Planets Are Loaded) XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX ',
     'Sync (Wait Till Planets Are Loaded)',
+    true,
     () => {
       setOptions({
         __sbnViewer__planetLoadingMode:
@@ -63,6 +64,7 @@ export const addSettingsPanel = (container: HTMLElement) => {
     'Comet-Asteroid Loading Mode?',
     'Async (Start Before Loaded)',
     'Sync (Wait Till Loaded)',
+    true,
     () => {
       setOptions({
         __sbnViewer__cometAsteroidLoadingMode:
@@ -78,6 +80,7 @@ export const addSettingsPanel = (container: HTMLElement) => {
     'Comet-Asteroid Abundance Representation Mode?',
     'Toy Model',
     'Real World Proportions',
+    true,
     () => {
       setOptions({
         __sbnViewer__cometAsteroidAbundanceRepresentationMode:
