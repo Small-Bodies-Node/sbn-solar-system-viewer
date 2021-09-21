@@ -55,7 +55,7 @@ export async function getAsteroidBeltMergedGeometries(
       })
     );
 
-    parentSceneManager.updateMessageField('Loading asteroids belts');
+    parentSceneManager.updateDisplayedMessage('Loading asteroids belts');
     parentSceneManager.setIsScenePaused(true);
 
     setTimeout(() => {
@@ -80,7 +80,7 @@ export async function getAsteroidBeltMergedGeometries(
         }
       );
 
-      parentSceneManager.updateMessageField('Asteroids Loaded');
+      parentSceneManager.updateDisplayedMessage('Asteroids Loaded');
       parentSceneManager.setIsScenePaused(false);
 
       resolve0(xxx);

@@ -22,10 +22,10 @@ export const addHtmlButtonRow = async (
     buttonWrapperDiv.style.setProperty('flex-direction', 'column');
     buttonWrapperDiv.style.setProperty('gap', '12px');
     buttonWrapperDiv.style.setProperty('position', 'absolute');
-    buttonWrapperDiv.style.setProperty('top', '0px');
-    buttonWrapperDiv.style.setProperty('bottom', '50%');
+    buttonWrapperDiv.style.setProperty('top', '100px');
+    buttonWrapperDiv.style.setProperty('bottom', '100px');
     buttonWrapperDiv.style.setProperty('right', '0px');
-    buttonWrapperDiv.style.setProperty('width', '150px');
+    buttonWrapperDiv.style.setProperty('width', '120px');
     container.append(buttonWrapperDiv);
 
     // Map inputs to stylized buttons

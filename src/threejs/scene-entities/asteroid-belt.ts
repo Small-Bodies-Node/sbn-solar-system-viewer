@@ -58,7 +58,7 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
       this._sceneEntityGroup.add(this.mergedAsteroidsMeshes[belt]);
       this._sceneEntityGroup.add(this.mergedTailsMeshes[belt]);
     });
-    this.parentSceneManager.updateMessageField('Building asteroid belt');
+    this.parentSceneManager.updateDisplayedMessage('Building asteroid belt');
   }
 
   async init() {

@@ -2,7 +2,7 @@ import { addGlobalStyles } from './add-global-styles';
 import { getAllOptions, getAllOptionsBooleans } from '../utils/get-all-options';
 import { setOptions } from '../utils/set-options';
 import { IOptionsBooleans } from '../../options';
-import { addThreeColumnContainer } from './add-three-column-container';
+import { createThreeColumnContainer } from './create-three-column-container';
 
 /**
  * Function to create a binary switch with text for the two different states
@@ -12,7 +12,7 @@ import { addThreeColumnContainer } from './add-three-column-container';
  * The callback will be used to change the state of options
  */
 
-export const addTitledSwitch = (
+export const createTitledSwitch = (
   title: string,
   onText: string,
   offText: string,
@@ -39,19 +39,20 @@ export const addTitledSwitch = (
   // Put a lot of the styles in the global file
   addGlobalStyles();
 
-  //
+  // Get handles on the container html for this switch
   const {
     threeColumnContainerDiv,
     firstColumnDiv,
     secondColumnDiv,
     thirdColumnDiv,
-  } = addThreeColumnContainer();
+  } = createThreeColumnContainer();
 
   const isChecked = getAllOptionsBooleans()[key];
   firstColumnDiv.innerHTML = `<span>${title}</span>`;
   thirdColumnDiv.innerHTML = `<span>${isChecked ? onText : offText}</span>`;
 
   // Create the switch inner workings
+  // See: https://www.w3schools.com/howto/howto_css_switch.asp
   const switchLabel = document.createElement('label');
   switchLabel.classList.add('switch');
   secondColumnDiv.append(switchLabel);

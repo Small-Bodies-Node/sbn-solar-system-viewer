@@ -4,10 +4,7 @@ import { addGlobalStyles } from './add-global-styles';
 /**
  *
  */
-export const addSearchField = (
-  container: HTMLElement,
-  onEnter: (value: string) => void
-) => {
+export const createSearchField = (onEnter: (value: string) => void) => {
   //
 
   addGlobalStyles();
@@ -21,8 +18,9 @@ export const addSearchField = (
   div.style.setProperty('width', '120px');
   div.style.setProperty('height', '40px');
   div.style.setProperty('background-color', 'green');
+
   //
-  input.value = 'Ceres';
+  input.value = 'Earth';
   input.style.setProperty('width', '100%');
   input.style.setProperty('height', '100%');
   input.style.setProperty('font-size', '20px');
@@ -30,11 +28,12 @@ export const addSearchField = (
   input.style.setProperty('font-size', '20px');
   input.classList.add('sbn-solar-system-viewer-input');
   input.addEventListener('keypress', e => {
-    // console.log('e', e, input.value);
     if (e.key === 'Enter') {
       onEnter(input.value);
     }
   });
   div.append(input);
-  container.append(div);
+
+  // Finish
+  return div;
 };

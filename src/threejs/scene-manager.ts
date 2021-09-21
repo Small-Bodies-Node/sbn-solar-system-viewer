@@ -10,7 +10,7 @@ import { SimpleLight } from './scene-entities/simple-light';
 import { Asteroid } from './scene-entities/asteroid';
 import { PointLight } from './scene-entities/point-light';
 import { solarSystemData } from './data/basic-solar-system-data';
-import { addSearchField } from './html/add-search-field';
+import { createSearchField } from './html/create-search-field';
 import { IZoomable } from './models/IZoomable';
 import { updateTraversalFraction } from './utils/update-traversal-fraction';
 import { updateCameraPosition } from './utils/update-camera-position';
@@ -22,9 +22,9 @@ import { getDestinationLookPosition } from './utils/get-destination-look-positio
 import { AsteroidBelt } from './scene-entities/asteroid-belt';
 import { myprint } from './utils/myprint';
 import { addHtmlButtonRow } from './html/add-html-button-row';
-import { addMessageField } from './html/add-message-field';
-import { addSettingsButton } from './html/add-settings-button';
-import { addSettingsPanel } from './html/add-settings-panel';
+import { createDisplayMessageDiv } from './html/create-display-message-div';
+import { createSettingsButton } from './html/create-settings-button';
+import { createSettingsPanel } from './html/create-settings-panel';
 
 /**
  * Implement a scene for this app with 'real' scene entities
@@ -61,7 +61,7 @@ export class SceneManager extends AbstractSceneManager {
   private zoomClock = new THREE.Clock(); //Controls movement of camera when touring planets
   private isScenePaused = false;
 
-  public updateMessageField: (msg: string) => void = () => {
+  public updateDisplayedMessage: (msg: string) => void = () => {
     console.log('denied!');
   };
 
@@ -71,10 +71,16 @@ export class SceneManager extends AbstractSceneManager {
     super(containerId);
 
     // Add html
-    this.updateMessageField = addMessageField(this._container);
-    this.updateMessageField('Working?');
-    addSearchField(this._container, this.tryToStartZooming);
-    false &&
+    // Message Display
+    const { displayMessageDiv, updateMessageCb } = createDisplayMessageDiv();
+    this._container.append(displayMessageDiv);
+    this.updateDisplayedMessage = updateMessageCb;
+    this.updateDisplayedMessage('Loading...');
+    // Search field
+    const searchFieldDiv = createSearchField(this.tryToStartZooming);
+    this._container.append(searchFieldDiv);
+    // Buttons in main display
+    !false &&
       addHtmlButtonRow(
         [
           { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
@@ -85,9 +91,13 @@ export class SceneManager extends AbstractSceneManager {
         ],
         this._container
       );
-    addSettingsButton(this._container);
-    addSettingsPanel(this._container);
+    // Settings panel and button
+    const { settingsPanelDiv, toggleSettingsPanelCb } = createSettingsPanel();
+    this._container.append(settingsPanelDiv);
+    const settingsButton = createSettingsButton(toggleSettingsPanelCb);
+    this._container.append(settingsButton);
 
+    // Entities
     this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [
       /*

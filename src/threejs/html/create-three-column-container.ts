@@ -6,7 +6,9 @@ import { addGlobalStyles } from './add-global-styles';
  * input fields and look neat in the settings menu
  */
 
-export const addThreeColumnContainer = (id = 'placeholder-id' + uuidv4()) => {
+export const createThreeColumnContainer = (
+  id = 'placeholder-id' + uuidv4()
+) => {
   /**
    * Construct and return divs of the following format
    *
