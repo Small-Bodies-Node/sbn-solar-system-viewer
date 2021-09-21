@@ -7,7 +7,7 @@ import { defaultOptions, IOptions } from '../../options';
  *
  */
 export const cleanLocalStorage = () => {
-  //
+  // --->>
 
   const optionKeys = Object.keys(defaultOptions);
 

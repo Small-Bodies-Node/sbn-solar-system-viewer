@@ -1,99 +1,130 @@
 import { v4 as uuidv4 } from 'uuid'; // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
-import { addGlobalStyles } from './add-global-styles';
-import { addBinarySwitch } from './add-binary-switch';
-import { getAllOptions } from '../utils/get-all-options';
-import { EPlanetLoadingMode } from '../models/EPlanetLoadingMode';
-import { setOptions } from '../utils/set-options';
-import { ECometAsteroidLoadingMode } from '../models/ECometAsteroidLoadingMode';
-import { ECometAsteroidAbundanceRepresentationMode } from '../models/ECometAsteroidAbundanceRepresentationMode';
 
+import { addGlobalStyles } from './add-global-styles';
+import { addTitledSwitch } from './add-titled-switch';
+import { addTitledInput } from './add-titled-input';
+import { getAllOptions } from '../utils/get-all-options';
+import { getHrDiv } from './create-hr-div';
+
+// Make some unique ids
 export const settingsPanelId = 'settings-panel-id-' + uuidv4();
+export const maxObjectsContainerDivId =
+  'max-objects-container-div-id-' + uuidv4();
+export const thresholdHContainerDivId =
+  'threshold-H-container-div-id-' + uuidv4();
 
 /**
- * Adds settings button to top-left of UI
+ * Create settings panel
  */
 export const addSettingsPanel = (container: HTMLElement) => {
-  // --->>>
-
-  console.log('Adding settings panel?');
+  // --->>
 
   addGlobalStyles();
 
-  // Warning
   if (!container) throw new Error('Canvas Container is Falsy!');
 
-  // Create wrapper container
+  // Create container for the settings panel
   const panelDiv = document.createElement('div');
   panelDiv.id = settingsPanelId;
-  //
   panelDiv.style.setProperty('position', 'absolute');
   panelDiv.style.setProperty('top', '0px');
   panelDiv.style.setProperty('right', '100%');
   panelDiv.style.setProperty('right', '0%');
   panelDiv.style.setProperty('left', '0px');
   panelDiv.style.setProperty('bottom', '0px');
-  //
   panelDiv.style.setProperty('transition', 'right 1s ease-in-out');
-  //
   panelDiv.style.setProperty('overflow', 'hidden');
-  //
   panelDiv.style.setProperty('background-color', 'pink');
   panelDiv.style.setProperty('display', 'flex');
   panelDiv.style.setProperty('flex-direction', 'column');
   panelDiv.style.setProperty('gap', '5px');
-  panelDiv.style.setProperty('justify-content', 'center');
+  panelDiv.style.setProperty('justify-content', 'start');
   panelDiv.style.setProperty('align-items', 'center');
-  //
 
-  const div1 = addBinarySwitch(
-    'Planet Loading Mode?',
-    'Async (Start Animation Before Planets Are Loaded) XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX ',
-    'Sync (Wait Till Planets Are Loaded)',
-    true,
-    () => {
-      setOptions({
-        __sbnViewer__planetLoadingMode:
-          (getAllOptions().__sbnViewer__planetLoadingMode + 1) %
-          EPlanetLoadingMode.__LENGTH__,
-      });
-    }
+  // Planet-loading switch
+  panelDiv.append(getHrDiv());
+  const planetLoadingModeSwitchContainerDiv = addTitledSwitch(
+    'Planet loading mode?',
+    'Load planets before animation begins',
+    'Begin animation then load planets',
+    '__sbnViewer__isPlanetsLoadedBeforeAnimationBegins'
   );
-  panelDiv.append(div1);
+  panelDiv.append(planetLoadingModeSwitchContainerDiv);
+  const hrDiv = document.createElement('div');
+  hrDiv.style.setProperty('width', '100%');
+  hrDiv.style.setProperty('height', '1px');
+  hrDiv.style.setProperty('background-color', 'black');
+  panelDiv.append(getHrDiv());
 
-  const div2 = addBinarySwitch(
+  // Comet-asteroid loading mode switch
+  const cometAsteroidLoadingModeSwitchContainerDiv = addTitledSwitch(
     'Comet-Asteroid Loading Mode?',
     'Async (Start Before Loaded)',
     'Sync (Wait Till Loaded)',
-    true,
-    () => {
-      setOptions({
-        __sbnViewer__cometAsteroidLoadingMode:
-          (getAllOptions().__sbnViewer__cometAsteroidLoadingMode + 1) %
-          ECometAsteroidLoadingMode.__LENGTH__,
-      });
-    },
-    'planet-sync'
+    '__sbnViewer__isBeltLoadedBeforeAnimationBegins'
   );
-  panelDiv.append(div2);
+  panelDiv.append(cometAsteroidLoadingModeSwitchContainerDiv);
+  panelDiv.append(getHrDiv());
 
-  const div3 = addBinarySwitch(
-    'Comet-Asteroid Abundance Representation Mode?',
+  // Abundance-mode switch
+  const abundanceRepresentationModeSwitchContainerDiv = addTitledSwitch(
+    'Comet-Asteroid Abundance Mode?',
     'Toy Model',
     'Real World Proportions',
-    true,
-    () => {
-      setOptions({
-        __sbnViewer__cometAsteroidAbundanceRepresentationMode:
-          (getAllOptions()
-            .__sbnViewer__cometAsteroidAbundanceRepresentationMode +
-            1) %
-          ECometAsteroidAbundanceRepresentationMode.__LENGTH__,
-      });
-    },
-    'planet-sync'
-  );
-  panelDiv.append(div3);
+    '__sbnViewer__isBeltAbundanceToyModel',
+    (isChecked: boolean) => {
+      // --->>
 
-  //
+      const maxObjectsContainerDiv = document.getElementById(
+        maxObjectsContainerDivId
+      );
+      if (!!maxObjectsContainerDiv) {
+        maxObjectsContainerDiv.style.setProperty(
+          'display',
+          isChecked ? 'none' : 'flex'
+        );
+      }
+
+      const thresholdHContainerDiv = document.getElementById(
+        thresholdHContainerDivId
+      );
+      if (!!thresholdHContainerDiv) {
+        thresholdHContainerDiv.style.setProperty(
+          'display',
+          isChecked ? 'none' : 'flex'
+        );
+      }
+    }
+  );
+  panelDiv.append(abundanceRepresentationModeSwitchContainerDiv);
+
+  const isChecked = getAllOptions()['__sbnViewer__isBeltAbundanceToyModel'];
+
+  // Max objects field
+  const maxObjectsContainerDiv = addTitledInput(
+    'Max number of objects',
+    '__sbnViewer__beltAbundanceMaxObjects'
+  );
+  maxObjectsContainerDiv.style.setProperty(
+    'display',
+    isChecked ? 'none' : 'flex'
+  );
+  maxObjectsContainerDiv.id = maxObjectsContainerDivId;
+  panelDiv.append(maxObjectsContainerDiv);
+
+  // Threshold H field
+  const thresholdHContainerDiv = addTitledInput(
+    'Minimum H Mag',
+    '__sbnViewer__beltAbundanceHThreshold'
+  );
+  thresholdHContainerDiv.id = thresholdHContainerDivId;
+  thresholdHContainerDiv.style.setProperty(
+    'display',
+    isChecked ? 'none' : 'flex'
+  );
+  panelDiv.append(thresholdHContainerDiv);
+  panelDiv.append(getHrDiv());
+
+  // Now display panel having create it
   container.append(panelDiv);
 };

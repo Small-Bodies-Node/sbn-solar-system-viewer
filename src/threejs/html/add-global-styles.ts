@@ -39,21 +39,14 @@ export const addGlobalStyles = () => {
      * This is for styling the switches
      *
      */
-    .switch-text-container {
+    .three-column-container {
       width: 100%;
       height: 34px;
       display: flex;
       white-space: nowrap;
     }
 
-    .switch-text-container > * {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .switch-text-container .switch {
+    .three-column-container .switch {
       position: relative;
       display: inline-block;
       width: 60px;
@@ -61,14 +54,14 @@ export const addGlobalStyles = () => {
     }
 
     /* Hide default HTML checkbox */
-    .switch-text-container .switch input {
+    .three-column-container .switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
 
     /* The slider */
-    .switch-text-container .slider {
+    .three-column-container .slider {
       position: absolute;
       cursor: pointer;
       top: 0;
@@ -81,7 +74,7 @@ export const addGlobalStyles = () => {
       transition: .4s;
     }
 
-    .switch-text-container .slider:before {
+    .three-column-container .slider:before {
       position: absolute;
       content: "";
       height: 26px;
@@ -93,16 +86,16 @@ export const addGlobalStyles = () => {
       transition: .4s;
     }
 
-    .switch-text-container input:checked + .slider {
+    .three-column-container input:checked + .slider {
       background-color: #2196F3;
       background-color: ${switchOffColor};
     }
 
-    .switch-text-container input:focus + .slider {
+    .three-column-container input:focus + .slider {
       box-shadow: 0 0 1px #2196F3;
     }
 
-    .switch-text-container input:checked + .slider:before {
+    .three-column-container input:checked + .slider:before {
       -webkit-transform: translateX(26px);
       -ms-transform: translateX(26px);
       transform: translateX(26px);
