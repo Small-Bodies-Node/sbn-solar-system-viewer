@@ -100,7 +100,6 @@ export class SceneManager extends AbstractSceneManager {
     // Entities
     this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [
-      /*
       new Planet('MERCURY'),
       new Planet('VENUS'),
       new Planet('EARTH'),
@@ -114,14 +113,13 @@ export class SceneManager extends AbstractSceneManager {
       new Planet('HAUMEA'),
       new Planet('MAKEMAKE'),
       new Planet('ERIS'),
-      */
     ];
     this.asteroids = [
       //
       // new Asteroid('65P'),
     ];
     this.asteroidBelts = [
-      // new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
+      new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
     ];
     this.starField = new StarField(auToMeters(999));
     this.zoomables = [

@@ -43,7 +43,7 @@ export const createSettingsPanel = () => {
   settingsPanelDiv.style.setProperty('font-size', '22px');
   settingsPanelDiv.style.setProperty(
     'background-color',
-    'rgba(255,255,255,0.8)'
+    'rgba(255,255,255,0.9)'
   );
   const isDark = false;
   if (isDark)
@@ -83,17 +83,17 @@ export const createSettingsPanel = () => {
     '__sbnViewer__isPlanetsLoadedBeforeAnimationBegins'
   );
   settingsPanelDiv.append(planetLoadingModeSwitchContainerDiv);
-  const hrDiv = document.createElement('div');
-  hrDiv.style.setProperty('width', '100%');
-  hrDiv.style.setProperty('height', '1px');
-  hrDiv.style.setProperty('background-color', 'black');
+  // const hrDiv = document.createElement('div');
+  // hrDiv.style.setProperty('width', '100%');
+  // hrDiv.style.setProperty('height', '1px');
+  // hrDiv.style.setProperty('background-color', 'black');
   settingsPanelDiv.append(getHrDiv());
 
   // Comet-asteroid loading mode switch
   const cometAsteroidLoadingModeSwitchContainerDiv = createTitledSwitch(
     'Comet-Asteroid Loading Mode?',
-    'Async (Start Before Loaded)',
-    'Sync (Wait Till Loaded)',
+    'Start animation then load comets-asteroids',
+    'Wait for comets-asteroids before starting animation',
     '__sbnViewer__isBeltLoadedBeforeAnimationBegins'
   );
   settingsPanelDiv.append(cometAsteroidLoadingModeSwitchContainerDiv);
