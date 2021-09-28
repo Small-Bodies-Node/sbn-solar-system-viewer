@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three'), require('julian'), require('react')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'three', 'julian', 'react'], factory) :
-  (global = global || self, factory(global.SbnSolarSystemViewer = {}, global.THREE, global.julian, global.React));
-}(this, (function (exports, THREE, julian, React) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three'), require('uuid'), require('julian'), require('react-icons/fi'), require('react-icons/ai'), require('react-icons/io'), require('react')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'three', 'uuid', 'julian', 'react-icons/fi', 'react-icons/ai', 'react-icons/io', 'react'], factory) :
+  (global = global || self, factory(global.SbnSolarSystemViewer = {}, global.THREE, global.uuid, global.julian, global.fi, global.ai, global.io, global.React));
+}(this, (function (exports, THREE, uuid, julian, fi, ai, io, React) { 'use strict';
 
   julian = julian && Object.prototype.hasOwnProperty.call(julian, 'default') ? julian['default'] : julian;
   React = React && Object.prototype.hasOwnProperty.call(React, 'default') ? React['default'] : React;
@@ -84,20 +84,6 @@
 
     return self;
   }
-
-  /**
-   * This module is the SSOT for global "initial" settings for the app
-   * that get set before the threejs scene begins
-   */
-  var options = {
-    isAsyncLoad: !true
-  };
-  var getOptions = function getOptions() {
-    return options;
-  };
-  var setOptions = function setOptions(newOptions) {
-    return options = _extends({}, options, newOptions);
-  };
 
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
@@ -2050,13 +2036,17 @@
    * E.g. sbn-solar-system-viewer-
    */
   var addGlobalStyles = function addGlobalStyles() {
+    // --->>>
+    // Some params
+    var switchOnColor = 'red';
+    var switchOffColor = 'blue'; // Only set once
 
     var globalStyle = document.createElement('style');
-    globalStyle.innerHTML = "\n    @keyframes sbn-solar-system-viewer-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n\n    @keyframes sbn-solar-system-viewer-loader-spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n\n    .sbn-solar-system-viewer-input:focus{\n        outline-width: 0;\n    }\n  ";
+    globalStyle.innerHTML = "\n    @keyframes sbn-solar-system-viewer-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n\n    @keyframes sbn-solar-system-viewer-loader-spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n\n    .sbn-solar-system-viewer-input:focus{\n        outline-width: 0;\n    }\n\n    /**\n     *\n     * This is for styling the switches\n     *\n     */\n    .three-column-container {\n      width: 100%;\n      height: 34px;\n      display: flex;\n      white-space: nowrap;\n    }\n\n    .three-column-container .switch {\n      position: relative;\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n    }\n\n    /* Hide default HTML checkbox */\n    .three-column-container .switch input {\n      opacity: 0;\n      width: 0;\n      height: 0;\n    }\n\n    /* The slider */\n    .three-column-container .slider {\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #ccc;\n      background-color: " + switchOnColor + ";\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container .slider:before {\n      position: absolute;\n      content: \"\";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: 4px;\n      background-color: white;\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container input:checked + .slider {\n      background-color: #2196F3;\n      background-color: " + switchOffColor + ";\n    }\n\n    .three-column-container input:focus + .slider {\n      box-shadow: 0 0 1px #2196F3;\n    }\n\n    .three-column-container input:checked + .slider:before {\n      -webkit-transform: translateX(26px);\n      -ms-transform: translateX(26px);\n      transform: translateX(26px);\n    }\n  ";
     document.head.append(globalStyle);
   };
 
-  var loaderDivId = 'sbn-solar-system-loader-div-id';
+  var loaderDivId = 'loader-div-id' + /*#__PURE__*/uuid.v4();
   var borderWidthPxls = 5;
   var spinSpeedMs = 2000;
   var isInit = false;
@@ -2266,6 +2256,8 @@
       this._container.append(this._canvas);
 
       this._container.style.setProperty('position', 'relative');
+
+      this._container.style.setProperty('font-family', '"Odibee Sans", cursive');
 
       this._container.style.setProperty('background-color', 'black');
 
@@ -2540,6 +2532,112 @@
   };
 
   /**
+   * This module is the SSOT for global "static" settings for the app
+   * that get set before the threejs scene begins. These govern e.g.
+   * the default values of the "dynamic" settings that the user can set
+   * and that will then persist within localStorage (at least, that is the eventual goal)
+   */
+  var defaultOptions = {
+    __sbnViewer__isPlanetsLoadedBeforeAnimationBegins: true,
+    __sbnViewer__isBeltLoadedBeforeAnimationBegins: true,
+    __sbnViewer__isBeltAbundanceToyModel: true,
+    // Only apply if __sbnViewer__isBeltAbundanceToyModel === false
+    __sbnViewer__beltAbundanceMaxObjects: 100,
+    __sbnViewer__beltAbundanceHThreshold: -10
+  };
+
+  /**
+   * Remove any keys that are not members of optionKeys
+   * If a value does not exist for any member of optionKeys
+   * then set that value to the default
+   *
+   */
+
+  var cleanLocalStorage = function cleanLocalStorage() {
+    // --->>
+    var optionKeys = Object.keys(defaultOptions); // Remove key-value pairs where the key is not in optionKeys
+
+    var items = _extends({}, localStorage);
+
+    Object.keys(items).forEach(function (key) {
+      if (!optionKeys.includes(key)) localStorage.removeItem(key);
+    }); // Make sure every key has at least a default value
+
+    optionKeys.forEach(function (key) {
+      var val = localStorage.getItem(key);
+
+      if (!val) {
+        localStorage.setItem(key, JSON.stringify(defaultOptions[key]));
+      } else {
+        try {
+          var parsedVal = JSON.parse(val);
+
+          if (typeof parsedVal !== typeof defaultOptions[key]) {
+            localStorage.setItem(key, JSON.stringify(defaultOptions[key]));
+          }
+        } catch (err) {
+          console.log('Local-storage mishap');
+          return;
+        }
+      }
+    });
+  };
+
+  cleanLocalStorage();
+  /**
+   * Get all options from local storage; if a value from optionKeys is not
+   * represented then return the default value
+   */
+
+  var getAllOptions = function getAllOptions() {
+    // --->>
+    // Build up options from local storage
+    var optionsFromLocalStorage = {};
+    Object.keys(defaultOptions).forEach(function (key) {
+      var val = localStorage.getItem(key);
+      if (!val) return;
+
+      try {
+        var parsedVal = JSON.parse(val);
+        optionsFromLocalStorage[key] = parsedVal;
+      } catch (err) {
+        return;
+      }
+    });
+    return _extends({}, defaultOptions, optionsFromLocalStorage);
+  };
+  /**
+   * Wrapper that just returns the booleans from stored options
+   */
+
+  var getAllOptionsBooleans = function getAllOptionsBooleans() {
+    var _getAllOptions = getAllOptions(),
+        __sbnViewer__isBeltAbundanceToyModel = _getAllOptions.__sbnViewer__isBeltAbundanceToyModel,
+        __sbnViewer__isBeltLoadedBeforeAnimationBegins = _getAllOptions.__sbnViewer__isBeltLoadedBeforeAnimationBegins,
+        __sbnViewer__isPlanetsLoadedBeforeAnimationBegins = _getAllOptions.__sbnViewer__isPlanetsLoadedBeforeAnimationBegins;
+
+    return {
+      __sbnViewer__isBeltAbundanceToyModel: __sbnViewer__isBeltAbundanceToyModel,
+      __sbnViewer__isBeltLoadedBeforeAnimationBegins: __sbnViewer__isBeltLoadedBeforeAnimationBegins,
+      __sbnViewer__isPlanetsLoadedBeforeAnimationBegins: __sbnViewer__isPlanetsLoadedBeforeAnimationBegins
+    };
+  };
+  /**
+   * Wrapper that just returns the booleans from stored options
+   */
+
+  var getAllOptionsNumbers = function getAllOptionsNumbers() {
+    var _getAllOptions2 = getAllOptions(),
+        __sbnViewer__beltAbundanceHThreshold = _getAllOptions2.__sbnViewer__beltAbundanceHThreshold,
+        __sbnViewer__beltAbundanceMaxObjects = _getAllOptions2.__sbnViewer__beltAbundanceMaxObjects;
+
+    return {
+      __sbnViewer__beltAbundanceHThreshold: __sbnViewer__beltAbundanceHThreshold,
+      __sbnViewer__beltAbundanceMaxObjects: __sbnViewer__beltAbundanceMaxObjects
+    };
+  };
+
+  /**
    * Base class that any entity must extend in order that its threeJs group
    * might get added to the threeJs scene owned by the manager
    */
@@ -2558,7 +2656,7 @@
       return _this._sceneEntityGroup;
     };
   };
-  AbstractSceneEntity._isAsyncLoad = /*#__PURE__*/getOptions().isAsyncLoad;
+  AbstractSceneEntity._isAsyncLoad = /*#__PURE__*/getAllOptions().__sbnViewer__isPlanetsLoadedBeforeAnimationBegins;
 
   /**
    * Time to finish switch from log to normal scales
@@ -2673,8 +2771,18 @@
   /**
    * Constants for widget
    */
+  /**
+   * Properties common to all html buttons
+   */
+
+  var buttonBackgroundColor = 'rgba(255,255,255,0.2)';
+  var buttonClickedBackgroundColor = 'rgba(255,255,255,0.4)';
+  var buttonTextColor = 'rgba(255,255,255,0.8)';
+  var buttonCursorType = 'pointer';
+  var buttonFadeInSpecs = '1s ease-in-out'; // These two properties must be coordinated together using e.g. google.fonts
 
   var buttonFontFamily = "'Odibee Sans', cursive";
+  var buttonCssUrl = 'https://fonts.googleapis.com/css2?family=Odibee+Sans';
   /**
    * Root url of file server with copy of /images
    */
@@ -10573,7 +10681,7 @@
    *
    */
 
-  var addSearchField = function addSearchField(container, onEnter) {
+  var createSearchField = function createSearchField(onEnter) {
     //
     addGlobalStyles();
     var div = document.createElement('div');
@@ -10585,7 +10693,7 @@
     div.style.setProperty('height', '40px');
     div.style.setProperty('background-color', 'green'); //
 
-    input.value = 'Ceres';
+    input.value = 'Earth';
     input.style.setProperty('width', '100%');
     input.style.setProperty('height', '100%');
     input.style.setProperty('font-size', '20px');
@@ -10593,13 +10701,13 @@
     input.style.setProperty('font-size', '20px');
     input.classList.add('sbn-solar-system-viewer-input');
     input.addEventListener('keypress', function (e) {
-      // console.log('e', e, input.value);
       if (e.key === 'Enter') {
         onEnter(input.value);
       }
     });
-    div.append(input);
-    container.append(div);
+    div.append(input); // Finish
+
+    return div;
   };
 
   var alpha = 1 / 100;
@@ -10961,7 +11069,7 @@
 
                         case 7:
                           results = _context.sent;
-                          parentSceneManager.updateMessageField('Loading asteroids belts');
+                          parentSceneManager.updateDisplayedMessage('Loading asteroids belts');
                           parentSceneManager.setIsScenePaused(true);
                           setTimeout(function () {
                             //
@@ -10977,7 +11085,7 @@
                               };
                               return asteroidBeltGeometries;
                             });
-                            parentSceneManager.updateMessageField('Asteroids Loaded');
+                            parentSceneManager.updateDisplayedMessage('Asteroids Loaded');
                             parentSceneManager.setIsScenePaused(false);
                             resolve0(xxx);
                           }, 100);
@@ -11044,7 +11152,7 @@
         _this._sceneEntityGroup.add(_this.mergedTailsMeshes[belt]);
       });
 
-      _this.parentSceneManager.updateMessageField('Building asteroid belt');
+      _this.parentSceneManager.updateDisplayedMessage('Building asteroid belt');
 
       return _this;
     }
@@ -11075,23 +11183,12 @@
 
                           case 3:
                             texture = _context.sent;
-                            getAsteroidBeltMergedGeometries(_this2.belts, _this2.parentSceneManager)
-                            /*         .then(asteroidBeltMergedGeometries => ({
-                              asteroidBeltMergedGeometries,
-                                     })) */
-                            .
-                            /*         .then(asteroidBeltMergedGeometries => ({
-                              asteroidBeltMergedGeometries,
-                                     })) */
-                            then(function (xxx) {
-                              // ]).then(([texture, { mergedAsteroidGeometry, mergedTailsGeometry }[]]) => {
-                              // --->>
-                              // const { belt, asteroidBeltMergedGeometries } = xxx;
-                              xxx.forEach(function (_ref2) {
+                            getAsteroidBeltMergedGeometries(_this2.belts, _this2.parentSceneManager).then(function (allAsteroidBeltMergedGeometries) {
+                              allAsteroidBeltMergedGeometries.forEach(function (_ref2) {
                                 var belt = _ref2.belt,
                                     mergedAsteroidGeometry = _ref2.mergedAsteroidGeometry,
                                     mergedTailsGeometry = _ref2.mergedTailsGeometry;
-                                //
+                                // --->>
                                 var color = getAsteroidBeltColor(belt); // Update asteroids mesh with computed geometry, etc.
 
                                 // Update asteroids mesh with computed geometry, etc.
@@ -11204,33 +11301,604 @@
   }(AbstractToyModel);
 
   /**
+   * Function to mutate buttons by injecting them with properties
+   * common to all html buttons; append to container when ready
+   */
+
+  var injectCommonButtonProperties = /*#__PURE__*/function () {
+    var _ref = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(button, onClickCB) {
+      return runtime_1.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              return _context.abrupt("return", new Promise(function (resolve) {
+                // --->>
+                // Add to global styles
+                addGlobalStyles(); // Start loading the remote fonts style sheet; mutate button on completion
+
+                // Start loading the remote fonts style sheet; mutate button on completion
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+
+                link.onload = function () {
+                  // console.log('Loaded css url for fonts');
+                  mutateButton();
+                };
+
+                link.onerror = function () {
+                  console.log('Failed to load css url for fonts; continuing anyway...');
+                  mutateButton();
+                };
+
+                link.href = buttonCssUrl;
+                document.head.append(link); // Callback to mutate button
+
+                // Callback to mutate button
+                function mutateButton() {
+                  // Positioning
+                  // button.style.position = 'absolute';
+                  // button.style.setProperty('padding', buttonPadding);
+                  // Colors
+                  button.style.setProperty('color', buttonTextColor);
+                  button.style.setProperty('background-color', buttonBackgroundColor); // Font stuff
+
+                  // Font stuff
+                  button.style.setProperty('font-family', buttonFontFamily);
+                  button.style.setProperty('font-size', '20px'); // Setup fade-in effect
+
+                  // Setup fade-in effect
+                  button.style.setProperty('animation', "sbn-solar-system-viewer-fade-in " + buttonFadeInSpecs); // Cursor behavior
+                  // Prevent text in button from being selectable
+                  // See here: https://stackoverflow.com/a/4407335/8620332
+
+                  // Cursor behavior
+                  // Prevent text in button from being selectable
+                  // See here: https://stackoverflow.com/a/4407335/8620332
+                  button.style.setProperty('cursor', buttonCursorType);
+                  button.style.setProperty('-webkit-touch-callout', 'none');
+                  button.style.setProperty('-webkit-user-select', 'none');
+                  button.style.setProperty('-khtml-user-select', 'none');
+                  button.style.setProperty('-moz-user-select', 'none');
+                  button.style.setProperty('-ms-user-select', 'none');
+                  button.style.setProperty('user-select', 'none'); // Properties related to click effect
+
+                  // Properties related to click effect
+                  button.style.setProperty('transition', 'background-color 50ms ease-in-out');
+                  button.addEventListener('click', function () {
+                    button.style.setProperty('background-color', buttonClickedBackgroundColor);
+                    setTimeout(function () {
+                      button.style.setProperty('background-color', buttonBackgroundColor);
+                      onClickCB();
+                    }, 200);
+                  }); // Return mutated button
+
+                  // Return mutated button
+                  resolve(button);
+                }
+              }));
+
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    return function injectCommonButtonProperties(_x, _x2) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  /**
    *
    */
 
-  function addMessageField(container) {
+  var addHtmlButtonRow = /*#__PURE__*/function () {
+    var _ref = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee3(buttonInputs, container) {
+      return runtime_1.wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
+                var _ref2 = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2(resolve) {
+                  var buttonWrapperDiv, buttonDivs;
+                  return runtime_1.wrap(function _callee2$(_context2) {
+                    while (1) {
+                      switch (_context2.prev = _context2.next) {
+                        case 0:
+                          if (container) {
+                            _context2.next = 2;
+                            break;
+                          }
+
+                          throw new Error('Canvas Container is Falsy!');
+
+                        case 2:
+                          // Create wrapper container
+                          buttonWrapperDiv = document.createElement('div');
+                          buttonWrapperDiv.style.setProperty('display', 'flex');
+                          buttonWrapperDiv.style.setProperty('flex-direction', 'column');
+                          buttonWrapperDiv.style.setProperty('gap', '12px');
+                          buttonWrapperDiv.style.setProperty('position', 'absolute');
+                          buttonWrapperDiv.style.setProperty('top', '100px');
+                          buttonWrapperDiv.style.setProperty('bottom', '100px');
+                          buttonWrapperDiv.style.setProperty('right', '0px');
+                          buttonWrapperDiv.style.setProperty('width', '120px');
+                          container.append(buttonWrapperDiv); // Map inputs to stylized buttons
+
+                          _context2.next = 14;
+                          return Promise.all(buttonInputs.map( /*#__PURE__*/function () {
+                            var _ref3 = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(buttonInput) {
+                              var buttonDiv;
+                              return runtime_1.wrap(function _callee$(_context) {
+                                while (1) {
+                                  switch (_context.prev = _context.next) {
+                                    case 0:
+                                      // Set properties unique to this button
+                                      buttonDiv = document.createElement('div');
+                                      buttonDiv.innerText = buttonInput.label;
+                                      buttonDiv.style.setProperty('display', 'flex');
+                                      buttonDiv.style.setProperty('flex', '1');
+                                      buttonDiv.style.setProperty('justify-content', 'center');
+                                      buttonDiv.style.setProperty('align-items', 'center');
+                                      _context.next = 8;
+                                      return injectCommonButtonProperties(buttonDiv, buttonInput.cb);
+
+                                    case 8:
+                                      return _context.abrupt("return", _context.sent);
+
+                                    case 9:
+                                    case "end":
+                                      return _context.stop();
+                                  }
+                                }
+                              }, _callee);
+                            }));
+
+                            return function (_x4) {
+                              return _ref3.apply(this, arguments);
+                            };
+                          }()));
+
+                        case 14:
+                          buttonDivs = _context2.sent;
+                          // Add buttons to wrapper in original order
+                          buttonDivs.forEach(function (buttonDiv) {
+                            buttonWrapperDiv.append(buttonDiv);
+                          });
+                          resolve();
+
+                        case 17:
+                        case "end":
+                          return _context2.stop();
+                      }
+                    }
+                  }, _callee2);
+                }));
+
+                return function (_x3) {
+                  return _ref2.apply(this, arguments);
+                };
+              }()));
+
+            case 1:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, _callee3);
+    }));
+
+    return function addHtmlButtonRow(_x, _x2) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  /**
+   * Create div in which messages will be displayed
+   */
+
+  function createDisplayMessageDiv() {
     // --->>
     addGlobalStyles();
-    var div = document.createElement('div');
-    div.id = 'message-field';
-    div.style.setProperty('position', 'absolute'); // div.style.setProperty('top', '0px');
-    // div.style.setProperty('top', '0px');
+    var displayMessageDiv = document.createElement('div');
+    displayMessageDiv.id = 'message-field';
+    displayMessageDiv.style.setProperty('position', 'absolute');
+    displayMessageDiv.style.setProperty('left', '0%');
+    displayMessageDiv.style.setProperty('right', '0px');
+    displayMessageDiv.style.setProperty('bottom', '0px');
+    displayMessageDiv.style.setProperty('height', '40px');
+    displayMessageDiv.style.setProperty('display', 'flex');
+    displayMessageDiv.style.setProperty('justify-content', 'flex-end');
+    displayMessageDiv.style.setProperty('align-items', 'center');
+    displayMessageDiv.style.setProperty('padding-right', '10px');
+    displayMessageDiv.style.setProperty('background-color', 'rgba(255,255,255,0.1)');
+    displayMessageDiv.style.setProperty('color', 'white');
 
-    div.style.setProperty('left', '50%');
-    div.style.setProperty('right', '0px');
-    div.style.setProperty('bottom', '0px');
-    div.style.setProperty('height', '40px');
-    div.style.setProperty('display', 'flex');
-    div.style.setProperty('justify-content', 'flex-end');
-    div.style.setProperty('align-items', 'center');
-    div.style.setProperty('background-color', 'green');
-    container.append(div);
-
-    var cb = function cb(msg) {
-      div.innerHTML = msg;
+    var updateMessageCb = function updateMessageCb(msg) {
+      displayMessageDiv.innerHTML = msg;
     };
 
-    return cb;
+    return {
+      displayMessageDiv: displayMessageDiv,
+      updateMessageCb: updateMessageCb
+    };
   }
+
+  var iconsDict = {
+    FiPhone: fi.FiPhone,
+    AiOutlineSetting: ai.AiOutlineSetting,
+    IoIosSettings: io.IoIosSettings
+  };
+  /**
+   * This is a wrapper around react-icons. react-icons is a great resource; it makes
+   * it super easy to add icons from a massive array of options. Unfortunatley, we are
+   * not using react here, so I've made this function to crudely extract the SVG from
+   * the react-svg generator, and enabled this function to inject parameters into the
+   * returned string representation.
+   *
+   * NOTE! This wrapper only extracts the first d property for the path element; if you try
+   * to use an icon with more than one path, then you won't get the comlete icon; in short
+   * only use simple-looking icons from react-icons
+   *
+   */
+
+  var getReactIconSvg = function getReactIconSvg(icon, options) {
+    if (options === void 0) {
+      options = {};
+    }
+
+    // --->>
+    // Extract essential data from react-icons instance
+    var reactIcon = iconsDict[icon]({});
+    var d = reactIcon.props.children[0].props.d;
+    var viewBox = reactIcon.props.attr.viewBox; // Options
+
+    var SIZE = options.size || 20;
+    var FILL_COLOR = options.fillColor || 'none';
+    var STROKE_COLOR = options.strokeColor || 'white'; // 'none' for transparent
+
+    var STROKE_WIDTH = options.strokeWidth || 2;
+    var svg = "\n    <svg\n      stroke=\"" + STROKE_COLOR + "\"\n      fill=\"" + FILL_COLOR + "\"\n      stroke-width=\"" + STROKE_WIDTH + "\"\n      viewBox=\"" + viewBox + "\"\n      stroke-linecap=\"round\"\n      stroke-linejoin=\"round\"\n      height=\"" + SIZE + "\"\n      width=\"" + SIZE + "\"\n      xmlns=\"http://www.w3.org/2000/svg\"\n    >\n      <path\n        d=\"" + d + "\"\n      </path>\n    </svg>"; // console.log('svg', svg);
+
+    return svg;
+  };
+
+  /**
+   * Adds settings button to top-right of UI
+   */
+
+  var createSettingsButton = function createSettingsButton(toggleSettingsPanelCb) {
+    // --->>>
+    // Create button container
+    var settingsSizePxls = 70;
+    var settingsButtonDiv = document.createElement('div');
+    settingsButtonDiv.style.setProperty('position', 'absolute');
+    settingsButtonDiv.style.setProperty('top', '0px');
+    settingsButtonDiv.style.setProperty('right', '0px');
+    settingsButtonDiv.style.setProperty('height', settingsSizePxls + "px");
+    settingsButtonDiv.style.setProperty('width', settingsSizePxls + "px");
+    settingsButtonDiv.style.setProperty('display', 'flex');
+    settingsButtonDiv.style.setProperty('justify-content', 'center');
+    settingsButtonDiv.style.setProperty('align-items', 'center');
+    settingsButtonDiv.style.setProperty('z-index', '2'); // svgWrapperDiv.style.setProperty('background-color', 'pink');
+    // Inject SVG into div
+
+    settingsButtonDiv.innerHTML = getReactIconSvg('IoIosSettings', {
+      fillColor: 'white',
+      size: settingsSizePxls
+    }); // Add listener
+
+    settingsButtonDiv.addEventListener('click', toggleSettingsPanelCb); // Finish
+
+    return settingsButtonDiv;
+  };
+
+  /**
+   * Provide dict of key-value pairs to set in local storage
+   */
+  var setOptions = function setOptions(newOptions) {
+    Object.keys(newOptions).forEach(function (key) {
+      // console.log('Key Value:', key, newOptions[(key as any) as keyof IOptions]);
+      localStorage.setItem(key, JSON.stringify(newOptions[key]));
+    });
+  };
+
+  /**
+   * Function to create a div with three columns in order to wrap around switches and/or
+   * input fields and look neat in the settings menu
+   */
+
+  var createThreeColumnContainer = function createThreeColumnContainer(id) {
+    if (id === void 0) {
+      id = 'placeholder-id' + uuid.v4();
+    }
+
+    /**
+     * Construct and return divs of the following format
+     *
+     *
+      <div class="three-column-container">
+        <div class="first-column"> </div>
+        <div class="second-column"></div>
+        <div class="third-column"> </div>
+      <div>
+     *
+     */
+    // Put a lot of the styles in the global file
+    addGlobalStyles(); // Create the container
+
+    var threeColumnContainerDiv = document.createElement('div');
+    threeColumnContainerDiv.classList.add('three-column-container');
+    threeColumnContainerDiv.style.setProperty('overflow-x', 'scroll');
+    threeColumnContainerDiv.style.setProperty('width', '100%');
+    threeColumnContainerDiv.style.setProperty('height', '34px');
+    threeColumnContainerDiv.style.setProperty('display', 'flex');
+    threeColumnContainerDiv.style.setProperty('white-space', 'nowrap');
+    threeColumnContainerDiv.id = id; // Params for column widths
+
+    var firstColFlexBasisPxls = 280;
+    var secondColFlexBasisPxls = 70; // Create its immediate children
+
+    var firstColumnDiv = document.createElement('div');
+    firstColumnDiv.classList.add('first-column');
+    firstColumnDiv.style.setProperty('display', 'flex');
+    firstColumnDiv.style.setProperty('align-items', 'center');
+    firstColumnDiv.style.setProperty('justify-content', 'right');
+    firstColumnDiv.style.setProperty('flex', "1 0 " + firstColFlexBasisPxls + "px");
+    firstColumnDiv.style.setProperty('padding-right', '10px');
+    firstColumnDiv.style.setProperty('overflow-x', 'scroll');
+    threeColumnContainerDiv.append(firstColumnDiv);
+    var secondColumnDiv = document.createElement('div');
+    secondColumnDiv.classList.add('second-column');
+    secondColumnDiv.style.setProperty('display', 'flex');
+    secondColumnDiv.style.setProperty('align-items', 'center');
+    secondColumnDiv.style.setProperty('justify-content', 'center');
+    secondColumnDiv.style.setProperty('flex', "0 0 " + secondColFlexBasisPxls + "px");
+    threeColumnContainerDiv.append(secondColumnDiv);
+    var thirdColumnDiv = document.createElement('div');
+    thirdColumnDiv.classList.add('third-column');
+    thirdColumnDiv.style.setProperty('display', 'flex');
+    thirdColumnDiv.style.setProperty('align-items', 'center');
+    thirdColumnDiv.style.setProperty('justify-content', 'left');
+    thirdColumnDiv.style.setProperty('flex', "1 0 calc(100% - " + secondColFlexBasisPxls + "px - " + firstColFlexBasisPxls + "px - 20px)");
+    thirdColumnDiv.style.setProperty('padding-left', '10px');
+    threeColumnContainerDiv.append(thirdColumnDiv);
+    return {
+      threeColumnContainerDiv: threeColumnContainerDiv,
+      firstColumnDiv: firstColumnDiv,
+      secondColumnDiv: secondColumnDiv,
+      thirdColumnDiv: thirdColumnDiv
+    };
+  };
+
+  /**
+   * Function to create a binary switch with text for the two different states
+   * and a callback used to set local-storage options
+   * This switch is intended for the settings panel; you create it with the
+   * text for the title of the switch (goes on left) and for the two different states.
+   * The callback will be used to change the state of options
+   */
+
+  var createTitledSwitch = function createTitledSwitch(title, onText, offText, key, cb) {
+    if (cb === void 0) {
+      cb = function cb(_isChecked) {};
+    }
+
+    /**
+     * Construct and return wrapped switch of the following format
+     *
+     *
+      <div class="three-column-container">
+        <div class="first-column"> Title Text </div>
+        <div class="second-column">
+          <label class="switch">
+            <input type="checkbox">
+            <span class="slider"></span>
+          </label>
+        <div>
+        <div class="third-column"> On/Off Text </div>
+      <div>
+     *
+     */
+    // Put a lot of the styles in the global file
+    addGlobalStyles(); // Get handles on the container html for this switch
+
+    var _createThreeColumnCon = createThreeColumnContainer(),
+        threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
+        firstColumnDiv = _createThreeColumnCon.firstColumnDiv,
+        secondColumnDiv = _createThreeColumnCon.secondColumnDiv,
+        thirdColumnDiv = _createThreeColumnCon.thirdColumnDiv;
+
+    var isChecked = getAllOptionsBooleans()[key];
+    firstColumnDiv.innerHTML = "<span>" + title + "</span>";
+    thirdColumnDiv.innerHTML = "<span>" + (isChecked ? onText : offText) + "</span>"; // Create the switch inner workings
+    // See: https://www.w3schools.com/howto/howto_css_switch.asp
+
+    var switchLabel = document.createElement('label');
+    switchLabel.classList.add('switch');
+    secondColumnDiv.append(switchLabel);
+    var switchInput = document.createElement('input');
+    switchInput.type = 'checkbox';
+    switchInput.checked = isChecked;
+    switchLabel.append(switchInput);
+    var sliderSpan = document.createElement('span');
+    sliderSpan.classList.add('slider');
+    switchLabel.append(sliderSpan); // Add listener to toggle text upon switch clicks
+
+    switchInput.addEventListener('click', function () {
+      setTimeout(function () {
+        var _setOptions;
+
+        // Toggle state and display text
+        setOptions((_setOptions = {}, _setOptions[key] = !getAllOptions()[key], _setOptions));
+        var isChecked = switchInput.checked;
+        thirdColumnDiv.innerHTML = "" + (isChecked ? onText : offText); // Run custom callback
+
+        cb(isChecked);
+      }, 0);
+    });
+    return threeColumnContainerDiv;
+  };
+
+  /**
+   * To generate input fields to be placed neatly within the settings panel
+   * like so:
+   *
+      <div class="three-column-container">
+        <div class="first-column"> Title Text </div>
+        <div class="second-column">
+            <input type="text">
+        <div>
+        <div class="third-column"> BLANK </div>
+      <div>
+   *
+   */
+
+  var createTitledInput = function createTitledInput(title, key) {
+    // --->>
+    addGlobalStyles(); // Create handles for container divs
+
+    var _createThreeColumnCon = createThreeColumnContainer(),
+        threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
+        firstColumnDiv = _createThreeColumnCon.firstColumnDiv,
+        secondColumnDiv = _createThreeColumnCon.secondColumnDiv;
+   // Add title to first div
+
+
+    firstColumnDiv.innerHTML = "<span>" + title + "</span>"; // Inject input field into second div
+
+    var inputField = document.createElement('input');
+    inputField.style.setProperty('min-width', '10px');
+    inputField.style.setProperty('max-width', '50px');
+    inputField.style.setProperty('min-height', '10px');
+    inputField.style.setProperty('height', '30px');
+    inputField.id = 'input-id-123';
+    inputField.value = getAllOptionsNumbers()[key] + '';
+    secondColumnDiv.append(inputField); // Add listener to set input-field value on any change
+
+    inputField.oninput = function () {
+      setTimeout(function () {
+        try {
+          var _setOptions;
+
+          var numVal = parseInt(inputField.value);
+          setOptions((_setOptions = {}, _setOptions[key] = numVal, _setOptions));
+        } catch (err) {
+          alert('Something went horribly wrong with your logic');
+        }
+      }, 0);
+    }; // Finish
+
+
+    return threeColumnContainerDiv;
+  };
+
+  /**
+   * Generates simple 'hr' div
+   */
+  function getHrDiv() {
+    var hrDiv = document.createElement('div');
+    hrDiv.style.setProperty('width', '100%');
+    hrDiv.style.setProperty('height', '1px');
+    hrDiv.style.setProperty('background-color', 'black');
+    return hrDiv;
+  }
+
+  var settingsPanelIdX = 'settings-panel-id-' + /*#__PURE__*/uuid.v4();
+  var maxObjectsContainerDivId = 'max-objects-container-div-id-' + /*#__PURE__*/uuid.v4();
+  var thresholdHContainerDivId = 'threshold-H-container-div-id-' + /*#__PURE__*/uuid.v4(); // Track state of panel open-closed
+
+  var isSettingsPanelDisplayed = false;
+  /**
+   * Create panel to hold all the buttons/fields that will control the widget's
+   * local-storage-persisted state
+   */
+
+  var createSettingsPanel = function createSettingsPanel() {
+    // --->>
+    addGlobalStyles(); // Create container for the settings panel
+
+    var settingsPanelDiv = document.createElement('div');
+    settingsPanelDiv.id = settingsPanelIdX;
+    settingsPanelDiv.style.setProperty('position', 'absolute');
+    settingsPanelDiv.style.setProperty('top', '0px');
+    settingsPanelDiv.style.setProperty('right', isSettingsPanelDisplayed ? '0%' : '100%');
+    settingsPanelDiv.style.setProperty('left', '0px');
+    settingsPanelDiv.style.setProperty('bottom', '0px');
+    settingsPanelDiv.style.setProperty('transition', 'right 1s ease-in-out');
+    settingsPanelDiv.style.setProperty('overflow', 'hidden');
+    settingsPanelDiv.style.setProperty('font-family', '"Odibee Sans", cursive');
+    settingsPanelDiv.style.setProperty('font-size', '22px');
+    settingsPanelDiv.style.setProperty('background-color', 'rgba(255,255,255,0.9)');
+    settingsPanelDiv.style.setProperty('color', 'black');
+    settingsPanelDiv.style.setProperty('display', 'flex');
+    settingsPanelDiv.style.setProperty('flex-direction', 'column');
+    settingsPanelDiv.style.setProperty('gap', '5px');
+    settingsPanelDiv.style.setProperty('justify-content', 'start');
+    settingsPanelDiv.style.setProperty('align-items', 'center'); // Create callback to toggle settings panel open-closed
+
+    var toggleSettingsPanelCb = function toggleSettingsPanelCb() {
+      isSettingsPanelDisplayed = !isSettingsPanelDisplayed;
+      settingsPanelDiv.style.setProperty('right', isSettingsPanelDisplayed ? '0%' : '100%');
+    }; // Heading
+
+
+    var _createThreeColumnCon = createThreeColumnContainer(),
+        threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
+        secondColumnDiv = _createThreeColumnCon.secondColumnDiv;
+
+    secondColumnDiv.innerHTML = '<h1>Settings</h1>';
+    threeColumnContainerDiv.style.setProperty('height', '100px');
+    settingsPanelDiv.append(threeColumnContainerDiv); // Planet-loading switch
+
+    settingsPanelDiv.append(getHrDiv());
+    var planetLoadingModeSwitchContainerDiv = createTitledSwitch('Planet loading mode?', 'Load planets before animation begins', 'Begin animation then load planets', '__sbnViewer__isPlanetsLoadedBeforeAnimationBegins');
+    settingsPanelDiv.append(planetLoadingModeSwitchContainerDiv); // const hrDiv = document.createElement('div');
+    // hrDiv.style.setProperty('width', '100%');
+    // hrDiv.style.setProperty('height', '1px');
+    // hrDiv.style.setProperty('background-color', 'black');
+
+    settingsPanelDiv.append(getHrDiv()); // Comet-asteroid loading mode switch
+
+    var cometAsteroidLoadingModeSwitchContainerDiv = createTitledSwitch('Comet-Asteroid Loading Mode?', 'Start animation then load comets-asteroids', 'Wait for comets-asteroids before starting animation', '__sbnViewer__isBeltLoadedBeforeAnimationBegins');
+    settingsPanelDiv.append(cometAsteroidLoadingModeSwitchContainerDiv);
+    settingsPanelDiv.append(getHrDiv()); // Abundance-mode switch
+
+    var abundanceRepresentationModeSwitchContainerDiv = createTitledSwitch('Comet-Asteroid Abundance Mode?', 'Toy Model', 'Real World Proportions', '__sbnViewer__isBeltAbundanceToyModel', function (isChecked) {
+      // --->>
+      var maxObjectsContainerDiv = document.getElementById(maxObjectsContainerDivId);
+
+      if (!!maxObjectsContainerDiv) {
+        maxObjectsContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+      }
+
+      var thresholdHContainerDiv = document.getElementById(thresholdHContainerDivId);
+
+      if (!!thresholdHContainerDiv) {
+        thresholdHContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+      }
+    });
+    settingsPanelDiv.append(abundanceRepresentationModeSwitchContainerDiv);
+    var isChecked = getAllOptions()['__sbnViewer__isBeltAbundanceToyModel']; // Add max objects field
+
+    var maxObjectsContainerDiv = createTitledInput('Max number of objects', '__sbnViewer__beltAbundanceMaxObjects');
+    maxObjectsContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+    maxObjectsContainerDiv.id = maxObjectsContainerDivId;
+    settingsPanelDiv.append(maxObjectsContainerDiv); // Add threshold H field
+
+    var thresholdHContainerDiv = createTitledInput('Minimum H Mag', '__sbnViewer__beltAbundanceHThreshold');
+    thresholdHContainerDiv.id = thresholdHContainerDivId;
+    thresholdHContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+    settingsPanelDiv.append(thresholdHContainerDiv);
+    settingsPanelDiv.append(getHrDiv()); // Return assets having created them
+
+    return {
+      toggleSettingsPanelCb: toggleSettingsPanelCb,
+      settingsPanelDiv: settingsPanelDiv
+    };
+  };
 
   /**
    * Implement a scene for this app with 'real' scene entities
@@ -11244,6 +11912,10 @@
 
       // --->>>
       _this = _AbstractSceneManager.call(this, containerId) || this; // --->>>
+      // User-changeable settings
+      // private abundanceRepresentationMode: EAbundanceRepresentationMode =
+      // EAbundanceRepresentationMode.TOY_REPRESENTATION;
+      // private loadMode: ELoadMode = ELoadMode.BEFORE_ANIMATION;
       // Toy-scalable bodies
 
       _this.sun = new Sun();
@@ -11260,9 +11932,9 @@
       _this.zoomTraversalFraction = 0;
       _this.zoomClock = new THREE.Clock(); //Controls movement of camera when touring planets
 
-      _this.isScenePaused = false; //
+      _this.isScenePaused = false;
 
-      _this.updateMessageField = function () {
+      _this.updateDisplayedMessage = function () {
         console.log('denied!');
       };
 
@@ -11371,13 +12043,53 @@
           _this._controls.update();
         } // Debug
       }; // Add html
+      // Message Display
 
 
-      _this.updateMessageField = addMessageField(_this._container);
+      var _createDisplayMessage = createDisplayMessageDiv(),
+          displayMessageDiv = _createDisplayMessage.displayMessageDiv,
+          updateMessageCb = _createDisplayMessage.updateMessageCb;
 
-      _this.updateMessageField('Working?');
+      _this._container.append(displayMessageDiv);
 
-      addSearchField(_this._container, _this.tryToStartZooming);
+      _this.updateDisplayedMessage = updateMessageCb;
+
+      _this.updateDisplayedMessage('Loading...'); // Search field
+
+
+      var searchFieldDiv = createSearchField(_this.tryToStartZooming);
+
+      _this._container.append(searchFieldDiv); // Buttons in main display
+
+
+       addHtmlButtonRow([{
+        label: 'Toggle Toy Scale',
+        cb: _this.toggleIsToyScale
+      }, {
+        label: 'Toggle helpers',
+        cb: _this.toggleHelpersVisibility
+      }, {
+        label: 'Toggle Orbits',
+        cb: _this.toggleIsOrbitsVisible
+      }, {
+        label: 'Toggle Log Scale',
+        cb: _this.toggleIsLogScale
+      }, {
+        label: 'Toggle Asteroids',
+        cb: _this.toggleAsteroids
+      }], _this._container); // Settings panel and button
+
+      var _createSettingsPanel = createSettingsPanel(),
+          settingsPanelDiv = _createSettingsPanel.settingsPanelDiv,
+          toggleSettingsPanelCb = _createSettingsPanel.toggleSettingsPanelCb;
+
+      _this._container.append(settingsPanelDiv);
+
+      var settingsButton = createSettingsButton(toggleSettingsPanelCb);
+
+      _this._container.append(settingsButton); // Entities
+
+
       _this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
       _this.planets = [new Planet('MERCURY'), new Planet('VENUS'), new Planet('EARTH'), new Planet('MARS'), new Planet('CERES'), new Planet('JUPITER'), new Planet('SATURN'), new Planet('URANUS'), new Planet('NEPTUNE'), new Planet('PLUTO'), new Planet('HAUMEA'), new Planet('MAKEMAKE'), new Planet('ERIS')];
       _this.asteroids = [//
@@ -11508,14 +12220,13 @@
    * Create threeJs canvas and inject into container
    */
 
-  function init(containerId, options) {
+  function init(containerId) {
     if (containerId === void 0) {
       containerId = 'threejs-canvas-container';
     }
 
     // --->>>
-    if (!!options) setOptions(options); // Get div to contain canvas
-
+    // Get div to contain canvas
     var canvasContainer = document.getElementById(containerId);
     if (!canvasContainer) throw new Error("Can't find div of id " + containerId);
     threejsScene = new SceneManager(containerId);
@@ -11539,7 +12250,7 @@
       });
     };
 
-    script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
+    script.src = 'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
     document.head.appendChild(script);
   }
   /**
