@@ -1,6 +1,6 @@
-import { Scene, Clock, Vector3, PerspectiveCamera, WebGLRenderer, PCFSoftShadowMap, GammaEncoding, TextureLoader, Group, Sprite, SpriteMaterial, AdditiveBlending, LineSegments, EdgesGeometry, SphereGeometry, LineBasicMaterial, Color, CanvasTexture, MeshPhongMaterial, DoubleSide, Mesh, AxesHelper, AmbientLight, BufferGeometry, Line, Float32BufferAttribute, CylinderGeometry, Matrix4, DodecahedronGeometry, PointLight as PointLight$1, PointLightHelper, Object3D } from 'three';
+import { Scene, Clock, Vector3, PerspectiveCamera, WebGLRenderer, PCFSoftShadowMap, GammaEncoding, TextureLoader, Group, Sprite, SpriteMaterial, AdditiveBlending, LineSegments, EdgesGeometry, SphereGeometry, LineBasicMaterial, Color, CanvasTexture, Box3, Mesh, BufferGeometry, Line, Float32BufferAttribute, CylinderGeometry, Matrix4, MeshPhongMaterial, DoubleSide, AxesHelper, AmbientLight, DodecahedronGeometry, PointLight as PointLight$1, PointLightHelper, Object3D, BufferGeometryLoader } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { v4 } from 'uuid';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import julian from 'julian';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import { FiPhone } from 'react-icons/fi';
@@ -76,6 +76,14 @@ function _setPrototypeOf(o, p) {
   };
 
   return _setPrototypeOf(o, p);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
 }
 
 function createCommonjsModule(fn, module) {
@@ -858,11 +866,17 @@ var addGlobalStyles = function addGlobalStyles() {
   var switchOffColor = 'blue'; // Only set once
 
   var globalStyle = document.createElement('style');
-  globalStyle.innerHTML = "\n    @keyframes sbn-solar-system-viewer-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n\n    @keyframes sbn-solar-system-viewer-loader-spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n\n    .sbn-solar-system-viewer-input:focus{\n        outline-width: 0;\n    }\n\n    /**\n     *\n     * This is for styling the switches\n     *\n     */\n    .switch-text-container {\n      width: 100%;\n      height: 34px;\n      display: flex;\n      white-space: nowrap;\n    }\n\n    .switch-text-container > * {\n        flex: 1;\n        display: flex;\n        justify-content: center;\n        align-items: center;\n    }\n\n    .switch-text-container .switch {\n      position: relative;\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n    }\n\n    /* Hide default HTML checkbox */\n    .switch-text-container .switch input {\n      opacity: 0;\n      width: 0;\n      height: 0;\n    }\n\n    /* The slider */\n    .switch-text-container .slider {\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #ccc;\n      background-color: " + switchOnColor + ";\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .switch-text-container .slider:before {\n      position: absolute;\n      content: \"\";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: 4px;\n      background-color: white;\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .switch-text-container input:checked + .slider {\n      background-color: #2196F3;\n      background-color: " + switchOffColor + ";\n    }\n\n    .switch-text-container input:focus + .slider {\n      box-shadow: 0 0 1px #2196F3;\n    }\n\n    .switch-text-container input:checked + .slider:before {\n      -webkit-transform: translateX(26px);\n      -ms-transform: translateX(26px);\n      transform: translateX(26px);\n    }\n  ";
+  globalStyle.innerHTML = "\n    @keyframes sbn-solar-system-viewer-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n\n    @keyframes sbn-solar-system-viewer-loader-spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n\n    .sbn-solar-system-viewer-input:focus{\n        outline-width: 0;\n    }\n\n    /**\n     *\n     * This is for styling the switches\n     *\n     */\n    .three-column-container {\n      width: 100%;\n      height: 34px;\n      display: flex;\n      white-space: nowrap;\n    }\n\n    .three-column-container .switch {\n      position: relative;\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n    }\n\n    /* Hide default HTML checkbox */\n    .three-column-container .switch input {\n      opacity: 0;\n      width: 0;\n      height: 0;\n    }\n\n    /* The slider */\n    .three-column-container .slider {\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #ccc;\n      background-color: " + switchOnColor + ";\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container .slider:before {\n      position: absolute;\n      content: \"\";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: 4px;\n      background-color: white;\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container input:checked + .slider {\n      background-color: #2196F3;\n      background-color: " + switchOffColor + ";\n    }\n\n    .three-column-container input:focus + .slider {\n      box-shadow: 0 0 1px #2196F3;\n    }\n\n    .three-column-container input:checked + .slider:before {\n      -webkit-transform: translateX(26px);\n      -ms-transform: translateX(26px);\n      transform: translateX(26px);\n    }\n  ";
   document.head.append(globalStyle);
 };
 
-var loaderDivId = 'loader-div-id' + /*#__PURE__*/v4();
+var count = 0;
+var simpleUuid = function simpleUuid() {
+  count++;
+  return 'sbn-solar-system-viewer-' + count;
+};
+
+var loaderDivId = 'loader-div-id-' + /*#__PURE__*/simpleUuid();
 var borderWidthPxls = 5;
 var spinSpeedMs = 2000;
 var isInit = false;
@@ -1072,6 +1086,8 @@ var AbstractSceneManager = /*#__PURE__*/function () {
     this._container.append(this._canvas);
 
     this._container.style.setProperty('position', 'relative');
+
+    this._container.style.setProperty('font-family', '"Odibee Sans", cursive');
 
     this._container.style.setProperty('background-color', 'black');
 
@@ -1345,30 +1361,6 @@ var solarSystemData = {
   }
 };
 
-var ECometAsteroidLoadingMode;
-
-(function (ECometAsteroidLoadingMode) {
-  ECometAsteroidLoadingMode[ECometAsteroidLoadingMode["BEFORE_ANIMATION"] = 0] = "BEFORE_ANIMATION";
-  ECometAsteroidLoadingMode[ECometAsteroidLoadingMode["INTERRUPT_ANIMATION"] = 1] = "INTERRUPT_ANIMATION";
-  ECometAsteroidLoadingMode[ECometAsteroidLoadingMode["__LENGTH__"] = 2] = "__LENGTH__";
-})(ECometAsteroidLoadingMode || (ECometAsteroidLoadingMode = {}));
-
-var ECometAsteroidAbundanceRepresentationMode;
-
-(function (ECometAsteroidAbundanceRepresentationMode) {
-  ECometAsteroidAbundanceRepresentationMode[ECometAsteroidAbundanceRepresentationMode["TOY_REPRESENTATION"] = 0] = "TOY_REPRESENTATION";
-  ECometAsteroidAbundanceRepresentationMode[ECometAsteroidAbundanceRepresentationMode["REAL_WORLD"] = 1] = "REAL_WORLD";
-  ECometAsteroidAbundanceRepresentationMode[ECometAsteroidAbundanceRepresentationMode["__LENGTH__"] = 2] = "__LENGTH__";
-})(ECometAsteroidAbundanceRepresentationMode || (ECometAsteroidAbundanceRepresentationMode = {}));
-
-var EPlanetLoadingMode;
-
-(function (EPlanetLoadingMode) {
-  EPlanetLoadingMode[EPlanetLoadingMode["WAIT_TILL_LOADED_THEN_START_ANIMATION"] = 0] = "WAIT_TILL_LOADED_THEN_START_ANIMATION";
-  EPlanetLoadingMode[EPlanetLoadingMode["START_ANIMATION_THEN_LOAD_PLANET_ASYNC"] = 1] = "START_ANIMATION_THEN_LOAD_PLANET_ASYNC";
-  EPlanetLoadingMode[EPlanetLoadingMode["__LENGTH__"] = 2] = "__LENGTH__";
-})(EPlanetLoadingMode || (EPlanetLoadingMode = {}));
-
 /**
  * This module is the SSOT for global "static" settings for the app
  * that get set before the threejs scene begins. These govern e.g.
@@ -1376,9 +1368,12 @@ var EPlanetLoadingMode;
  * and that will then persist within localStorage (at least, that is the eventual goal)
  */
 var defaultOptions = {
-  __sbnViewer__planetLoadingMode: EPlanetLoadingMode.WAIT_TILL_LOADED_THEN_START_ANIMATION,
-  __sbnViewer__cometAsteroidLoadingMode: ECometAsteroidLoadingMode.BEFORE_ANIMATION,
-  __sbnViewer__cometAsteroidAbundanceRepresentationMode: ECometAsteroidAbundanceRepresentationMode.TOY_REPRESENTATION
+  __sbnViewer__isPlanetsLoadedBeforeAnimationBegins: true,
+  __sbnViewer__isBeltLoadedBeforeAnimationBegins: true,
+  __sbnViewer__isBeltAbundanceToyModel: true,
+  // Only apply if __sbnViewer__isBeltAbundanceToyModel === false
+  __sbnViewer__beltAbundanceMaxObjects: 100,
+  __sbnViewer__beltAbundanceHThreshold: -10
 };
 
 /**
@@ -1389,7 +1384,7 @@ var defaultOptions = {
  */
 
 var cleanLocalStorage = function cleanLocalStorage() {
-  //
+  // --->>
   var optionKeys = Object.keys(defaultOptions); // Remove key-value pairs where the key is not in optionKeys
 
   var items = _extends({}, localStorage);
@@ -1425,25 +1420,51 @@ cleanLocalStorage();
  */
 
 var getAllOptions = function getAllOptions() {
-  //
-  var optionKeys = Object.keys(defaultOptions); // Build up options from local storage
-
+  // --->>
+  // Build up options from local storage
   var optionsFromLocalStorage = {};
-  optionKeys.forEach(function (key) {
+  Object.keys(defaultOptions).forEach(function (key) {
     var val = localStorage.getItem(key);
-    console.log('key, val', key, val);
     if (!val) return;
 
     try {
       var parsedVal = JSON.parse(val);
-      console.log('key, parsedVal', key, parsedVal);
       optionsFromLocalStorage[key] = parsedVal;
     } catch (err) {
       return;
     }
   });
-  console.log('optionsFromLocalStorage', optionsFromLocalStorage);
   return _extends({}, defaultOptions, optionsFromLocalStorage);
+};
+/**
+ * Wrapper that just returns the booleans from stored options
+ */
+
+var getAllOptionsBooleans = function getAllOptionsBooleans() {
+  var _getAllOptions = getAllOptions(),
+      __sbnViewer__isBeltAbundanceToyModel = _getAllOptions.__sbnViewer__isBeltAbundanceToyModel,
+      __sbnViewer__isBeltLoadedBeforeAnimationBegins = _getAllOptions.__sbnViewer__isBeltLoadedBeforeAnimationBegins,
+      __sbnViewer__isPlanetsLoadedBeforeAnimationBegins = _getAllOptions.__sbnViewer__isPlanetsLoadedBeforeAnimationBegins;
+
+  return {
+    __sbnViewer__isBeltAbundanceToyModel: __sbnViewer__isBeltAbundanceToyModel,
+    __sbnViewer__isBeltLoadedBeforeAnimationBegins: __sbnViewer__isBeltLoadedBeforeAnimationBegins,
+    __sbnViewer__isPlanetsLoadedBeforeAnimationBegins: __sbnViewer__isPlanetsLoadedBeforeAnimationBegins
+  };
+};
+/**
+ * Wrapper that just returns the booleans from stored options
+ */
+
+var getAllOptionsNumbers = function getAllOptionsNumbers() {
+  var _getAllOptions2 = getAllOptions(),
+      __sbnViewer__beltAbundanceHThreshold = _getAllOptions2.__sbnViewer__beltAbundanceHThreshold,
+      __sbnViewer__beltAbundanceMaxObjects = _getAllOptions2.__sbnViewer__beltAbundanceMaxObjects;
+
+  return {
+    __sbnViewer__beltAbundanceHThreshold: __sbnViewer__beltAbundanceHThreshold,
+    __sbnViewer__beltAbundanceMaxObjects: __sbnViewer__beltAbundanceMaxObjects
+  };
 };
 
 /**
@@ -1465,7 +1486,7 @@ var AbstractSceneEntity = function AbstractSceneEntity() {
     return _this._sceneEntityGroup;
   };
 };
-AbstractSceneEntity._isAsyncLoad = /*#__PURE__*/getAllOptions().__sbnViewer__planetLoadingMode === EPlanetLoadingMode.START_ANIMATION_THEN_LOAD_PLANET_ASYNC;
+AbstractSceneEntity._isAsyncLoad = /*#__PURE__*/getAllOptions().__sbnViewer__isPlanetsLoadedBeforeAnimationBegins;
 
 /**
  * Time to finish switch from log to normal scales
@@ -1580,8 +1601,18 @@ var AbstractToyModel = /*#__PURE__*/function (_AbstractSceneEntity) {
 /**
  * Constants for widget
  */
+/**
+ * Properties common to all html buttons
+ */
+
+var buttonBackgroundColor = 'rgba(255,255,255,0.2)';
+var buttonClickedBackgroundColor = 'rgba(255,255,255,0.4)';
+var buttonTextColor = 'rgba(255,255,255,0.8)';
+var buttonCursorType = 'pointer';
+var buttonFadeInSpecs = '1s ease-in-out'; // These two properties must be coordinated together using e.g. google.fonts
 
 var buttonFontFamily = "'Odibee Sans', cursive";
+var buttonCssUrl = 'https://fonts.googleapis.com/css2?family=Odibee+Sans';
 /**
  * Root url of file server with copy of /images
  */
@@ -1745,279 +1776,89 @@ var Sun = /*#__PURE__*/function (_AbstractToyModel) {
 }(AbstractToyModel);
 
 /**
- * Returns texture with inverted colors
+ * This function is adapted from `https://github.com/jeromeetienne/threex.planets/blob/master/threex.planets.js`, based on instructions from `http://learningthreejs.com/blog/2013/09/16/how-to-make-the-earth-in-webgl/`
+ * Jpegs don't have an alpha channel, so the idea is to load cloud image from jpg and remove pixels manually to create an alpha-channel effect
  */
 
-function invertTextureColor(texture, isAlphaInverted) {
-  if (isAlphaInverted === void 0) {
-    isAlphaInverted = false;
-  }
-
+function createEarthCloudMesh() {
   // --->>>
-  // texture -> canvas -> context -> data arrays
-  var img = texture.image;
-  var canvas = document.createElement('canvas');
-  var width = img.width;
-  var height = img.height;
-  canvas.width = width;
-  canvas.height = height;
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0); // Get copy of old data
+  return new Promise(function (resolve, reject) {
+    // --->>>
+    // create destination canvas
+    var canvasResult = document.createElement('canvas');
+    canvasResult.width = 1024;
+    canvasResult.height = 512;
+    var contextResult = canvasResult.getContext('2d'); // load earthcloudmap
 
-  var data = ctx.getImageData(0, 0, width, height); // Modify copy of data
+    var imageMap = new Image();
+    imageMap.crossOrigin = 'Anonymous'; // const material = new THREE.MeshPhongMaterial({
+    //   map: new THREE.Texture(canvasResult),
+    //   side: THREE.DoubleSide,
+    //   transparent: true,
+    //   opacity: 0.6,
+    // });
+    // const mesh = new THREE.Mesh<THREE.SphereGeometry>(geometry, material);
 
-  for (var y = 0, offset = 0; y < height; y++) {
-    for (var x = 0; x < width; x++, offset += 4) {
-      data.data[offset + 0] = 255 - data.data[offset + 0];
-      data.data[offset + 1] = 255 - data.data[offset + 1];
-      data.data[offset + 2] = 255 - data.data[offset + 2];
-      if (isAlphaInverted) data.data[offset + 3] = 255 - data.data[offset + 3];
-    }
-  } // Overwrite old data with new
+    imageMap.onerror = function (error) {
+      console.log('Error: ', error);
+      reject();
+    };
+
+    imageMap.onload = function () {
+      // --->>>
+      // create dataMap ImageData for earthcloudmap
+      var canvasMap = document.createElement('canvas');
+      canvasMap.width = imageMap.width;
+      canvasMap.height = imageMap.height;
+      var contextMap = canvasMap.getContext('2d');
+      contextMap.drawImage(imageMap, 0, 0);
+      var dataMap = contextMap.getImageData(0, 0, canvasMap.width, canvasMap.height); // load earthcloudmaptrans
+
+      var imageTrans = new Image();
+      imageTrans.crossOrigin = 'Anonymous';
+      imageTrans.addEventListener('load', function () {
+        // --->>>
+        // create dataTrans ImageData for earthcloudmaptrans
+        var canvasTrans = document.createElement('canvas');
+        canvasTrans.width = imageTrans.width;
+        canvasTrans.height = imageTrans.height;
+        var contextTrans = canvasTrans.getContext('2d');
+        contextTrans.drawImage(imageTrans, 0, 0);
+
+        try {
+          var dataTrans = contextTrans.getImageData(0, 0, canvasTrans.width, canvasTrans.height); // merge dataMap + dataTrans into dataResult
+
+          var dataResult = contextMap.createImageData(canvasMap.width, canvasMap.height);
+
+          for (var y = 0, offset = 0; y < imageMap.height; y++) {
+            for (var x = 0; x < imageMap.width; x++, offset += 4) {
+              dataResult.data[offset + 0] = dataMap.data[offset + 0];
+              dataResult.data[offset + 1] = dataMap.data[offset + 1];
+              dataResult.data[offset + 2] = dataMap.data[offset + 2];
+              dataResult.data[offset + 3] = 255 - dataTrans.data[offset + 0];
+            }
+          } // update texture with result
 
 
-  ctx.putImageData(data, 0, 0); // MUST return CanvasTexture or it won't update properly
+          contextResult.putImageData(dataResult, 0, 0); // if (!!material && !!material.map) material.map.needsUpdate = true;
+        } catch (error) {
+          console.log('Error: ', error);
+          reject();
+        }
 
-  return new CanvasTexture(canvas);
+        resolve(new CanvasTexture(canvasResult));
+      });
+      imageTrans.src = assetsBaseUrl + "/planets/earth/earth-clouds-trans-1024.png";
+    };
+
+    imageMap.src = assetsBaseUrl + "/planets/earth/earth-clouds-color-1024.png";
+  });
 }
 
-var StarField = /*#__PURE__*/function (_AbstractSceneEntity) {
-  _inheritsLoose(StarField, _AbstractSceneEntity);
-
-  function StarField(radius) {
-    var _this;
-
-    _this = _AbstractSceneEntity.call(this) || this; // --->>>
-
-    _this.NAME = 'STARFIELD';
-    _this.texture = null;
-
-    _this.invertColor = function () {
-      if (!_this.texture) return;
-      _this.texture = invertTextureColor(_this.texture);
-      _this.material.map = _this.texture;
-      _this.material.needsUpdate = true;
-    };
-
-    _this.material = new MeshPhongMaterial({
-      side: DoubleSide,
-      transparent: true,
-      color: 'black',
-      // opacity: 0,
-      opacity: 1,
-      shininess: 0
-    });
-    _this.mesh = new Mesh(new SphereGeometry(radius, 32, 32), _this.material);
-    _this.mesh.rotation.y = Math.PI / 2;
-    _this._sceneEntityGroup.name = 'STARFIELD';
-    return _this;
-  }
-
-  var _proto = StarField.prototype;
-
-  _proto.init = /*#__PURE__*/function () {
-    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
-      var _this2 = this;
-
-      return runtime_1.wrap(function _callee2$(_context2) {
-        while (1) {
-          switch (_context2.prev = _context2.next) {
-            case 0:
-              return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
-                var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
-                  var url;
-                  return runtime_1.wrap(function _callee$(_context) {
-                    while (1) {
-                      switch (_context.prev = _context.next) {
-                        case 0:
-                          // --->>>
-                          // const url = `${assetsBaseUrl}/stars/galaxy_starfield6.png`;
-                          url = assetsBaseUrl + "/stars/galaxy-starfield-4096.jpg";
-
-                          if (!_this2._isAsyncLoad()) {
-                            _context.next = 5;
-                            break;
-                          }
-
-                          getTextureFromImageUrl(url, 'star-field').then(function (texture) {
-                            _this2.texture = texture;
-                            texture.encoding = GammaEncoding;
-                            _this2.material.map = texture; // this.material.color = new THREE.Color();
-
-                            // this.material.color = new THREE.Color();
-                            _this2.material.needsUpdate = true;
-                          });
-                          _context.next = 11;
-                          break;
-
-                        case 5:
-                          _context.next = 7;
-                          return getTextureFromImageUrl(url, 'star-field');
-
-                        case 7:
-                          _this2.texture = _context.sent;
-                          _this2.material.map = _this2.texture;
-                          _this2.material.color = new Color();
-                          _this2.material.needsUpdate = true;
-
-                        case 11:
-                          _this2._sceneEntityGroup.add(_this2.mesh);
-
-                          console.log('Starfield resolved', +new Date() - +getInitDate());
-                          resolve(_this2._sceneEntityGroup);
-
-                        case 14:
-                        case "end":
-                          return _context.stop();
-                      }
-                    }
-                  }, _callee);
-                }));
-
-                return function (_x) {
-                  return _ref.apply(this, arguments);
-                };
-              }()));
-
-            case 1:
-            case "end":
-              return _context2.stop();
-          }
-        }
-      }, _callee2);
-    }));
-
-    function init() {
-      return _init.apply(this, arguments);
-    }
-
-    return init;
-  }();
-
-  _proto.update = function update() {};
-
-  return StarField;
-}(AbstractSceneEntity);
-
-var MiscHelpers = /*#__PURE__*/function (_AbstractSceneEntity) {
-  _inheritsLoose(MiscHelpers, _AbstractSceneEntity);
-
-  function MiscHelpers() {
-    var _this;
-
-    // ~~~>>>
-    _this = _AbstractSceneEntity.apply(this, arguments) || this;
-    _this.NAME = 'Misc Helpers';
-
-    _this.update = function () {};
-
-    return _this;
-  }
-
-  var _proto = MiscHelpers.prototype;
-
-  _proto.init = /*#__PURE__*/function () {
-    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
-      var _this2 = this;
-
-      return runtime_1.wrap(function _callee$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              return _context.abrupt("return", new Promise(function (resolve) {
-                var axesHelper = new AxesHelper(auToMeters(100)); // Mark this as helper in order to be toggle-able
-
-                // Mark this as helper in order to be toggle-able
-                axesHelper.userData.isHelper = true;
-
-                _this2._sceneEntityGroup.add(axesHelper);
-
-                resolve(_this2._sceneEntityGroup);
-              }));
-
-            case 1:
-            case "end":
-              return _context.stop();
-          }
-        }
-      }, _callee);
-    }));
-
-    function init() {
-      return _init.apply(this, arguments);
-    }
-
-    return init;
-  }();
-
-  return MiscHelpers;
-}(AbstractSceneEntity);
-
-var SimpleLight = /*#__PURE__*/function (_AbstractSceneEntity) {
-  _inheritsLoose(SimpleLight, _AbstractSceneEntity);
-
-  function SimpleLight(_defaultIntensity) {
-    var _this;
-
-    if (_defaultIntensity === void 0) {
-      _defaultIntensity = 0.3;
-    }
-
-    _this = _AbstractSceneEntity.call(this) || this;
-    _this._defaultIntensity = _defaultIntensity; // ~~~>>>
-
-    _this.NAME = 'Simple Light';
-
-    _this.setPower = function (intensity) {
-      var newIntensity = intensity || _this._defaultIntensity;
-      _this._light.intensity = newIntensity;
-    };
-
-    _this.update = function () {};
-
-    return _this;
-  }
-
-  var _proto = SimpleLight.prototype;
-
-  _proto.init = /*#__PURE__*/function () {
-    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
-      var _this2 = this;
-
-      return runtime_1.wrap(function _callee$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              return _context.abrupt("return", new Promise(function (resolve) {
-                _this2._light = new AmbientLight(0x333333, _this2._defaultIntensity);
-                _this2._light.userData.isAmbientLight = true;
-
-                _this2._sceneEntityGroup.add(_this2._light);
-
-                resolve(_this2._sceneEntityGroup);
-              }));
-
-            case 1:
-            case "end":
-              return _context.stop();
-          }
-        }
-      }, _callee);
-    }));
-
-    function init() {
-      return _init.apply(this, arguments);
-    }
-
-    return init;
-  }();
-
-  _proto.setIsOn = function setIsOn(isOn) {
-    this._light.visible = isOn;
-  };
-
-  return SimpleLight;
-}(AbstractSceneEntity);
+function getPlanetRadiusMeters(name) {
+  // --->>>
+  return solarSystemData[name].radiusMeters;
+}
 
 var EOrbitalType;
 
@@ -2027,6 +1868,89 @@ var EOrbitalType;
   EOrbitalType["SUN"] = "SUN";
   EOrbitalType["ASTEROID"] = "ASTEROID";
 })(EOrbitalType || (EOrbitalType = {}));
+
+/**
+ * Function to center object on its bounding box
+ *
+ * An object created in blender may not have its origin at the object's
+ * physical center, and this can be annoying when, say, you want to rotate
+ * that object. This function will shift the object relative to its parent
+ * coordinate system so that its center is at the parent's origin; that means
+ * you can then e.g. rotate the parent to get a realistic/useful rotation effect
+ * on this object
+ */
+
+function centerOnBoundingBox(object) {
+  // ----------------------------------------------------->>>
+  // Get center of boundingBox
+  var boundingBox = new Box3().setFromObject(object);
+
+  var _boundingBox$getCente = boundingBox.getCenter(new Vector3()).toArray(),
+      x2 = _boundingBox$getCente[0],
+      y2 = _boundingBox$getCente[1],
+      z2 = _boundingBox$getCente[2]; // Move object to where center was
+
+
+  var _object$position$clon = object.position.clone().toArray(),
+      x1 = _object$position$clon[0],
+      y1 = _object$position$clon[1],
+      z1 = _object$position$clon[2];
+
+  object.position.set(x1 - x2, y1 - y2, z1 - z2);
+}
+
+/**
+ * Simple function to ensure all children receive and cast shadows
+ */
+function enshadowChildren(object) {
+  object.traverse(function (child) {
+    if (child.type === 'Mesh') {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+}
+
+/**
+ * Function to scale an object so that the child with the largest bounding-sphere radius
+ * will end up with a bounding sphere radius equal to the supplied targetRadius
+ */
+
+function resizeThreejsObject(object, targetRadius) {
+  // --------------------------------------------------------------------------->>>
+  var biggestSphereRadius = Math.pow(10, -10);
+  object.traverse(function (child) {
+    if (child instanceof Mesh) {
+      child.geometry.computeBoundingSphere(); // Need to run this, else `child.geometry.boundingSphere.radius` will be undefined
+
+      if (!!child.geometry && !!child.geometry.boundingSphere && child.geometry.boundingSphere.radius > biggestSphereRadius) {
+        biggestSphereRadius = child.geometry.boundingSphere.radius;
+      }
+    }
+  });
+  var s = targetRadius / biggestSphereRadius;
+  object.scale.set(s, s, s);
+}
+
+function gltfLoader(gltfUrl, targetRadius, isCenteredOnBoundingBox, isShadowShown) {
+  // ----------------->>>
+  return new Promise(function (resolve, reject) {
+    new GLTFLoader().load(gltfUrl, function (gltf) {
+      var object = gltf.scene;
+      if (!!targetRadius) resizeThreejsObject(object, targetRadius);
+      if (!!isCenteredOnBoundingBox) centerOnBoundingBox(object);
+      if (!!isShadowShown) enshadowChildren(object);
+      setTimeout(function () {
+        return resolve(object);
+      }, delayMs);
+    }, function (xhr) {
+      return !true ;
+    }, function (error) {
+      console.log('Loading error occurred:', error.message);
+      reject();
+    });
+  });
+}
 
 var METERS_IN_AU = 149597870700;
 var SECONDS_IN_DAY = 86400;
@@ -3839,6 +3763,598 @@ var Orbit = /*#__PURE__*/function () {
   return Orbit;
 }();
 
+var planetsWithBumpMaps = ['MERCURY', 'VENUS', 'EARTH', 'MARS', 'CERES', 'PLUTO'];
+var planetsAsLoadableObjects = ['HAUMEA', 'MAKEMAKE', 'ERIS'];
+var dwarfPlanets = ['CERES', 'PLUTO', 'HAUMEA', 'MAKEMAKE', 'ERIS'];
+
+var getPlanetType = function getPlanetType(name) {
+  return dwarfPlanets.includes(name) ? EOrbitalType.DWARF_PLANET : EOrbitalType.PLANET;
+};
+/**
+ * "Cloud Radius Factor": ratio of cloud radius to planet radius
+ */
+
+
+var crf = 1.05;
+/**
+ * "Helper Radius Factor": ratio of helper radius to clouded-planet radius
+ */
+
+var hrf = 1.2;
+/**
+ * Get the toy scale for different planets
+ */
+
+var getPlanetToyScale = function getPlanetToyScale(name) {
+  if (name === 'PLUTO') return 10000;
+  if (name === 'CERES') return 10000;
+  if (name === 'HAUMEA') return 15000;
+  if (name === 'MAKEMAKE') return 15000;
+  if (name === 'ERIS') return 15000;
+  return 3000;
+};
+
+var Planet = /*#__PURE__*/function (_AbstractToyModel) {
+  _inheritsLoose(Planet, _AbstractToyModel);
+
+  function Planet(NAME) {
+    var _this;
+
+    // --->>
+    _this = _AbstractToyModel.call(this, getPlanetToyScale(NAME)) || this;
+    _this.NAME = NAME;
+    _this.model = new Group();
+    _this.loadPlanetAsObject = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
+      var name, objUrl, tempMesh, onObjectLoad;
+      return runtime_1.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              name = _this.NAME.toLowerCase();
+              objUrl = assetsBaseUrl + "/planets/" + name + "/" + name + ".glb"; // Add temporary sphere till object is loaded
+
+              tempMesh = new Mesh(new SphereGeometry(_this.radius, 32, 32), new MeshPhongMaterial());
+              tempMesh.rotateX(Math.PI / 2);
+
+              _this.model.add(tempMesh);
+
+              onObjectLoad = function onObjectLoad(obj) {
+                tempMesh.visible = false;
+                if (!!obj) _this.model.add(obj);
+              };
+
+              if (!_this._isAsyncLoad()) {
+                _context.next = 10;
+                break;
+              }
+
+              gltfLoader(objUrl, _this.radius).then(onObjectLoad)["catch"](function (_) {
+                return onObjectLoad(null);
+              });
+              _context.next = 15;
+              break;
+
+            case 10:
+              _context.t0 = onObjectLoad;
+              _context.next = 13;
+              return gltfLoader(objUrl, _this.radius)["catch"](function (_) {
+                return null;
+              });
+
+            case 13:
+              _context.t1 = _context.sent;
+              (0, _context.t0)(_context.t1);
+
+            case 15:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+    _this.loadPlanetAsTexturedSphere = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
+      var name, imageUrl, bumpUrl, isBumpy, isEarth, pNull, mesh, onTexturesLoad, promises;
+      return runtime_1.wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              name = _this.NAME.toLowerCase();
+              imageUrl = assetsBaseUrl + "/planets/" + name + "/" + name + "-map-1024.jpg";
+              bumpUrl = assetsBaseUrl + "/planets/" + name + "/" + name + "-bump-1024.png";
+              isBumpy = planetsWithBumpMaps.includes(_this.NAME);
+              isEarth = _this.NAME === 'EARTH';
+              pNull = Promise.resolve(null);
+              mesh = new Mesh(new SphereGeometry(_this.radius, 32, 32), new MeshPhongMaterial({
+                shininess: isEarth ? 25 : 2
+              }));
+              mesh.rotateX(Math.PI / 2);
+
+              _this.model.add(mesh);
+
+              onTexturesLoad = function onTexturesLoad(_ref3) {
+                var promisedMapTexture = _ref3[0],
+                    promisedBumpTexture = _ref3[1],
+                    promisedEarthCloudTexture = _ref3[2];
+                // Unpack PromiseSettledResults:
+                var map = promisedMapTexture.status === 'fulfilled' ? promisedMapTexture.value : null;
+                var bumpMap = promisedBumpTexture.status === 'fulfilled' ? promisedBumpTexture.value : null;
+                var earthClouds = promisedEarthCloudTexture.status === 'fulfilled' ? promisedEarthCloudTexture.value : null;
+                mesh.material.map = map;
+                mesh.material.bumpMap = bumpMap;
+                mesh.material.bumpScale = _this.radius * 50;
+                mesh.material.needsUpdate = true;
+
+                if (earthClouds) {
+                  _this.clouds = new Mesh(new SphereGeometry(_this.radius * crf, 32, 32), new MeshPhongMaterial({
+                    map: earthClouds,
+                    side: DoubleSide,
+                    transparent: true,
+                    opacity: 0.6,
+                    depthWrite: false
+                  }));
+
+                  _this.model.add(_this.clouds);
+                }
+              }; // Create promises
+
+
+              promises = [getTextureFromImageUrl(imageUrl, name)["catch"](function (_) {
+                return null;
+              }), isBumpy ? getTextureFromImageUrl(bumpUrl, name)["catch"](function (_) {
+                return null;
+              }) : pNull, isEarth ? createEarthCloudMesh()["catch"](function (_) {
+                return null;
+              }) : pNull]; // Wait for promises or load async
+
+              if (!_this._isAsyncLoad()) {
+                _context2.next = 15;
+                break;
+              }
+
+              Promise.allSettled(promises).then(onTexturesLoad);
+              _context2.next = 20;
+              break;
+
+            case 15:
+              _context2.t0 = onTexturesLoad;
+              _context2.next = 18;
+              return Promise.allSettled(promises);
+
+            case 18:
+              _context2.t1 = _context2.sent;
+              (0, _context2.t0)(_context2.t1);
+
+            case 20:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    _this.getPosition = function () {
+      return _this.model.position;
+    };
+
+    _this.getRadius = function () {
+      return _this.radius;
+    };
+
+    _this.getOrbit = function () {
+      return _this.orbit;
+    };
+
+    _this.setIsOrbitVisible = function (val) {
+      _this.SKprojectedOrbitLine.visible = val;
+    }; // super(getPlanetToyScale('MERCURY'));
+
+
+    _this.radius = getPlanetRadiusMeters(NAME); // this.radius = getPlanetRadiusMeters('MERCURY');
+
+    _this.orbit = new Orbit(_this.NAME, getPlanetType(NAME));
+    _this.SKprojectedOrbitLine = _this.orbit.getProjectedOrbitLine();
+
+    _this._sceneEntityGroup.add(_this.SKprojectedOrbitLine); // Make the model toy-scalable
+
+
+    _this._toyGroup.push(_this.model); // Set up helper
+
+
+    _this.helper = new LineSegments(new EdgesGeometry(new SphereGeometry(_this.radius * hrf, 32)), new LineBasicMaterial({
+      color: new Color('cyan')
+    }));
+    _this.helper.userData.isHelper = true;
+
+    _this.helper.rotateX(Math.PI / 2);
+
+    _this.model.add(_this.helper);
+
+    return _this;
+  }
+
+  var _proto = Planet.prototype;
+
+  _proto.init = /*#__PURE__*/function () {
+    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee4() {
+      var _this2 = this;
+
+      return runtime_1.wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              return _context4.abrupt("return", new Promise( /*#__PURE__*/function () {
+                var _ref4 = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee3(resolve) {
+                  return runtime_1.wrap(function _callee3$(_context3) {
+                    while (1) {
+                      switch (_context3.prev = _context3.next) {
+                        case 0:
+                          if (!planetsAsLoadableObjects.includes(_this2.NAME)) {
+                            _context3.next = 5;
+                            break;
+                          }
+
+                          _context3.next = 3;
+                          return _this2.loadPlanetAsObject();
+
+                        case 3:
+                          _context3.next = 7;
+                          break;
+
+                        case 5:
+                          _context3.next = 7;
+                          return _this2.loadPlanetAsTexturedSphere();
+
+                        case 7:
+                          myprint('RESOLVED ' + _this2.NAME);
+
+                          _this2._sceneEntityGroup.add(_this2.model);
+
+                          resolve(_this2._sceneEntityGroup);
+
+                        case 10:
+                        case "end":
+                          return _context3.stop();
+                      }
+                    }
+                  }, _callee3);
+                }));
+
+                return function (_x) {
+                  return _ref4.apply(this, arguments);
+                };
+              }()));
+
+            case 1:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, _callee4);
+    }));
+
+    function init() {
+      return _init.apply(this, arguments);
+    }
+
+    return init;
+  }() // Gets position of planet in either normal or logged coords
+  ;
+
+  _proto.getDestinationPosition = function getDestinationPosition(_tCenturiesSinceJ200) {
+    if (_tCenturiesSinceJ200 === void 0) {
+      _tCenturiesSinceJ200 = 0;
+    }
+
+    var u = this.getLogInterpolationParam();
+    var position = this.orbit.getPosition(_tCenturiesSinceJ200);
+    var logpos = getLoggedPosition(position);
+    return position.lerp(logpos, u);
+  };
+
+  _proto.updateOrbitLine = function updateOrbitLine() {
+    var u = this.getLogInterpolationParam();
+    this.SKprojectedOrbitLine.morphTargetInfluences[0] = u;
+  };
+
+  _proto.update = function update() {
+    var _this$getDestinationP = this.getDestinationPosition(),
+        x = _this$getDestinationP.x,
+        y = _this$getDestinationP.y,
+        z = _this$getDestinationP.z;
+
+    this.model.position.set(x, y, z);
+    this.updateOrbitLine(); // Toy Model Scale
+
+    this._updateModelScale(); // Spin planet
+
+
+    this.model.rotateZ(0.0015);
+
+    if (!!this.clouds) {
+      // Spin clouds relative to planet
+      this.clouds.rotateY(-0.0001);
+      this.clouds.rotateZ(-0.0004);
+    }
+  };
+
+  return Planet;
+}(AbstractToyModel);
+
+/**
+ * Returns texture with inverted colors
+ */
+
+function invertTextureColor(texture, isAlphaInverted) {
+  if (isAlphaInverted === void 0) {
+    isAlphaInverted = false;
+  }
+
+  // --->>>
+  // texture -> canvas -> context -> data arrays
+  var img = texture.image;
+  var canvas = document.createElement('canvas');
+  var width = img.width;
+  var height = img.height;
+  canvas.width = width;
+  canvas.height = height;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0); // Get copy of old data
+
+  var data = ctx.getImageData(0, 0, width, height); // Modify copy of data
+
+  for (var y = 0, offset = 0; y < height; y++) {
+    for (var x = 0; x < width; x++, offset += 4) {
+      data.data[offset + 0] = 255 - data.data[offset + 0];
+      data.data[offset + 1] = 255 - data.data[offset + 1];
+      data.data[offset + 2] = 255 - data.data[offset + 2];
+      if (isAlphaInverted) data.data[offset + 3] = 255 - data.data[offset + 3];
+    }
+  } // Overwrite old data with new
+
+
+  ctx.putImageData(data, 0, 0); // MUST return CanvasTexture or it won't update properly
+
+  return new CanvasTexture(canvas);
+}
+
+var StarField = /*#__PURE__*/function (_AbstractSceneEntity) {
+  _inheritsLoose(StarField, _AbstractSceneEntity);
+
+  function StarField(radius) {
+    var _this;
+
+    _this = _AbstractSceneEntity.call(this) || this; // --->>>
+
+    _this.NAME = 'STARFIELD';
+    _this.texture = null;
+
+    _this.invertColor = function () {
+      if (!_this.texture) return;
+      _this.texture = invertTextureColor(_this.texture);
+      _this.material.map = _this.texture;
+      _this.material.needsUpdate = true;
+    };
+
+    _this.material = new MeshPhongMaterial({
+      side: DoubleSide,
+      transparent: true,
+      color: 'black',
+      // opacity: 0,
+      opacity: 1,
+      shininess: 0
+    });
+    _this.mesh = new Mesh(new SphereGeometry(radius, 32, 32), _this.material);
+    _this.mesh.rotation.y = Math.PI / 2;
+    _this._sceneEntityGroup.name = 'STARFIELD';
+    return _this;
+  }
+
+  var _proto = StarField.prototype;
+
+  _proto.init = /*#__PURE__*/function () {
+    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
+      var _this2 = this;
+
+      return runtime_1.wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
+                  var url;
+                  return runtime_1.wrap(function _callee$(_context) {
+                    while (1) {
+                      switch (_context.prev = _context.next) {
+                        case 0:
+                          // --->>>
+                          // const url = `${assetsBaseUrl}/stars/galaxy_starfield6.png`;
+                          url = assetsBaseUrl + "/stars/galaxy-starfield-4096.jpg";
+
+                          if (!_this2._isAsyncLoad()) {
+                            _context.next = 5;
+                            break;
+                          }
+
+                          getTextureFromImageUrl(url, 'star-field').then(function (texture) {
+                            _this2.texture = texture;
+                            texture.encoding = GammaEncoding;
+                            _this2.material.map = texture; // this.material.color = new THREE.Color();
+
+                            // this.material.color = new THREE.Color();
+                            _this2.material.needsUpdate = true;
+                          });
+                          _context.next = 11;
+                          break;
+
+                        case 5:
+                          _context.next = 7;
+                          return getTextureFromImageUrl(url, 'star-field');
+
+                        case 7:
+                          _this2.texture = _context.sent;
+                          _this2.material.map = _this2.texture;
+                          _this2.material.color = new Color();
+                          _this2.material.needsUpdate = true;
+
+                        case 11:
+                          _this2._sceneEntityGroup.add(_this2.mesh);
+
+                          console.log('Starfield resolved', +new Date() - +getInitDate());
+                          resolve(_this2._sceneEntityGroup);
+
+                        case 14:
+                        case "end":
+                          return _context.stop();
+                      }
+                    }
+                  }, _callee);
+                }));
+
+                return function (_x) {
+                  return _ref.apply(this, arguments);
+                };
+              }()));
+
+            case 1:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    function init() {
+      return _init.apply(this, arguments);
+    }
+
+    return init;
+  }();
+
+  _proto.update = function update() {};
+
+  return StarField;
+}(AbstractSceneEntity);
+
+var MiscHelpers = /*#__PURE__*/function (_AbstractSceneEntity) {
+  _inheritsLoose(MiscHelpers, _AbstractSceneEntity);
+
+  function MiscHelpers() {
+    var _this;
+
+    // ~~~>>>
+    _this = _AbstractSceneEntity.apply(this, arguments) || this;
+    _this.NAME = 'Misc Helpers';
+
+    _this.update = function () {};
+
+    return _this;
+  }
+
+  var _proto = MiscHelpers.prototype;
+
+  _proto.init = /*#__PURE__*/function () {
+    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
+      var _this2 = this;
+
+      return runtime_1.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              return _context.abrupt("return", new Promise(function (resolve) {
+                var axesHelper = new AxesHelper(auToMeters(100)); // Mark this as helper in order to be toggle-able
+
+                // Mark this as helper in order to be toggle-able
+                axesHelper.userData.isHelper = true;
+
+                _this2._sceneEntityGroup.add(axesHelper);
+
+                resolve(_this2._sceneEntityGroup);
+              }));
+
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    function init() {
+      return _init.apply(this, arguments);
+    }
+
+    return init;
+  }();
+
+  return MiscHelpers;
+}(AbstractSceneEntity);
+
+var SimpleLight = /*#__PURE__*/function (_AbstractSceneEntity) {
+  _inheritsLoose(SimpleLight, _AbstractSceneEntity);
+
+  function SimpleLight(_defaultIntensity) {
+    var _this;
+
+    if (_defaultIntensity === void 0) {
+      _defaultIntensity = 0.3;
+    }
+
+    _this = _AbstractSceneEntity.call(this) || this;
+    _this._defaultIntensity = _defaultIntensity; // ~~~>>>
+
+    _this.NAME = 'Simple Light';
+
+    _this.setPower = function (intensity) {
+      var newIntensity = intensity || _this._defaultIntensity;
+      _this._light.intensity = newIntensity;
+    };
+
+    _this.update = function () {};
+
+    return _this;
+  }
+
+  var _proto = SimpleLight.prototype;
+
+  _proto.init = /*#__PURE__*/function () {
+    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
+      var _this2 = this;
+
+      return runtime_1.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              return _context.abrupt("return", new Promise(function (resolve) {
+                _this2._light = new AmbientLight(0x333333, _this2._defaultIntensity);
+                _this2._light.userData.isAmbientLight = true;
+
+                _this2._sceneEntityGroup.add(_this2._light);
+
+                resolve(_this2._sceneEntityGroup);
+              }));
+
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    function init() {
+      return _init.apply(this, arguments);
+    }
+
+    return init;
+  }();
+
+  _proto.setIsOn = function setIsOn(isOn) {
+    this._light.visible = isOn;
+  };
+
+  return SimpleLight;
+}(AbstractSceneEntity);
+
 /**
  * Function to take a dodecahedron and warp the points to createa jagged
  * asteroid shape
@@ -4138,7 +4654,7 @@ var PointLight = /*#__PURE__*/function (_AbstractSceneEntity) {
  *
  */
 
-var addSearchField = function addSearchField(container, onEnter) {
+var createSearchField = function createSearchField(onEnter) {
   //
   addGlobalStyles();
   var div = document.createElement('div');
@@ -4150,7 +4666,7 @@ var addSearchField = function addSearchField(container, onEnter) {
   div.style.setProperty('height', '40px');
   div.style.setProperty('background-color', 'green'); //
 
-  input.value = 'Ceres';
+  input.value = 'Earth';
   input.style.setProperty('width', '100%');
   input.style.setProperty('height', '100%');
   input.style.setProperty('font-size', '20px');
@@ -4158,13 +4674,13 @@ var addSearchField = function addSearchField(container, onEnter) {
   input.style.setProperty('font-size', '20px');
   input.classList.add('sbn-solar-system-viewer-input');
   input.addEventListener('keypress', function (e) {
-    // console.log('e', e, input.value);
     if (e.key === 'Enter') {
       onEnter(input.value);
     }
   });
-  div.append(input);
-  container.append(div);
+  div.append(input); // Finish
+
+  return div;
 };
 
 var alpha = 1 / 100;
@@ -4413,32 +4929,574 @@ var updateCameraViewingAngle = function updateCameraViewingAngle(camera, zoomTar
 };
 
 /**
+ * Permissible types of asteroid belt
+ */
+var asteroidBeltTypes = ['MBA', 'NEO1KM', 'NOT_NEO1KM', 'PHA', 'DISTANTOBJECT'];
+
+/**
+ * Maps asteroid belt to a color
+ */
+function getAsteroidBeltColor(belt) {
+  switch (belt) {
+    case 'MBA':
+      {
+        return 'grey';
+      }
+
+    case 'NEO1KM':
+      {
+        return 'orange';
+      }
+
+    case 'NOT_NEO1KM':
+      {
+        return 'pink';
+      }
+
+    case 'PHA':
+      {
+        return 'red';
+      }
+
+    case 'DISTANTOBJECT':
+      {
+        return 'cyan';
+      }
+  }
+}
+
+/**
+ *
+ */
+function getVersionString() {
+  //
+  return '0.1.0';
+}
+
+/**
+ * Wrapper around technique to fetch a worker script in a way
+ * that does not require CORS config
+ */
+function getWorkerURL(url) {
+  var content = "importScripts( \"" + url + "\" );";
+  return URL.createObjectURL(new Blob([content], {
+    type: 'text/javascript'
+  }));
+}
+
+/**
+ * Wraps around web worker to kick off thread to create merged geometries
+ * then parse the returned data and return THREE.BufferGeometries
+ */
+
+function getAsteroidBeltMergedGeometries(_x, _x2) {
+  return _getAsteroidBeltMergedGeometries.apply(this, arguments);
+}
+
+function _getAsteroidBeltMergedGeometries() {
+  _getAsteroidBeltMergedGeometries = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2(belts, parentSceneManager) {
+    return runtime_1.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+              var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve0) {
+                var baseUrl, url, worker_url, results;
+                return runtime_1.wrap(function _callee$(_context) {
+                  while (1) {
+                    switch (_context.prev = _context.next) {
+                      case 0:
+                        // --->>
+                        // Build URL to worker script
+                        baseUrl = "http://localhost:3001";
+
+                        try {
+                          // @ts-ignore: will be truthy if built by rollup
+                          if (true) {
+                            baseUrl = "https://sbn-solar-system-viewer.s3.amazonaws.com/scripts";
+                          }
+                        } catch (err) {}
+
+                        url = baseUrl + "/asteroid-belt-worker-" + getVersionString() + ".js";
+                        worker_url = getWorkerURL(url); // Define and kick off asteroid-belt worker
+
+                        // Define and kick off asteroid-belt worker
+                        myprint('Start getting worker');
+                        _context.next = 7;
+                        return Promise.all(belts.map(function (belt) {
+                          return new Promise(function (resolve) {
+                            var worker = new Worker(worker_url);
+
+                            worker.onmessage = function (e) {
+                              setTimeout(function () {
+                                resolve({
+                                  belt: belt,
+                                  data: e.data
+                                });
+                              }, 100);
+                            };
+
+                            worker.postMessage(belt);
+                          });
+                        }));
+
+                      case 7:
+                        results = _context.sent;
+                        parentSceneManager.updateDisplayedMessage('Loading asteroids belts');
+                        parentSceneManager.setIsScenePaused(true);
+                        setTimeout(function () {
+                          //
+                          var xxx = results.map(function (_ref2) {
+                            var belt = _ref2.belt,
+                                data = _ref2.data;
+                            var asteroidBeltGeometriesStringified = JSON.parse(data);
+                            var loader = new BufferGeometryLoader();
+                            var asteroidBeltGeometries = {
+                              mergedAsteroidGeometry: loader.parse(asteroidBeltGeometriesStringified.mergedAsteroidGeometry),
+                              mergedTailsGeometry: loader.parse(asteroidBeltGeometriesStringified.mergedTailsGeometry),
+                              belt: belt
+                            };
+                            return asteroidBeltGeometries;
+                          });
+                          parentSceneManager.updateDisplayedMessage('Asteroids Loaded');
+                          parentSceneManager.setIsScenePaused(false);
+                          resolve0(xxx);
+                        }, 100);
+
+                      case 11:
+                      case "end":
+                        return _context.stop();
+                    }
+                  }
+                }, _callee);
+              }));
+
+              return function (_x3) {
+                return _ref.apply(this, arguments);
+              };
+            }()));
+
+          case 1:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _getAsteroidBeltMergedGeometries.apply(this, arguments);
+}
+
+var getInitMeshes = function getInitMeshes() {
+  return asteroidBeltTypes.reduce(function (acc, belt, ind) {
+    acc[belt] = new Mesh(new BufferGeometry(), new MeshPhongMaterial({
+      morphTargets: true
+    }));
+    return acc;
+  }, {});
+};
+
+var AsteroidBelt = /*#__PURE__*/function (_AbstractToyModel) {
+  _inheritsLoose(AsteroidBelt, _AbstractToyModel);
+
+  function AsteroidBelt(belts, parentSceneManager) {
+    var _this;
+
+    _this = _AbstractToyModel.call(this, 3000) || this;
+    _this.belts = belts;
+    _this.parentSceneManager = parentSceneManager;
+    _this.isMeshesLoaded = false;
+    _this.isBeltVisible = true;
+    _this.mergedAsteroidsMeshes = getInitMeshes();
+    _this.mergedTailsMeshes = getInitMeshes();
+
+    _this.getPosition = function () {
+      return new Vector3();
+    };
+
+    _this.getRadius = function () {
+      return 1;
+    };
+
+    _this.NAME = 'BELTS';
+
+    _this.belts.forEach(function (belt) {
+      _this._sceneEntityGroup.add(_this.mergedAsteroidsMeshes[belt]);
+
+      _this._sceneEntityGroup.add(_this.mergedTailsMeshes[belt]);
+    });
+
+    _this.parentSceneManager.updateDisplayedMessage('Building asteroid belt');
+
+    return _this;
+  }
+
+  var _proto = AsteroidBelt.prototype;
+
+  _proto.init = /*#__PURE__*/function () {
+    var _init = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2() {
+      var _this2 = this;
+
+      return runtime_1.wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(resolve) {
+                  var textureUrl, texture;
+                  return runtime_1.wrap(function _callee$(_context) {
+                    while (1) {
+                      switch (_context.prev = _context.next) {
+                        case 0:
+                          // --->>
+                          textureUrl = assetsBaseUrl + "/misc/rock-texture-512.png";
+                          _context.next = 3;
+                          return getTextureFromImageUrl(textureUrl)["catch"](function (_) {
+                            return null;
+                          });
+
+                        case 3:
+                          texture = _context.sent;
+                          getAsteroidBeltMergedGeometries(_this2.belts, _this2.parentSceneManager).then(function (allAsteroidBeltMergedGeometries) {
+                            allAsteroidBeltMergedGeometries.forEach(function (_ref2) {
+                              var belt = _ref2.belt,
+                                  mergedAsteroidGeometry = _ref2.mergedAsteroidGeometry,
+                                  mergedTailsGeometry = _ref2.mergedTailsGeometry;
+                              // --->>
+                              var color = getAsteroidBeltColor(belt); // Update asteroids mesh with computed geometry, etc.
+
+                              // Update asteroids mesh with computed geometry, etc.
+                              _this2.mergedAsteroidsMeshes[belt].geometry = mergedAsteroidGeometry;
+                              _this2.mergedAsteroidsMeshes[belt].material = new MeshPhongMaterial({
+                                color: new Color(color),
+                                map: texture,
+                                shininess: 0,
+                                transparent: true,
+                                morphTargets: true
+                              });
+                              _this2.mergedAsteroidsMeshes[belt].material.needsUpdate = true;
+                              _this2.mergedAsteroidsMeshes[belt].morphTargetInfluences = [0]; // Update tails mesh with computed geometry, etc.
+
+                              // Update tails mesh with computed geometry, etc.
+                              _this2.mergedTailsMeshes[belt].geometry = mergedTailsGeometry;
+                              _this2.mergedTailsMeshes[belt].material = new MeshPhongMaterial({
+                                color: new Color(color),
+                                transparent: true,
+                                morphTargets: true
+                              });
+                              _this2.mergedTailsMeshes[belt].material.needsUpdate = true;
+                              _this2.mergedTailsMeshes[belt].morphTargetInfluences = [0];
+                              myprint(_this2.NAME + ' LOADED');
+                              _this2.isMeshesLoaded = true;
+                            });
+                          });
+                          myprint('RESOLVED ' + _this2.NAME);
+                          resolve(_this2._sceneEntityGroup);
+
+                        case 7:
+                        case "end":
+                          return _context.stop();
+                      }
+                    }
+                  }, _callee);
+                }));
+
+                return function (_x) {
+                  return _ref.apply(this, arguments);
+                };
+              }()));
+
+            case 1:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    function init() {
+      return _init.apply(this, arguments);
+    }
+
+    return init;
+  }();
+
+  _proto.updateMeshes = function updateMeshes() {
+    var _this3 = this;
+
+    // Interpolate between log and real scale
+    var u = this.getLogInterpolationParam();
+    this.belts.forEach(function (belt) {
+      _this3.mergedAsteroidsMeshes[belt].morphTargetInfluences[0] = u;
+      _this3.mergedTailsMeshes[belt].morphTargetInfluences[0] = u;
+    });
+  };
+
+  _proto.setIsBeltVisible = function setIsBeltVisible(val) {
+    var _this4 = this;
+
+    this.isBeltVisible = val;
+    this.belts.forEach(function (belt) {
+      _this4.mergedAsteroidsMeshes[belt].visible = _this4.isBeltVisible;
+      _this4.mergedTailsMeshes[belt].visible = _this4.isBeltVisible;
+    });
+  };
+
+  _proto.toggleIsBeltVisible = function toggleIsBeltVisible() {
+    this.setIsBeltVisible(!this.isBeltVisible);
+  };
+
+  _proto.update = function update(_camera) {
+    var _this5 = this;
+
+    // --->>
+    this._updateModelScale();
+
+    if (this.isMeshesLoaded) this.updateMeshes();
+    if (!_camera) return; // Update mesh opacity based on distance from camera
+
+    var dist = _camera.position.distanceTo(new Vector3());
+
+    var cutoff = 4 * au;
+    var opacity = 0;
+    opacity = (dist - cutoff) / (0.5 * au);
+    if (opacity < 0) opacity = 0;
+    if (opacity > 1) opacity = 1;
+    this.belts.forEach(function (belt) {
+      if (!_this5.isBeltVisible) return;
+      _this5.mergedTailsMeshes[belt].material.opacity = opacity;
+      _this5.mergedTailsMeshes[belt].visible = opacity !== 0;
+
+      _this5.mergedTailsMeshes[belt].material.needsUpdate = true;
+    });
+  };
+
+  return AsteroidBelt;
+}(AbstractToyModel);
+
+/**
+ * Function to mutate buttons by injecting them with properties
+ * common to all html buttons; append to container when ready
+ */
+
+var injectCommonButtonProperties = /*#__PURE__*/function () {
+  var _ref = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(button, onClickCB) {
+    return runtime_1.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            return _context.abrupt("return", new Promise(function (resolve) {
+              // --->>
+              // Add to global styles
+              addGlobalStyles(); // Start loading the remote fonts style sheet; mutate button on completion
+
+              // Start loading the remote fonts style sheet; mutate button on completion
+              var link = document.createElement('link');
+              link.rel = 'stylesheet';
+
+              link.onload = function () {
+                // console.log('Loaded css url for fonts');
+                mutateButton();
+              };
+
+              link.onerror = function () {
+                console.log('Failed to load css url for fonts; continuing anyway...');
+                mutateButton();
+              };
+
+              link.href = buttonCssUrl;
+              document.head.append(link); // Callback to mutate button
+
+              // Callback to mutate button
+              function mutateButton() {
+                // Positioning
+                // button.style.position = 'absolute';
+                // button.style.setProperty('padding', buttonPadding);
+                // Colors
+                button.style.setProperty('color', buttonTextColor);
+                button.style.setProperty('background-color', buttonBackgroundColor); // Font stuff
+
+                // Font stuff
+                button.style.setProperty('font-family', buttonFontFamily);
+                button.style.setProperty('font-size', '20px'); // Setup fade-in effect
+
+                // Setup fade-in effect
+                button.style.setProperty('animation', "sbn-solar-system-viewer-fade-in " + buttonFadeInSpecs); // Cursor behavior
+                // Prevent text in button from being selectable
+                // See here: https://stackoverflow.com/a/4407335/8620332
+
+                // Cursor behavior
+                // Prevent text in button from being selectable
+                // See here: https://stackoverflow.com/a/4407335/8620332
+                button.style.setProperty('cursor', buttonCursorType);
+                button.style.setProperty('-webkit-touch-callout', 'none');
+                button.style.setProperty('-webkit-user-select', 'none');
+                button.style.setProperty('-khtml-user-select', 'none');
+                button.style.setProperty('-moz-user-select', 'none');
+                button.style.setProperty('-ms-user-select', 'none');
+                button.style.setProperty('user-select', 'none'); // Properties related to click effect
+
+                // Properties related to click effect
+                button.style.setProperty('transition', 'background-color 50ms ease-in-out');
+                button.addEventListener('click', function () {
+                  button.style.setProperty('background-color', buttonClickedBackgroundColor);
+                  setTimeout(function () {
+                    button.style.setProperty('background-color', buttonBackgroundColor);
+                    onClickCB();
+                  }, 200);
+                }); // Return mutated button
+
+                // Return mutated button
+                resolve(button);
+              }
+            }));
+
+          case 1:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  return function injectCommonButtonProperties(_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+/**
  *
  */
 
-function addMessageField(container) {
+var addHtmlButtonRow = /*#__PURE__*/function () {
+  var _ref = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee3(buttonInputs, container) {
+    return runtime_1.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
+              var _ref2 = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee2(resolve) {
+                var buttonWrapperDiv, buttonDivs;
+                return runtime_1.wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        if (container) {
+                          _context2.next = 2;
+                          break;
+                        }
+
+                        throw new Error('Canvas Container is Falsy!');
+
+                      case 2:
+                        // Create wrapper container
+                        buttonWrapperDiv = document.createElement('div');
+                        buttonWrapperDiv.style.setProperty('display', 'flex');
+                        buttonWrapperDiv.style.setProperty('flex-direction', 'column');
+                        buttonWrapperDiv.style.setProperty('gap', '12px');
+                        buttonWrapperDiv.style.setProperty('position', 'absolute');
+                        buttonWrapperDiv.style.setProperty('top', '100px');
+                        buttonWrapperDiv.style.setProperty('bottom', '100px');
+                        buttonWrapperDiv.style.setProperty('right', '0px');
+                        buttonWrapperDiv.style.setProperty('width', '120px');
+                        container.append(buttonWrapperDiv); // Map inputs to stylized buttons
+
+                        _context2.next = 14;
+                        return Promise.all(buttonInputs.map( /*#__PURE__*/function () {
+                          var _ref3 = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(buttonInput) {
+                            var buttonDiv;
+                            return runtime_1.wrap(function _callee$(_context) {
+                              while (1) {
+                                switch (_context.prev = _context.next) {
+                                  case 0:
+                                    // Set properties unique to this button
+                                    buttonDiv = document.createElement('div');
+                                    buttonDiv.innerText = buttonInput.label;
+                                    buttonDiv.style.setProperty('display', 'flex');
+                                    buttonDiv.style.setProperty('flex', '1');
+                                    buttonDiv.style.setProperty('justify-content', 'center');
+                                    buttonDiv.style.setProperty('align-items', 'center');
+                                    _context.next = 8;
+                                    return injectCommonButtonProperties(buttonDiv, buttonInput.cb);
+
+                                  case 8:
+                                    return _context.abrupt("return", _context.sent);
+
+                                  case 9:
+                                  case "end":
+                                    return _context.stop();
+                                }
+                              }
+                            }, _callee);
+                          }));
+
+                          return function (_x4) {
+                            return _ref3.apply(this, arguments);
+                          };
+                        }()));
+
+                      case 14:
+                        buttonDivs = _context2.sent;
+                        // Add buttons to wrapper in original order
+                        buttonDivs.forEach(function (buttonDiv) {
+                          buttonWrapperDiv.append(buttonDiv);
+                        });
+                        resolve();
+
+                      case 17:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2);
+              }));
+
+              return function (_x3) {
+                return _ref2.apply(this, arguments);
+              };
+            }()));
+
+          case 1:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function addHtmlButtonRow(_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+/**
+ * Create div in which messages will be displayed
+ */
+
+function createDisplayMessageDiv() {
   // --->>
   addGlobalStyles();
-  var div = document.createElement('div');
-  div.id = 'message-field';
-  div.style.setProperty('position', 'absolute'); // div.style.setProperty('top', '0px');
-  // div.style.setProperty('top', '0px');
+  var displayMessageDiv = document.createElement('div');
+  displayMessageDiv.id = 'message-field';
+  displayMessageDiv.style.setProperty('position', 'absolute');
+  displayMessageDiv.style.setProperty('left', '0%');
+  displayMessageDiv.style.setProperty('right', '0px');
+  displayMessageDiv.style.setProperty('bottom', '0px');
+  displayMessageDiv.style.setProperty('height', '40px');
+  displayMessageDiv.style.setProperty('display', 'flex');
+  displayMessageDiv.style.setProperty('justify-content', 'flex-end');
+  displayMessageDiv.style.setProperty('align-items', 'center');
+  displayMessageDiv.style.setProperty('padding-right', '10px');
+  displayMessageDiv.style.setProperty('background-color', 'rgba(255,255,255,0.1)');
+  displayMessageDiv.style.setProperty('color', 'white');
 
-  div.style.setProperty('left', '50%');
-  div.style.setProperty('right', '0px');
-  div.style.setProperty('bottom', '0px');
-  div.style.setProperty('height', '40px');
-  div.style.setProperty('display', 'flex');
-  div.style.setProperty('justify-content', 'flex-end');
-  div.style.setProperty('align-items', 'center');
-  div.style.setProperty('background-color', 'green');
-  container.append(div);
-
-  var cb = function cb(msg) {
-    div.innerHTML = msg;
+  var updateMessageCb = function updateMessageCb(msg) {
+    displayMessageDiv.innerHTML = msg;
   };
 
-  return cb;
+  return {
+    displayMessageDiv: displayMessageDiv,
+    updateMessageCb: updateMessageCb
+  };
 }
 
 var iconsDict = {
@@ -4481,83 +5539,33 @@ var getReactIconSvg = function getReactIconSvg(icon, options) {
 };
 
 /**
- * Function to create a binary switch with text for the two different states
- * and a callback used to set local-storage options
- * This switch is intended for the settings panel; you create it with the
- * text for the title of the switch (goes on left) and for the two different states.
- * The callback will be used to change the state of options
+ * Adds settings button to top-right of UI
  */
 
-var addBinarySwitch = function addBinarySwitch(title, onText, offText, stateUpdateCallBack, id) {
-  if (id === void 0) {
-    id = ("switch_created_" + new Date().toISOString()).replace(/\s+/g, '');
-  }
+var createSettingsButton = function createSettingsButton(toggleSettingsPanelCb) {
+  // --->>>
+  // Create button container
+  var settingsSizePxls = 70;
+  var settingsButtonDiv = document.createElement('div');
+  settingsButtonDiv.style.setProperty('position', 'absolute');
+  settingsButtonDiv.style.setProperty('top', '0px');
+  settingsButtonDiv.style.setProperty('right', '0px');
+  settingsButtonDiv.style.setProperty('height', settingsSizePxls + "px");
+  settingsButtonDiv.style.setProperty('width', settingsSizePxls + "px");
+  settingsButtonDiv.style.setProperty('display', 'flex');
+  settingsButtonDiv.style.setProperty('justify-content', 'center');
+  settingsButtonDiv.style.setProperty('align-items', 'center');
+  settingsButtonDiv.style.setProperty('z-index', '2'); // svgWrapperDiv.style.setProperty('background-color', 'pink');
+  // Inject SVG into div
 
-  /**
-   * Construct and return switch of the following format
-   *
-   *
-    <div class="switch-text-container">
-      <div class="title-text"> Title Text </div>
-      <div class="switch-container">
-        <label class="switch">
-          <input type="checkbox">
-          <span class="slider"></span>
-        </label>
-      <div>
-      <div class="on-off-text"> On/Off Text </div>
-    <div>
-   *
-   */
-  // Put a lot of the styles in the global file
-  addGlobalStyles(); // Create the container
+  settingsButtonDiv.innerHTML = getReactIconSvg('IoIosSettings', {
+    fillColor: 'white',
+    size: settingsSizePxls
+  }); // Add listener
 
-  var switchTextContainerDiv = document.createElement('div');
-  switchTextContainerDiv.classList.add('switch-text-container');
-  switchTextContainerDiv.style.setProperty('overflow-x', 'scroll');
-  switchTextContainerDiv.id = id; // Create its immediate children
+  settingsButtonDiv.addEventListener('click', toggleSettingsPanelCb); // Finish
 
-  var titleTextDiv = document.createElement('div');
-  titleTextDiv.classList.add('title-text');
-  titleTextDiv.style.setProperty('justify-content', 'right');
-  titleTextDiv.style.setProperty('flex', '1 0 220px');
-  titleTextDiv.style.setProperty('margin-right', '10px');
-  titleTextDiv.style.setProperty('overflow-x', 'scroll');
-  titleTextDiv.innerHTML = "<span>" + title + "</span>";
-  switchTextContainerDiv.append(titleTextDiv);
-  var switchContainerDiv = document.createElement('div');
-  switchContainerDiv.classList.add('switch-container');
-  switchContainerDiv.style.setProperty('flex', '0 0 70px');
-  switchTextContainerDiv.append(switchContainerDiv);
-  var onOffTextDiv = document.createElement('div');
-  onOffTextDiv.classList.add('on-off-text');
-  onOffTextDiv.style.setProperty('justify-content', 'left');
-  onOffTextDiv.style.setProperty('flex', '1 0 calc(100% - 70px - 220px - 5px)');
-  onOffTextDiv.style.setProperty('margin-left', '10px');
-  onOffTextDiv.innerHTML = " " + onText + " ";
-  switchTextContainerDiv.append(onOffTextDiv); // Create the switch inner workings
-
-  var switchLabel = document.createElement('label');
-  switchLabel.classList.add('switch');
-  switchContainerDiv.append(switchLabel);
-  var switchInput = document.createElement('input');
-  switchInput.type = 'checkbox';
-  switchInput.checked = false;
-  switchLabel.append(switchInput);
-  var sliderSpan = document.createElement('span');
-  sliderSpan.classList.add('slider');
-  switchLabel.append(sliderSpan); // Add listener to toggle text upon switch clicks
-
-  switchInput.addEventListener('click', function () {
-    setTimeout(function () {
-      //
-      //
-      stateUpdateCallBack();
-      var isSwitchChecked = switchInput.checked;
-      onOffTextDiv.innerHTML = "" + (isSwitchChecked ? onText : offText);
-    }, 0);
-  });
-  return switchTextContainerDiv;
+  return settingsButtonDiv;
 };
 
 /**
@@ -4565,107 +5573,304 @@ var addBinarySwitch = function addBinarySwitch(title, onText, offText, stateUpda
  */
 var setOptions = function setOptions(newOptions) {
   Object.keys(newOptions).forEach(function (key) {
-    console.log('Key Value:', key, newOptions[key]);
+    // console.log('Key Value:', key, newOptions[(key as any) as keyof IOptions]);
     localStorage.setItem(key, JSON.stringify(newOptions[key]));
   });
 };
 
-var settingsPanelId = 'settings-panel-id-' + /*#__PURE__*/v4();
 /**
- * Adds settings button to top-left of UI
+ * Function to create a div with three columns in order to wrap around switches and/or
+ * input fields and look neat in the settings menu
  */
 
-var addSettingsPanel = function addSettingsPanel(container) {
-  // --->>>
-  console.log('Adding settings panel?');
-  addGlobalStyles(); // Warning
+var createThreeColumnContainer = function createThreeColumnContainer(id) {
+  if (id === void 0) {
+    id = 'placeholder-id' + simpleUuid();
+  }
 
-  if (!container) throw new Error('Canvas Container is Falsy!'); // Create wrapper container
+  /**
+   * Construct and return divs of the following format
+   *
+   *
+    <div class="three-column-container">
+      <div class="first-column"> </div>
+      <div class="second-column"></div>
+      <div class="third-column"> </div>
+    <div>
+   *
+   */
+  // Put a lot of the styles in the global file
+  addGlobalStyles(); // Create the container
 
-  var panelDiv = document.createElement('div');
-  panelDiv.id = settingsPanelId; //
+  var threeColumnContainerDiv = document.createElement('div');
+  threeColumnContainerDiv.classList.add('three-column-container');
+  threeColumnContainerDiv.style.setProperty('overflow-x', 'scroll');
+  threeColumnContainerDiv.style.setProperty('width', '100%');
+  threeColumnContainerDiv.style.setProperty('height', '34px');
+  threeColumnContainerDiv.style.setProperty('display', 'flex');
+  threeColumnContainerDiv.style.setProperty('white-space', 'nowrap');
+  threeColumnContainerDiv.id = id; // Params for column widths
 
-  panelDiv.style.setProperty('position', 'absolute');
-  panelDiv.style.setProperty('top', '0px');
-  panelDiv.style.setProperty('right', '100%');
-  panelDiv.style.setProperty('right', '0%');
-  panelDiv.style.setProperty('left', '0px');
-  panelDiv.style.setProperty('bottom', '0px'); //
+  var firstColFlexBasisPxls = 280;
+  var secondColFlexBasisPxls = 70; // Create its immediate children
 
-  panelDiv.style.setProperty('transition', 'right 1s ease-in-out'); //
-
-  panelDiv.style.setProperty('overflow', 'hidden'); //
-
-  panelDiv.style.setProperty('background-color', 'pink');
-  panelDiv.style.setProperty('display', 'flex');
-  panelDiv.style.setProperty('flex-direction', 'column');
-  panelDiv.style.setProperty('gap', '5px');
-  panelDiv.style.setProperty('justify-content', 'center');
-  panelDiv.style.setProperty('align-items', 'center'); //
-
-  var div1 = addBinarySwitch('Planet Loading Mode?', 'Async (Start Animation Before Planets Are Loaded) XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX ', 'Sync (Wait Till Planets Are Loaded)', function () {
-    setOptions({
-      __sbnViewer__planetLoadingMode: (getAllOptions().__sbnViewer__planetLoadingMode + 1) % EPlanetLoadingMode.__LENGTH__
-    });
-  });
-  panelDiv.append(div1);
-  var div2 = addBinarySwitch('Comet-Asteroid Loading Mode?', 'Async (Start Before Loaded)', 'Sync (Wait Till Loaded)', function () {
-    setOptions({
-      __sbnViewer__cometAsteroidLoadingMode: (getAllOptions().__sbnViewer__cometAsteroidLoadingMode + 1) % ECometAsteroidLoadingMode.__LENGTH__
-    });
-  }, 'planet-sync');
-  panelDiv.append(div2);
-  var div3 = addBinarySwitch('Comet-Asteroid Abundance Representation Mode?', 'Toy Model', 'Real World Proportions', function () {
-    setOptions({
-      __sbnViewer__cometAsteroidAbundanceRepresentationMode: (getAllOptions().__sbnViewer__cometAsteroidAbundanceRepresentationMode + 1) % ECometAsteroidAbundanceRepresentationMode.__LENGTH__
-    });
-  }, 'planet-sync');
-  panelDiv.append(div3); //
-
-  container.append(panelDiv);
+  var firstColumnDiv = document.createElement('div');
+  firstColumnDiv.classList.add('first-column');
+  firstColumnDiv.style.setProperty('display', 'flex');
+  firstColumnDiv.style.setProperty('align-items', 'center');
+  firstColumnDiv.style.setProperty('justify-content', 'right');
+  firstColumnDiv.style.setProperty('flex', "1 0 " + firstColFlexBasisPxls + "px");
+  firstColumnDiv.style.setProperty('padding-right', '10px');
+  firstColumnDiv.style.setProperty('overflow-x', 'scroll');
+  threeColumnContainerDiv.append(firstColumnDiv);
+  var secondColumnDiv = document.createElement('div');
+  secondColumnDiv.classList.add('second-column');
+  secondColumnDiv.style.setProperty('display', 'flex');
+  secondColumnDiv.style.setProperty('align-items', 'center');
+  secondColumnDiv.style.setProperty('justify-content', 'center');
+  secondColumnDiv.style.setProperty('flex', "0 0 " + secondColFlexBasisPxls + "px");
+  threeColumnContainerDiv.append(secondColumnDiv);
+  var thirdColumnDiv = document.createElement('div');
+  thirdColumnDiv.classList.add('third-column');
+  thirdColumnDiv.style.setProperty('display', 'flex');
+  thirdColumnDiv.style.setProperty('align-items', 'center');
+  thirdColumnDiv.style.setProperty('justify-content', 'left');
+  thirdColumnDiv.style.setProperty('flex', "1 0 calc(100% - " + secondColFlexBasisPxls + "px - " + firstColFlexBasisPxls + "px - 20px)");
+  thirdColumnDiv.style.setProperty('padding-left', '10px');
+  threeColumnContainerDiv.append(thirdColumnDiv);
+  return {
+    threeColumnContainerDiv: threeColumnContainerDiv,
+    firstColumnDiv: firstColumnDiv,
+    secondColumnDiv: secondColumnDiv,
+    thirdColumnDiv: thirdColumnDiv
+  };
 };
+
+/**
+ * Function to create a binary switch with text for the two different states
+ * and a callback used to set local-storage options
+ * This switch is intended for the settings panel; you create it with the
+ * text for the title of the switch (goes on left) and for the two different states.
+ * The callback will be used to change the state of options
+ */
+
+var createTitledSwitch = function createTitledSwitch(title, onText, offText, key, cb) {
+  if (cb === void 0) {
+    cb = function cb(_isChecked) {};
+  }
+
+  /**
+   * Construct and return wrapped switch of the following format
+   *
+   *
+    <div class="three-column-container">
+      <div class="first-column"> Title Text </div>
+      <div class="second-column">
+        <label class="switch">
+          <input type="checkbox">
+          <span class="slider"></span>
+        </label>
+      <div>
+      <div class="third-column"> On/Off Text </div>
+    <div>
+   *
+   */
+  // Put a lot of the styles in the global file
+  addGlobalStyles(); // Get handles on the container html for this switch
+
+  var _createThreeColumnCon = createThreeColumnContainer(),
+      threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
+      firstColumnDiv = _createThreeColumnCon.firstColumnDiv,
+      secondColumnDiv = _createThreeColumnCon.secondColumnDiv,
+      thirdColumnDiv = _createThreeColumnCon.thirdColumnDiv;
+
+  var isChecked = getAllOptionsBooleans()[key];
+  firstColumnDiv.innerHTML = "<span>" + title + "</span>";
+  thirdColumnDiv.innerHTML = "<span>" + (isChecked ? onText : offText) + "</span>"; // Create the switch inner workings
+  // See: https://www.w3schools.com/howto/howto_css_switch.asp
+
+  var switchLabel = document.createElement('label');
+  switchLabel.classList.add('switch');
+  secondColumnDiv.append(switchLabel);
+  var switchInput = document.createElement('input');
+  switchInput.type = 'checkbox';
+  switchInput.checked = isChecked;
+  switchLabel.append(switchInput);
+  var sliderSpan = document.createElement('span');
+  sliderSpan.classList.add('slider');
+  switchLabel.append(sliderSpan); // Add listener to toggle text upon switch clicks
+
+  switchInput.addEventListener('click', function () {
+    setTimeout(function () {
+      var _setOptions;
+
+      // Toggle state and display text
+      setOptions((_setOptions = {}, _setOptions[key] = !getAllOptions()[key], _setOptions));
+      var isChecked = switchInput.checked;
+      thirdColumnDiv.innerHTML = "" + (isChecked ? onText : offText); // Run custom callback
+
+      cb(isChecked);
+    }, 0);
+  });
+  return threeColumnContainerDiv;
+};
+
+/**
+ * To generate input fields to be placed neatly within the settings panel
+ * like so:
+ *
+    <div class="three-column-container">
+      <div class="first-column"> Title Text </div>
+      <div class="second-column">
+          <input type="text">
+      <div>
+      <div class="third-column"> BLANK </div>
+    <div>
+ *
+ */
+
+var createTitledInput = function createTitledInput(title, key) {
+  // --->>
+  addGlobalStyles(); // Create handles for container divs
+
+  var _createThreeColumnCon = createThreeColumnContainer(),
+      threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
+      firstColumnDiv = _createThreeColumnCon.firstColumnDiv,
+      secondColumnDiv = _createThreeColumnCon.secondColumnDiv;
+ // Add title to first div
+
+
+  firstColumnDiv.innerHTML = "<span>" + title + "</span>"; // Inject input field into second div
+
+  var inputField = document.createElement('input');
+  inputField.style.setProperty('min-width', '10px');
+  inputField.style.setProperty('max-width', '50px');
+  inputField.style.setProperty('min-height', '10px');
+  inputField.style.setProperty('height', '30px');
+  inputField.id = 'input-id-123';
+  inputField.value = getAllOptionsNumbers()[key] + '';
+  secondColumnDiv.append(inputField); // Add listener to set input-field value on any change
+
+  inputField.oninput = function () {
+    setTimeout(function () {
+      try {
+        var _setOptions;
+
+        var numVal = parseInt(inputField.value);
+        setOptions((_setOptions = {}, _setOptions[key] = numVal, _setOptions));
+      } catch (err) {
+        alert('Something went horribly wrong with your logic');
+      }
+    }, 0);
+  }; // Finish
+
+
+  return threeColumnContainerDiv;
+};
+
+/**
+ * Generates simple 'hr' div
+ */
+function getHrDiv() {
+  var hrDiv = document.createElement('div');
+  hrDiv.style.setProperty('width', '100%');
+  hrDiv.style.setProperty('height', '1px');
+  hrDiv.style.setProperty('background-color', 'black');
+  return hrDiv;
+}
+
+var settingsPanelIdX = 'settings-panel-id-' + /*#__PURE__*/simpleUuid();
+var maxObjectsContainerDivId = 'max-objects-container-div-id-' + /*#__PURE__*/simpleUuid();
+var thresholdHContainerDivId = 'threshold-H-container-div-id-' + /*#__PURE__*/simpleUuid(); // Track state of panel open-closed
 
 var isSettingsPanelDisplayed = false;
 /**
- * Adds settings button to top-left of UI
+ * Create panel to hold all the buttons/fields that will control the widget's
+ * local-storage-persisted state
  */
 
-var addSettingsButton = function addSettingsButton(container) {
-  // --->>>
-  // Warning
-  if (!container) throw new Error('Canvas Container is Falsy!');
-  var settingsSizePxls = 70; // Create wrapper container
+var createSettingsPanel = function createSettingsPanel() {
+  // --->>
+  addGlobalStyles(); // Create container for the settings panel
 
-  var svgWrapperDiv = document.createElement('div');
-  svgWrapperDiv.style.setProperty('position', 'absolute');
-  svgWrapperDiv.style.setProperty('top', '0px');
-  svgWrapperDiv.style.setProperty('right', '0px');
-  svgWrapperDiv.style.setProperty('height', settingsSizePxls + "px");
-  svgWrapperDiv.style.setProperty('width', settingsSizePxls + "px");
-  svgWrapperDiv.style.setProperty('display', 'flex');
-  svgWrapperDiv.style.setProperty('justify-content', 'center');
-  svgWrapperDiv.style.setProperty('align-items', 'center');
-  svgWrapperDiv.style.setProperty('z-index', '2'); // svgWrapperDiv.style.setProperty('background-color', 'pink');
-  // Inject SVG into div
+  var settingsPanelDiv = document.createElement('div');
+  settingsPanelDiv.id = settingsPanelIdX;
+  settingsPanelDiv.style.setProperty('position', 'absolute');
+  settingsPanelDiv.style.setProperty('top', '0px');
+  settingsPanelDiv.style.setProperty('right', isSettingsPanelDisplayed ? '0%' : '100%');
+  settingsPanelDiv.style.setProperty('left', '0px');
+  settingsPanelDiv.style.setProperty('bottom', '0px');
+  settingsPanelDiv.style.setProperty('transition', 'right 1s ease-in-out');
+  settingsPanelDiv.style.setProperty('overflow', 'hidden');
+  settingsPanelDiv.style.setProperty('font-family', '"Odibee Sans", cursive');
+  settingsPanelDiv.style.setProperty('font-size', '22px');
+  settingsPanelDiv.style.setProperty('background-color', 'rgba(255,255,255,0.9)');
+  settingsPanelDiv.style.setProperty('color', 'black');
+  settingsPanelDiv.style.setProperty('display', 'flex');
+  settingsPanelDiv.style.setProperty('flex-direction', 'column');
+  settingsPanelDiv.style.setProperty('gap', '5px');
+  settingsPanelDiv.style.setProperty('justify-content', 'start');
+  settingsPanelDiv.style.setProperty('align-items', 'center'); // Create callback to toggle settings panel open-closed
 
-  svgWrapperDiv.innerHTML = getReactIconSvg('IoIosSettings', {
-    fillColor: 'white',
-    size: settingsSizePxls
-  }); // Add listener
+  var toggleSettingsPanelCb = function toggleSettingsPanelCb() {
+    isSettingsPanelDisplayed = !isSettingsPanelDisplayed;
+    settingsPanelDiv.style.setProperty('right', isSettingsPanelDisplayed ? '0%' : '100%');
+  }; // Heading
 
-  svgWrapperDiv.addEventListener('click', function () {
-    //
-    console.log('Hmmm');
-    var settingsPanelDiv = document.getElementById(settingsPanelId);
 
-    if (!!settingsPanelDiv) {
-      console.log('objecHmmm 2t');
-      isSettingsPanelDisplayed = !isSettingsPanelDisplayed;
-      settingsPanelDiv.style.setProperty('right', isSettingsPanelDisplayed ? '100%' : '0%');
+  var _createThreeColumnCon = createThreeColumnContainer(),
+      threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
+      secondColumnDiv = _createThreeColumnCon.secondColumnDiv;
+
+  secondColumnDiv.innerHTML = '<h1>Settings</h1>';
+  threeColumnContainerDiv.style.setProperty('height', '100px');
+  settingsPanelDiv.append(threeColumnContainerDiv); // Planet-loading switch
+
+  settingsPanelDiv.append(getHrDiv());
+  var planetLoadingModeSwitchContainerDiv = createTitledSwitch('Planet loading mode?', 'Load planets before animation begins', 'Begin animation then load planets', '__sbnViewer__isPlanetsLoadedBeforeAnimationBegins');
+  settingsPanelDiv.append(planetLoadingModeSwitchContainerDiv); // const hrDiv = document.createElement('div');
+  // hrDiv.style.setProperty('width', '100%');
+  // hrDiv.style.setProperty('height', '1px');
+  // hrDiv.style.setProperty('background-color', 'black');
+
+  settingsPanelDiv.append(getHrDiv()); // Comet-asteroid loading mode switch
+
+  var cometAsteroidLoadingModeSwitchContainerDiv = createTitledSwitch('Comet-Asteroid Loading Mode?', 'Start animation then load comets-asteroids', 'Wait for comets-asteroids before starting animation', '__sbnViewer__isBeltLoadedBeforeAnimationBegins');
+  settingsPanelDiv.append(cometAsteroidLoadingModeSwitchContainerDiv);
+  settingsPanelDiv.append(getHrDiv()); // Abundance-mode switch
+
+  var abundanceRepresentationModeSwitchContainerDiv = createTitledSwitch('Comet-Asteroid Abundance Mode?', 'Toy Model', 'Real World Proportions', '__sbnViewer__isBeltAbundanceToyModel', function (isChecked) {
+    // --->>
+    var maxObjectsContainerDiv = document.getElementById(maxObjectsContainerDivId);
+
+    if (!!maxObjectsContainerDiv) {
+      maxObjectsContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
     }
-  }); //
 
-  container.append(svgWrapperDiv);
+    var thresholdHContainerDiv = document.getElementById(thresholdHContainerDivId);
+
+    if (!!thresholdHContainerDiv) {
+      thresholdHContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+    }
+  });
+  settingsPanelDiv.append(abundanceRepresentationModeSwitchContainerDiv);
+  var isChecked = getAllOptions()['__sbnViewer__isBeltAbundanceToyModel']; // Add max objects field
+
+  var maxObjectsContainerDiv = createTitledInput('Max number of objects', '__sbnViewer__beltAbundanceMaxObjects');
+  maxObjectsContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+  maxObjectsContainerDiv.id = maxObjectsContainerDivId;
+  settingsPanelDiv.append(maxObjectsContainerDiv); // Add threshold H field
+
+  var thresholdHContainerDiv = createTitledInput('Minimum H Mag', '__sbnViewer__beltAbundanceHThreshold');
+  thresholdHContainerDiv.id = thresholdHContainerDivId;
+  thresholdHContainerDiv.style.setProperty('display', isChecked ? 'none' : 'flex');
+  settingsPanelDiv.append(thresholdHContainerDiv);
+  settingsPanelDiv.append(getHrDiv()); // Return assets having created them
+
+  return {
+    toggleSettingsPanelCb: toggleSettingsPanelCb,
+    settingsPanelDiv: settingsPanelDiv
+  };
 };
 
 /**
@@ -4702,7 +5907,7 @@ var SceneManager = /*#__PURE__*/function (_AbstractSceneManager) {
 
     _this.isScenePaused = false;
 
-    _this.updateMessageField = function () {
+    _this.updateDisplayedMessage = function () {
       console.log('denied!');
     };
 
@@ -4811,38 +6016,59 @@ var SceneManager = /*#__PURE__*/function (_AbstractSceneManager) {
         _this._controls.update();
       } // Debug
     }; // Add html
+    // Message Display
 
 
-    _this.updateMessageField = addMessageField(_this._container);
+    var _createDisplayMessage = createDisplayMessageDiv(),
+        displayMessageDiv = _createDisplayMessage.displayMessageDiv,
+        updateMessageCb = _createDisplayMessage.updateMessageCb;
 
-    _this.updateMessageField('Working?');
+    _this._container.append(displayMessageDiv);
 
-    addSearchField(_this._container, _this.tryToStartZooming);
-    addSettingsButton(_this._container);
-    addSettingsPanel(_this._container);
+    _this.updateDisplayedMessage = updateMessageCb;
+
+    _this.updateDisplayedMessage('Loading...'); // Search field
+
+
+    var searchFieldDiv = createSearchField(_this.tryToStartZooming);
+
+    _this._container.append(searchFieldDiv); // Buttons in main display
+
+
+     addHtmlButtonRow([{
+      label: 'Toggle Toy Scale',
+      cb: _this.toggleIsToyScale
+    }, {
+      label: 'Toggle helpers',
+      cb: _this.toggleHelpersVisibility
+    }, {
+      label: 'Toggle Orbits',
+      cb: _this.toggleIsOrbitsVisible
+    }, {
+      label: 'Toggle Log Scale',
+      cb: _this.toggleIsLogScale
+    }, {
+      label: 'Toggle Asteroids',
+      cb: _this.toggleAsteroids
+    }], _this._container); // Settings panel and button
+
+    var _createSettingsPanel = createSettingsPanel(),
+        settingsPanelDiv = _createSettingsPanel.settingsPanelDiv,
+        toggleSettingsPanelCb = _createSettingsPanel.toggleSettingsPanelCb;
+
+    _this._container.append(settingsPanelDiv);
+
+    var settingsButton = createSettingsButton(toggleSettingsPanelCb);
+
+    _this._container.append(settingsButton); // Entities
+
+
     _this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
-    _this.planets = [
-      /*
-      new Planet('MERCURY'),
-      new Planet('VENUS'),
-      new Planet('EARTH'),
-      new Planet('MARS'),
-      new Planet('CERES'),
-      new Planet('JUPITER'),
-      new Planet('SATURN'),
-      new Planet('URANUS'),
-      new Planet('NEPTUNE'),
-      new Planet('PLUTO'),
-      new Planet('HAUMEA'),
-      new Planet('MAKEMAKE'),
-      new Planet('ERIS'),
-      */
-    ];
+    _this.planets = [new Planet('MERCURY'), new Planet('VENUS'), new Planet('EARTH'), new Planet('MARS'), new Planet('CERES'), new Planet('JUPITER'), new Planet('SATURN'), new Planet('URANUS'), new Planet('NEPTUNE'), new Planet('PLUTO'), new Planet('HAUMEA'), new Planet('MAKEMAKE'), new Planet('ERIS')];
     _this.asteroids = [//
       // new Asteroid('65P'),
     ];
-    _this.asteroidBelts = [// new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
-    ];
+    _this.asteroidBelts = [new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], _assertThisInitialized(_this))];
     _this.starField = new StarField(auToMeters(999));
     _this.zoomables = [].concat(_this.planets, _this.asteroids, _this.birdsEyes, [_this.sun]);
     _this.zoomableOrbitals = [].concat(_this.planets, _this.asteroids);
@@ -4997,7 +6223,7 @@ function displayFpsStats() {
     });
   };
 
-  script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
+  script.src = 'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
   document.head.appendChild(script);
 }
 /**

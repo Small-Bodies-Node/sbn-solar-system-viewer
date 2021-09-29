@@ -1,7 +1,7 @@
 import { addGlobalStyles } from './add-global-styles';
-import { v4 as uuidv4 } from 'uuid';
+import { simpleUuid } from '../utils/simple-uuid';
 
-export const loaderDivId = 'loader-div-id' + uuidv4();
+export const loaderDivId = 'loader-div-id-' + simpleUuid();
 const borderWidthPxls = 5;
 const spinSpeedMs = 2000;
 

@@ -19,6 +19,7 @@ module.exports = {
       const origExternal = config.external;
       config.external = id => {
         if (id.startsWith('three/examples/')) return false;
+        if (id.startsWith('react-icons/')) return false;
         if (id === 'three' && process.env.BUNDLE_THREE) return false;
         return origExternal(id);
       };

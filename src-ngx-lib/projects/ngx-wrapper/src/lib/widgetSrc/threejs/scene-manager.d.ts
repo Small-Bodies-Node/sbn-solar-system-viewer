@@ -22,7 +22,7 @@ export declare class SceneManager extends AbstractSceneManager {
     private zoomTraversalFraction;
     private zoomClock;
     private isScenePaused;
-    updateMessageField: (msg: string) => void;
+    updateDisplayedMessage: (msg: string) => void;
     constructor(containerId: string);
     setIsToyScale: (isToyScale: boolean) => void;
     toggleIsToyScale: () => void;

@@ -1,9 +1,9 @@
-import { FiPhone } from 'react-icons/fi';
+// import { FiPhone } from 'react-icons/fi';
 import { AiOutlineSetting } from 'react-icons/ai';
 import { IoIosSettings } from 'react-icons/io';
 
 const iconsDict = {
-  FiPhone,
+  // FiPhone,
   AiOutlineSetting,
   IoIosSettings,
 };

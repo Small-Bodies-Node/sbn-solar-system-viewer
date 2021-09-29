@@ -4,12 +4,15 @@
  * the default values of the "dynamic" settings that the user can set
  * and that will then persist within localStorage (at least, that is the eventual goal)
  */
-import { ECometAsteroidLoadingMode } from './threejs/models/ECometAsteroidLoadingMode';
-import { ECometAsteroidAbundanceRepresentationMode } from './threejs/models/ECometAsteroidAbundanceRepresentationMode';
-import { EPlanetLoadingMode } from './threejs/models/EPlanetLoadingMode';
-export interface IOptions {
-    __sbnViewer__planetLoadingMode: EPlanetLoadingMode;
-    __sbnViewer__cometAsteroidLoadingMode: ECometAsteroidLoadingMode;
-    __sbnViewer__cometAsteroidAbundanceRepresentationMode: ECometAsteroidAbundanceRepresentationMode;
+export interface IOptionsBooleans {
+    __sbnViewer__isPlanetsLoadedBeforeAnimationBegins: boolean;
+    __sbnViewer__isBeltLoadedBeforeAnimationBegins: boolean;
+    __sbnViewer__isBeltAbundanceToyModel: boolean;
+}
+export interface IOptionsNumbers {
+    __sbnViewer__beltAbundanceMaxObjects: number;
+    __sbnViewer__beltAbundanceHThreshold: number;
+}
+export interface IOptions extends IOptionsBooleans, IOptionsNumbers {
 }
 export declare const defaultOptions: IOptions;

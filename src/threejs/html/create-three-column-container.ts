@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from 'uuid'; // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 import { addGlobalStyles } from './add-global-styles';
+import { simpleUuid } from '../utils/simple-uuid';
 
 /**
  * Function to create a div with three columns in order to wrap around switches and/or
@@ -7,7 +7,7 @@ import { addGlobalStyles } from './add-global-styles';
  */
 
 export const createThreeColumnContainer = (
-  id = 'placeholder-id' + uuidv4()
+  id = 'placeholder-id' + simpleUuid()
 ) => {
   /**
    * Construct and return divs of the following format

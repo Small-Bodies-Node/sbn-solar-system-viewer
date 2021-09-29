@@ -1,18 +1,17 @@
-import { v4 as uuidv4 } from 'uuid'; // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
-
 import { addGlobalStyles } from './add-global-styles';
 import { createTitledSwitch } from './create-titled-switch';
 import { createTitledInput } from './create-titled-input';
 import { getAllOptions } from '../utils/get-all-options';
 import { getHrDiv } from './create-hr-div';
 import { createThreeColumnContainer } from './create-three-column-container';
+import { simpleUuid } from '../utils/simple-uuid';
 
 // Make some unique ids
-export const settingsPanelIdX = 'settings-panel-id-' + uuidv4();
+export const settingsPanelIdX = 'settings-panel-id-' + simpleUuid();
 export const maxObjectsContainerDivId =
-  'max-objects-container-div-id-' + uuidv4();
+  'max-objects-container-div-id-' + simpleUuid();
 export const thresholdHContainerDivId =
-  'threshold-H-container-div-id-' + uuidv4();
+  'threshold-H-container-div-id-' + simpleUuid();
 
 // Track state of panel open-closed
 let isSettingsPanelDisplayed = false;
