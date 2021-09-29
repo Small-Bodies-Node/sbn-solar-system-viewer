@@ -157,6 +157,15 @@ export const createSettingsPanel = () => {
   settingsPanelDiv.append(thresholdHContainerDiv);
   settingsPanelDiv.append(getHrDiv());
 
+  //
+  const temp = document.createElement('div');
+  temp.innerHTML = `
+  <span class="material-icons-outlined">
+    settings
+  </span>
+  `;
+  settingsPanelDiv.append(temp);
+
   // Return assets having created them
   return {
     toggleSettingsPanelCb,
