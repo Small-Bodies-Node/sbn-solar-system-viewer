@@ -1,4 +1,4 @@
-import { getReactIconSvg } from '../utils/get-react-icon-svg';
+import { createGoogleIcon } from './create-google-icon';
 
 /**
  * Adds settings button to top-right of UI
@@ -20,11 +20,15 @@ export const createSettingsButton = (toggleSettingsPanelCb: () => void) => {
   settingsButtonDiv.style.setProperty('z-index', '2');
   // svgWrapperDiv.style.setProperty('background-color', 'pink');
 
-  // Inject SVG into div
-  settingsButtonDiv.innerHTML = getReactIconSvg('IoIosSettings', {
+  // Add icon to button
+  settingsButtonDiv.append(
+    createGoogleIcon('settings', { color: 'white', sizePxls: 50 })
+  );
+
+  /*   getReactIconSvg('IoIosSettings', {
     fillColor: 'white',
     size: settingsSizePxls,
-  });
+  }); */
 
   // Add listener
   settingsButtonDiv.addEventListener('click', toggleSettingsPanelCb);
