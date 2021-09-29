@@ -24,6 +24,8 @@ module.exports = {
         return origExternal(id);
       };
       config.output.globals['three'] = 'THREE';
+      console.log('==============');
+      console.log(config);
     }
 
     if (config.output.format === 'esm') {

@@ -1,13 +1,10 @@
 import { buttonFontFamily } from '../utils/constants';
-import { addGlobalStyles } from './add-global-styles';
 
 /**
  *
  */
 export const createSearchField = (onEnter: (value: string) => void) => {
-  //
-
-  addGlobalStyles();
+  // --->>
 
   const div = document.createElement('div');
   const input = document.createElement('input');

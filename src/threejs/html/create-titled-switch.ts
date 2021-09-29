@@ -1,4 +1,3 @@
-import { addGlobalStyles } from './add-global-styles';
 import { getAllOptions, getAllOptionsBooleans } from '../utils/get-all-options';
 import { setOptions } from '../utils/set-options';
 import { IOptionsBooleans } from '../../options';
@@ -35,9 +34,6 @@ export const createTitledSwitch = (
     <div>
    *
    */
-
-  // Put a lot of the styles in the global file
-  addGlobalStyles();
 
   // Get handles on the container html for this switch
   const {

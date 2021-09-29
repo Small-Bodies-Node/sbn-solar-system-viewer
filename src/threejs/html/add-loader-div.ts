@@ -1,4 +1,3 @@
-import { addGlobalStyles } from './add-global-styles';
 import { simpleUuid } from '../utils/simple-uuid';
 
 export const loaderDivId = 'loader-div-id-' + simpleUuid();
@@ -19,9 +18,6 @@ export const addLoaderDiv = (containerDiv: HTMLElement) => {
   // Only add once
   if (isInit) return;
   isInit = true;
-
-  // Injects key frames for spin animation
-  addGlobalStyles();
 
   // Create divs
   const loaderDiv = document.createElement('div');

@@ -2029,23 +2029,6 @@
     return 149597870700 * aus;
   }
 
-  /**
-   * Function to inject global styles into the document head
-   * Make sure to prefix all of your global class names, etc. with
-   * something unique to this widget to avoid clashes
-   * E.g. sbn-solar-system-viewer-
-   */
-  var addGlobalStyles = function addGlobalStyles() {
-    // --->>>
-    // Some params
-    var switchOnColor = 'red';
-    var switchOffColor = 'blue'; // Only set once
-
-    var globalStyle = document.createElement('style');
-    globalStyle.innerHTML = "\n    @keyframes sbn-solar-system-viewer-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n\n    @keyframes sbn-solar-system-viewer-loader-spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n\n    .sbn-solar-system-viewer-input:focus{\n        outline-width: 0;\n    }\n\n    /**\n     *\n     * This is for styling the switches\n     *\n     */\n    .three-column-container {\n      width: 100%;\n      height: 34px;\n      display: flex;\n      white-space: nowrap;\n    }\n\n    .three-column-container .switch {\n      position: relative;\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n    }\n\n    /* Hide default HTML checkbox */\n    .three-column-container .switch input {\n      opacity: 0;\n      width: 0;\n      height: 0;\n    }\n\n    /* The slider */\n    .three-column-container .slider {\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #ccc;\n      background-color: " + switchOnColor + ";\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container .slider:before {\n      position: absolute;\n      content: \"\";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: 4px;\n      background-color: white;\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container input:checked + .slider {\n      background-color: #2196F3;\n      background-color: " + switchOffColor + ";\n    }\n\n    .three-column-container input:focus + .slider {\n      box-shadow: 0 0 1px #2196F3;\n    }\n\n    .three-column-container input:checked + .slider:before {\n      -webkit-transform: translateX(26px);\n      -ms-transform: translateX(26px);\n      transform: translateX(26px);\n    }\n  ";
-    document.head.append(globalStyle);
-  };
-
   var count = 0;
   var simpleUuid = function simpleUuid() {
     count++;
@@ -2067,9 +2050,7 @@
     // --->>>
     // Only add once
     if (isInit) return;
-    isInit = true; // Injects key frames for spin animation
-
-    addGlobalStyles(); // Create divs
+    isInit = true; // Create divs
 
     var loaderDiv = document.createElement('div');
     var animDiv = document.createElement('div');
@@ -2777,18 +2758,10 @@
   /**
    * Constants for widget
    */
-  /**
-   * Properties common to all html buttons
-   */
 
-  var buttonBackgroundColor = 'rgba(255,255,255,0.2)';
-  var buttonClickedBackgroundColor = 'rgba(255,255,255,0.4)';
-  var buttonTextColor = 'rgba(255,255,255,0.8)';
-  var buttonCursorType = 'pointer';
-  var buttonFadeInSpecs = '1s ease-in-out'; // These two properties must be coordinated together using e.g. google.fonts
+  var buttonFontFamily = "'Odibee Sans', cursive"; // export const buttonCssUrl =
+  // 'https://fonts.googleapis.com/css2?family=Odibee+Sans';
 
-  var buttonFontFamily = "'Odibee Sans', cursive";
-  var buttonCssUrl = 'https://fonts.googleapis.com/css2?family=Odibee+Sans';
   /**
    * Root url of file server with copy of /images
    */
@@ -10688,8 +10661,7 @@
    */
 
   var createSearchField = function createSearchField(onEnter) {
-    //
-    addGlobalStyles();
+    // --->>
     var div = document.createElement('div');
     var input = document.createElement('input');
     div.style.setProperty('position', 'absolute');
@@ -11318,69 +11290,6 @@
           switch (_context.prev = _context.next) {
             case 0:
               return _context.abrupt("return", new Promise(function (resolve) {
-                // --->>
-                // Add to global styles
-                addGlobalStyles(); // Start loading the remote fonts style sheet; mutate button on completion
-
-                // Start loading the remote fonts style sheet; mutate button on completion
-                var link = document.createElement('link');
-                link.rel = 'stylesheet';
-
-                link.onload = function () {
-                  // console.log('Loaded css url for fonts');
-                  mutateButton();
-                };
-
-                link.onerror = function () {
-                  console.log('Failed to load css url for fonts; continuing anyway...');
-                  mutateButton();
-                };
-
-                link.href = buttonCssUrl;
-                document.head.append(link); // Callback to mutate button
-
-                // Callback to mutate button
-                function mutateButton() {
-                  // Positioning
-                  // button.style.position = 'absolute';
-                  // button.style.setProperty('padding', buttonPadding);
-                  // Colors
-                  button.style.setProperty('color', buttonTextColor);
-                  button.style.setProperty('background-color', buttonBackgroundColor); // Font stuff
-
-                  // Font stuff
-                  button.style.setProperty('font-family', buttonFontFamily);
-                  button.style.setProperty('font-size', '20px'); // Setup fade-in effect
-
-                  // Setup fade-in effect
-                  button.style.setProperty('animation', "sbn-solar-system-viewer-fade-in " + buttonFadeInSpecs); // Cursor behavior
-                  // Prevent text in button from being selectable
-                  // See here: https://stackoverflow.com/a/4407335/8620332
-
-                  // Cursor behavior
-                  // Prevent text in button from being selectable
-                  // See here: https://stackoverflow.com/a/4407335/8620332
-                  button.style.setProperty('cursor', buttonCursorType);
-                  button.style.setProperty('-webkit-touch-callout', 'none');
-                  button.style.setProperty('-webkit-user-select', 'none');
-                  button.style.setProperty('-khtml-user-select', 'none');
-                  button.style.setProperty('-moz-user-select', 'none');
-                  button.style.setProperty('-ms-user-select', 'none');
-                  button.style.setProperty('user-select', 'none'); // Properties related to click effect
-
-                  // Properties related to click effect
-                  button.style.setProperty('transition', 'background-color 50ms ease-in-out');
-                  button.addEventListener('click', function () {
-                    button.style.setProperty('background-color', buttonClickedBackgroundColor);
-                    setTimeout(function () {
-                      button.style.setProperty('background-color', buttonBackgroundColor);
-                      onClickCB();
-                    }, 200);
-                  }); // Return mutated button
-
-                  // Return mutated button
-                  resolve(button);
-                }
               }));
 
             case 1:
@@ -11504,10 +11413,8 @@
   /**
    * Create div in which messages will be displayed
    */
-
   function createDisplayMessageDiv() {
     // --->>
-    addGlobalStyles();
     var displayMessageDiv = document.createElement('div');
     displayMessageDiv.id = 'message-field';
     displayMessageDiv.style.setProperty('position', 'absolute');
@@ -11532,135 +11439,33 @@
     };
   }
 
-  var DefaultContext = {
-    color: undefined,
-    size: undefined,
-    className: undefined,
-    style: undefined,
-    attr: undefined
-  };
-  var IconContext = React.createContext && React.createContext(DefaultContext);
-
-  var __assign = undefined && undefined.__assign || function () {
-    __assign = Object.assign || function (t) {
-      for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-      }
-
-      return t;
-    };
-
-    return __assign.apply(this, arguments);
-  };
-
-  var __rest = undefined && undefined.__rest || function (s, e) {
-    var t = {};
-
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
-
-    if (s != null && typeof Object.getOwnPropertySymbols === "function") for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
-    }
-    return t;
-  };
-
-  function Tree2Element(tree) {
-    return tree && tree.map(function (node, i) {
-      return React.createElement(node.tag, __assign({
-        key: i
-      }, node.attr), Tree2Element(node.child));
-    });
-  }
-
-  function GenIcon(data) {
-    return function (props) {
-      return React.createElement(IconBase, __assign({
-        attr: __assign({}, data.attr)
-      }, props), Tree2Element(data.child));
-    };
-  }
-  function IconBase(props) {
-    var elem = function (conf) {
-      var attr = props.attr,
-          size = props.size,
-          title = props.title,
-          svgProps = __rest(props, ["attr", "size", "title"]);
-
-      var computedSize = size || conf.size || "1em";
-      var className;
-      if (conf.className) className = conf.className;
-      if (props.className) className = (className ? className + ' ' : '') + props.className;
-      return React.createElement("svg", __assign({
-        stroke: "currentColor",
-        fill: "currentColor",
-        strokeWidth: "0"
-      }, conf.attr, attr, svgProps, {
-        className: className,
-        style: __assign(__assign({
-          color: props.color || conf.color
-        }, conf.style), props.style),
-        height: computedSize,
-        width: computedSize,
-        xmlns: "http://www.w3.org/2000/svg"
-      }), title && React.createElement("title", null, title), props.children);
-    };
-
-    return IconContext !== undefined ? React.createElement(IconContext.Consumer, null, function (conf) {
-      return elem(conf);
-    }) : elem(DefaultContext);
-  }
-
-  // THIS FILE IS AUTO GENERATED
-  function AiOutlineSetting (props) {
-    return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 1024 1024"},"child":[{"tag":"path","attr":{"d":"M924.8 625.7l-65.5-56c3.1-19 4.7-38.4 4.7-57.8s-1.6-38.8-4.7-57.8l65.5-56a32.03 32.03 0 0 0 9.3-35.2l-.9-2.6a443.74 443.74 0 0 0-79.7-137.9l-1.8-2.1a32.12 32.12 0 0 0-35.1-9.5l-81.3 28.9c-30-24.6-63.5-44-99.7-57.6l-15.7-85a32.05 32.05 0 0 0-25.8-25.7l-2.7-.5c-52.1-9.4-106.9-9.4-159 0l-2.7.5a32.05 32.05 0 0 0-25.8 25.7l-15.8 85.4a351.86 351.86 0 0 0-99 57.4l-81.9-29.1a32 32 0 0 0-35.1 9.5l-1.8 2.1a446.02 446.02 0 0 0-79.7 137.9l-.9 2.6c-4.5 12.5-.8 26.5 9.3 35.2l66.3 56.6c-3.1 18.8-4.6 38-4.6 57.1 0 19.2 1.5 38.4 4.6 57.1L99 625.5a32.03 32.03 0 0 0-9.3 35.2l.9 2.6c18.1 50.4 44.9 96.9 79.7 137.9l1.8 2.1a32.12 32.12 0 0 0 35.1 9.5l81.9-29.1c29.8 24.5 63.1 43.9 99 57.4l15.8 85.4a32.05 32.05 0 0 0 25.8 25.7l2.7.5a449.4 449.4 0 0 0 159 0l2.7-.5a32.05 32.05 0 0 0 25.8-25.7l15.7-85a350 350 0 0 0 99.7-57.6l81.3 28.9a32 32 0 0 0 35.1-9.5l1.8-2.1c34.8-41.1 61.6-87.5 79.7-137.9l.9-2.6c4.5-12.3.8-26.3-9.3-35zM788.3 465.9c2.5 15.1 3.8 30.6 3.8 46.1s-1.3 31-3.8 46.1l-6.6 40.1 74.7 63.9a370.03 370.03 0 0 1-42.6 73.6L721 702.8l-31.4 25.8c-23.9 19.6-50.5 35-79.3 45.8l-38.1 14.3-17.9 97a377.5 377.5 0 0 1-85 0l-17.9-97.2-37.8-14.5c-28.5-10.8-55-26.2-78.7-45.7l-31.4-25.9-93.4 33.2c-17-22.9-31.2-47.6-42.6-73.6l75.5-64.5-6.5-40c-2.4-14.9-3.7-30.3-3.7-45.5 0-15.3 1.2-30.6 3.7-45.5l6.5-40-75.5-64.5c11.3-26.1 25.6-50.7 42.6-73.6l93.4 33.2 31.4-25.9c23.7-19.5 50.2-34.9 78.7-45.7l37.9-14.3 17.9-97.2c28.1-3.2 56.8-3.2 85 0l17.9 97 38.1 14.3c28.7 10.8 55.4 26.2 79.3 45.8l31.4 25.8 92.8-32.9c17 22.9 31.2 47.6 42.6 73.6L781.8 426l6.5 39.9zM512 326c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm79.2 255.2A111.6 111.6 0 0 1 512 614c-29.9 0-58-11.7-79.2-32.8A111.6 111.6 0 0 1 400 502c0-29.9 11.7-58 32.8-79.2C454 401.6 482.1 390 512 390c29.9 0 58 11.6 79.2 32.8A111.6 111.6 0 0 1 624 502c0 29.9-11.7 58-32.8 79.2z"}}]})(props);
-  }
-
-  // THIS FILE IS AUTO GENERATED
-  function IoIosSettings (props) {
-    return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 512 512"},"child":[{"tag":"path","attr":{"d":"M416.3 256c0-21 13.1-38.9 31.7-46.1-4.9-20.5-13-39.7-23.7-57.1-6.4 2.8-13.2 4.3-20.1 4.3-12.6 0-25.2-4.8-34.9-14.4-14.9-14.9-18.2-36.8-10.2-55-17.3-10.7-36.6-18.8-57-23.7C295 82.5 277 95.7 256 95.7S217 82.5 209.9 64c-20.5 4.9-39.7 13-57.1 23.7 8.1 18.1 4.7 40.1-10.2 55-9.6 9.6-22.3 14.4-34.9 14.4-6.9 0-13.7-1.4-20.1-4.3C77 170.3 68.9 189.5 64 210c18.5 7.1 31.7 25 31.7 46.1 0 21-13.1 38.9-31.6 46.1 4.9 20.5 13 39.7 23.7 57.1 6.4-2.8 13.2-4.2 20-4.2 12.6 0 25.2 4.8 34.9 14.4 14.8 14.8 18.2 36.8 10.2 54.9 17.4 10.7 36.7 18.8 57.1 23.7 7.1-18.5 25-31.6 46-31.6s38.9 13.1 46 31.6c20.5-4.9 39.7-13 57.1-23.7-8-18.1-4.6-40 10.2-54.9 9.6-9.6 22.2-14.4 34.9-14.4 6.8 0 13.7 1.4 20 4.2 10.7-17.4 18.8-36.7 23.7-57.1-18.4-7.2-31.6-25.1-31.6-46.2zm-159.4 79.9c-44.3 0-80-35.9-80-80s35.7-80 80-80 80 35.9 80 80-35.7 80-80 80z"}}]})(props);
-  }
-
-  // import { FiPhone } from 'react-icons/fi';
-  var iconsDict = {
-    // FiPhone,
-    AiOutlineSetting: AiOutlineSetting,
-    IoIosSettings: IoIosSettings
-  };
   /**
-   * This is a wrapper around react-icons. react-icons is a great resource; it makes
-   * it super easy to add icons from a massive array of options. Unfortunatley, we are
-   * not using react here, so I've made this function to crudely extract the SVG from
-   * the react-svg generator, and enabled this function to inject parameters into the
-   * returned string representation.
+   * Generates simple google icon span of the form:
    *
-   * NOTE! This wrapper only extracts the first d property for the path element; if you try
-   * to use an icon with more than one path, then you won't get the comlete icon; in short
-   * only use simple-looking icons from react-icons
+    <span class="material-icons[-outlined]">
+      [label]
+    </span>
    *
    */
+  function createGoogleIcon(label, options) {
+    var _sizePxls$color$isOut = _extends({
+      // Default vals
+      sizePxls: 18,
+      color: 'black',
+      isOutlined: false
+    }, options),
+        sizePxls = _sizePxls$color$isOut.sizePxls,
+        isOutlined = _sizePxls$color$isOut.isOutlined,
+        color = _sizePxls$color$isOut.color;
 
-  var getReactIconSvg = function getReactIconSvg(icon, options) {
-    if (options === void 0) {
-      options = {};
-    }
-
-    // --->>
-    // Extract essential data from react-icons instance
-    var reactIcon = iconsDict[icon]({});
-    var d = reactIcon.props.children[0].props.d;
-    var viewBox = reactIcon.props.attr.viewBox; // Options
-
-    var SIZE = options.size || 20;
-    var FILL_COLOR = options.fillColor || 'none';
-    var STROKE_COLOR = options.strokeColor || 'white'; // 'none' for transparent
-
-    var STROKE_WIDTH = options.strokeWidth || 2;
-    var svg = "\n    <svg\n      stroke=\"" + STROKE_COLOR + "\"\n      fill=\"" + FILL_COLOR + "\"\n      stroke-width=\"" + STROKE_WIDTH + "\"\n      viewBox=\"" + viewBox + "\"\n      stroke-linecap=\"round\"\n      stroke-linejoin=\"round\"\n      height=\"" + SIZE + "\"\n      width=\"" + SIZE + "\"\n      xmlns=\"http://www.w3.org/2000/svg\"\n    >\n      <path\n        d=\"" + d + "\"\n      </path>\n    </svg>"; // console.log('svg', svg);
-
-    return svg;
-  };
+    var iconSpan = document.createElement('span');
+    iconSpan.innerHTML = "" + label;
+    iconSpan.classList.add(isOutlined ? 'material-icons-outlined' : 'material-icons');
+    iconSpan.style.setProperty('font-size', sizePxls + 'px');
+    iconSpan.style.setProperty('color', color);
+    iconSpan.style.setProperty('cursor', 'pointer');
+    return iconSpan;
+  }
 
   /**
    * Adds settings button to top-right of UI
@@ -11680,12 +11485,17 @@
     settingsButtonDiv.style.setProperty('justify-content', 'center');
     settingsButtonDiv.style.setProperty('align-items', 'center');
     settingsButtonDiv.style.setProperty('z-index', '2'); // svgWrapperDiv.style.setProperty('background-color', 'pink');
-    // Inject SVG into div
+    // Add icon to button
 
-    settingsButtonDiv.innerHTML = getReactIconSvg('IoIosSettings', {
+    settingsButtonDiv.append(createGoogleIcon('settings', {
+      color: 'white',
+      sizePxls: 50
+    }));
+    /*   getReactIconSvg('IoIosSettings', {
       fillColor: 'white',
-      size: settingsSizePxls
-    }); // Add listener
+      size: settingsSizePxls,
+    }); */
+    // Add listener
 
     settingsButtonDiv.addEventListener('click', toggleSettingsPanelCb); // Finish
 
@@ -11723,9 +11533,7 @@
       <div>
      *
      */
-    // Put a lot of the styles in the global file
-    addGlobalStyles(); // Create the container
-
+    // Create the container
     var threeColumnContainerDiv = document.createElement('div');
     threeColumnContainerDiv.classList.add('three-column-container');
     threeColumnContainerDiv.style.setProperty('overflow-x', 'scroll');
@@ -11799,9 +11607,7 @@
       <div>
      *
      */
-    // Put a lot of the styles in the global file
-    addGlobalStyles(); // Get handles on the container html for this switch
-
+    // Get handles on the container html for this switch
     var _createThreeColumnCon = createThreeColumnContainer(),
         threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
         firstColumnDiv = _createThreeColumnCon.firstColumnDiv,
@@ -11855,8 +11661,7 @@
 
   var createTitledInput = function createTitledInput(title, key) {
     // --->>
-    addGlobalStyles(); // Create handles for container divs
-
+    // Create handles for container divs
     var _createThreeColumnCon = createThreeColumnContainer(),
         threeColumnContainerDiv = _createThreeColumnCon.threeColumnContainerDiv,
         firstColumnDiv = _createThreeColumnCon.firstColumnDiv,
@@ -11915,8 +11720,7 @@
 
   var createSettingsPanel = function createSettingsPanel() {
     // --->>
-    addGlobalStyles(); // Create container for the settings panel
-
+    // Create container for the settings panel
     var settingsPanelDiv = document.createElement('div');
     settingsPanelDiv.id = settingsPanelIdX;
     settingsPanelDiv.style.setProperty('position', 'absolute');
@@ -12273,6 +12077,121 @@
   }(AbstractSceneManager);
 
   /**
+   * Function to inject link into header for google font
+   * We use a dictionary to track the fonts we've added so
+   * we don't needlessly add it more than once
+   *
+   * The fontName is everything passed after the base url:
+   * https://fonts.googleapis.com/
+   *
+   * E.g. to load:
+   * https://fonts.googleapis.com/icon?family=Material+Icons
+   *
+   * ... you need a fontName of 'icon?family=Material+Icons'
+   */
+  var fontsAdded = [];
+  var addGoogleFont = function addGoogleFont(fontName) {
+    // --->>>
+    if (fontsAdded.includes(fontName)) return;
+    fontsAdded.push(fontName);
+    var newLink = document.createElement('link');
+    newLink.rel = 'stylesheet';
+    newLink.href = "https://fonts.googleapis.com/" + fontName;
+    document.head.append(newLink);
+  };
+
+  var isGlobalStylesSet = false;
+  /**
+   * Function to inject global styles into the document head
+   * Make sure to prefix all of your global class names, etc. with
+   * something unique to this widget to avoid clashes
+   * E.g. sbn-solar-system-viewer-
+   */
+
+  var addGlobalStyles = function addGlobalStyles() {
+    // --->>
+    // Only run this function once
+    if (isGlobalStylesSet) return;
+    isGlobalStylesSet = true; // Some params
+
+    var switchOnColor = 'red';
+    var switchOffColor = 'blue'; // Create style element
+
+    var globalStyle = document.createElement('style');
+    globalStyle.innerHTML = "\n    @keyframes sbn-solar-system-viewer-fade-in {\n      from { opacity: 0; }\n      to   { opacity: 1; }\n    }\n\n    @keyframes sbn-solar-system-viewer-loader-spin {\n      0% { transform: rotate(0deg); }\n      100% { transform: rotate(360deg); }\n    }\n\n    .sbn-solar-system-viewer-input:focus{\n        outline-width: 0;\n    }\n\n    /**\n     *\n     * This is for styling the switches\n     *\n     */\n    .three-column-container {\n      width: 100%;\n      height: 34px;\n      display: flex;\n      white-space: nowrap;\n    }\n\n    .three-column-container .switch {\n      position: relative;\n      display: inline-block;\n      width: 60px;\n      height: 34px;\n    }\n\n    /* Hide default HTML checkbox */\n    .three-column-container .switch input {\n      opacity: 0;\n      width: 0;\n      height: 0;\n    }\n\n    /* The slider */\n    .three-column-container .slider {\n      position: absolute;\n      cursor: pointer;\n      top: 0;\n      left: 0;\n      right: 0;\n      bottom: 0;\n      background-color: #ccc;\n      background-color: " + switchOnColor + ";\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container .slider:before {\n      position: absolute;\n      content: \"\";\n      height: 26px;\n      width: 26px;\n      left: 4px;\n      bottom: 4px;\n      background-color: white;\n      -webkit-transition: .4s;\n      transition: .4s;\n    }\n\n    .three-column-container input:checked + .slider {\n      background-color: #2196F3;\n      background-color: " + switchOffColor + ";\n    }\n\n    .three-column-container input:focus + .slider {\n      box-shadow: 0 0 1px #2196F3;\n    }\n\n    .three-column-container input:checked + .slider:before {\n      -webkit-transform: translateX(26px);\n      -ms-transform: translateX(26px);\n      transform: translateX(26px);\n    }\n  ";
+    document.head.append(globalStyle);
+  };
+
+  var isGlobalPropertiesSet = false;
+  var url = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  /**
+   * Function to inject global properties into the document head
+   * This mainly concerns:
+   * - Global styles
+   * - Third-party scripts
+   * - Third-party css
+   */
+
+  var addGlobalProperties = /*#__PURE__*/function () {
+    var _ref = /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee() {
+      return runtime_1.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              return _context.abrupt("return", new Promise(function (resolve, reject) {
+                // --->>
+                console.log('Debug A'); // Only run this function once
+
+                // Only run this function once
+                if (isGlobalPropertiesSet) return;
+                isGlobalPropertiesSet = true;
+                console.log('Debug B'); // Inject global styles into head
+
+                // Inject global styles into head
+                addGlobalStyles();
+                console.log('Debug C'); // Inject 3rd-Party Fonts
+
+                // Inject 3rd-Party Fonts
+                addGoogleFont('css2?family=Odibee+Sans');
+                addGoogleFont('icon?family=Material+Icons');
+                addGoogleFont('icon?family=Material+Icons+Outlined');
+                console.log('Debug D'); // Make sure threeJs v128 is present
+                // @ts-ignore
+
+                // Make sure threeJs v128 is present
+                // @ts-ignore
+                if (window.__THREE__ === '128') {
+                  console.log('Debug E');
+                  resolve();
+                } else {
+                  var threeJsScript = document.createElement('script');
+
+                  threeJsScript.onload = function () {
+                    resolve();
+                  };
+
+                  threeJsScript.onerror = function () {
+                    reject();
+                  };
+
+                  threeJsScript.src = url;
+                }
+              }));
+
+            case 1:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    return function addGlobalProperties() {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  /**
    *  React wrapper
    */
 
@@ -12323,11 +12242,22 @@
     }
 
     // --->>>
-    // Get div to contain canvas
-    var canvasContainer = document.getElementById(containerId);
-    if (!canvasContainer) throw new Error("Can't find div of id " + containerId);
-    threejsScene = new SceneManager(containerId);
-    threejsScene.init();
+    console.log('Debug 0'); // Add threeJs, stuff in the head, etc.
+
+    addGlobalProperties().then(function (_) {
+      console.log('Debug 1'); // Get div to contain canvas
+
+      var canvasContainer = document.getElementById(containerId);
+
+      if (!canvasContainer) {
+        throw new Error("Can't find div of id " + containerId);
+      }
+
+      threejsScene = new SceneManager(containerId);
+      threejsScene.init();
+    })["catch"](function (_) {
+      console.log('Error loading stuff');
+    });
   }
   displayFpsStats();
   /**

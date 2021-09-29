@@ -1,4 +1,3 @@
-import { addGlobalStyles } from './add-global-styles';
 import { simpleUuid } from '../utils/simple-uuid';
 
 /**
@@ -20,9 +19,6 @@ export const createThreeColumnContainer = (
     <div>
    *
    */
-
-  // Put a lot of the styles in the global file
-  addGlobalStyles();
 
   // Create the container
   const threeColumnContainerDiv = document.createElement('div');

@@ -1,4 +1,3 @@
-import { addGlobalStyles } from './add-global-styles';
 import { setOptions } from '../utils/set-options';
 import { getAllOptionsNumbers } from '../utils/get-all-options';
 import { IOptionsNumbers } from '../../options';
@@ -22,8 +21,6 @@ export const createTitledInput = (
   key: keyof IOptionsNumbers
 ) => {
   // --->>
-
-  addGlobalStyles();
 
   // Create handles for container divs
   const {

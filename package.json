@@ -72,8 +72,6 @@
     "typescript": "^3.9.9"
   },
   "dependencies": {
-    "kepler-utils": "^3.0.1",
-    "react-icons": "^4.2.0",
-    "uuid": "^3.4.0"
+    "kepler-utils": "^3.0.1"
   }
 }

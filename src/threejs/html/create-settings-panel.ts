@@ -1,4 +1,3 @@
-import { addGlobalStyles } from './add-global-styles';
 import { createTitledSwitch } from './create-titled-switch';
 import { createTitledInput } from './create-titled-input';
 import { getAllOptions } from '../utils/get-all-options';
@@ -22,8 +21,6 @@ let isSettingsPanelDisplayed = false;
  */
 export const createSettingsPanel = () => {
   // --->>
-
-  addGlobalStyles();
 
   // Create container for the settings panel
   const settingsPanelDiv = document.createElement('div');

@@ -1,24 +1,23 @@
+import { addGoogleFont } from './add-google-font';
+
+let isGlobalStylesSet = false;
+
 /**
  * Function to inject global styles into the document head
  * Make sure to prefix all of your global class names, etc. with
  * something unique to this widget to avoid clashes
  * E.g. sbn-solar-system-viewer-
  */
-
-import { addGoogleFont } from './add-google-font';
-
-let isGlobalStylesSet = false;
-
 export const addGlobalStyles = () => {
-  // --->>>
+  // --->>
+
+  // Only run this function once
+  if (isGlobalStylesSet) return;
+  isGlobalStylesSet = true;
 
   // Some params
   const switchOnColor = 'red';
   const switchOffColor = 'blue';
-
-  // Only set once
-  if (isGlobalStylesSet) return;
-  isGlobalStylesSet = true;
 
   // Create style element
   const globalStyle = document.createElement('style');
@@ -106,9 +105,4 @@ export const addGlobalStyles = () => {
   `;
 
   document.head.append(globalStyle);
-
-  // Fonts
-  addGoogleFont('css2?family=Odibee+Sans');
-  addGoogleFont('icon?family=Material+Icons');
-  addGoogleFont('icon?family=Material+Icons+Outlined');
 };

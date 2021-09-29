@@ -7,7 +7,6 @@ import {
   buttonCursorType,
   buttonFadeInSpecs,
 } from '../utils/constants';
-import { addGlobalStyles } from './add-global-styles';
 
 /**
  * Function to mutate buttons by injecting them with properties
@@ -19,9 +18,6 @@ export const injectCommonButtonProperties = async (
 ): Promise<HTMLElement> => {
   return new Promise(resolve => {
     // --->>
-
-    // Add to global styles
-    addGlobalStyles();
 
     // Start loading the remote fonts style sheet; mutate button on completion
     /*     const link = document.createElement('link');

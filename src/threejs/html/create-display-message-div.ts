@@ -1,12 +1,8 @@
-import { addGlobalStyles } from './add-global-styles';
-
 /**
  * Create div in which messages will be displayed
  */
 export function createDisplayMessageDiv() {
   // --->>
-
-  addGlobalStyles();
 
   const displayMessageDiv = document.createElement('div');
   displayMessageDiv.id = 'message-field';
