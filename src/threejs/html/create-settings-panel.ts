@@ -158,13 +158,14 @@ export const createSettingsPanel = () => {
   settingsPanelDiv.append(getHrDiv());
 
   //
-  const temp = document.createElement('div');
+  /*   const temp = document.createElement('div');
   temp.innerHTML = `
   <span class="material-icons-outlined">
     settings
   </span>
+  <span class="material-icons">face</span>
   `;
-  settingsPanelDiv.append(temp);
+  settingsPanelDiv.append(temp); */
 
   // Return assets having created them
   return {

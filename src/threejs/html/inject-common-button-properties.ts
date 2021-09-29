@@ -5,7 +5,6 @@ import {
   buttonTextColor,
   buttonPadding,
   buttonCursorType,
-  buttonCssUrl,
   buttonFadeInSpecs,
 } from '../utils/constants';
 import { addGlobalStyles } from './add-global-styles';
@@ -25,7 +24,7 @@ export const injectCommonButtonProperties = async (
     addGlobalStyles();
 
     // Start loading the remote fonts style sheet; mutate button on completion
-    const link = document.createElement('link');
+    /*     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.onload = () => {
       // console.log('Loaded css url for fonts');
@@ -34,9 +33,9 @@ export const injectCommonButtonProperties = async (
     link.onerror = () => {
       console.log('Failed to load css url for fonts; continuing anyway...');
       mutateButton();
-    };
-    link.href = buttonCssUrl;
-    document.head.append(link);
+    }; */
+    // link.href = buttonCssUrl;
+    // document.head.append(link);
 
     // Callback to mutate button
     function mutateButton() {
