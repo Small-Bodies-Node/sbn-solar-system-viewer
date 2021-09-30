@@ -5,7 +5,7 @@
   "author": "dwd",
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "dist/sbnsolarsystemviewer.esm.js",
+  "module": "dist/sbn-solar-system-viewer.esm.js",
   "engines": {
     "node": ">=10"
   },

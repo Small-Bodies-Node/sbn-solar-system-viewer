@@ -1,6 +1,39 @@
 # SBN Solar System Viewer
 
-## ...
+## Project Set up
+
+This repo is a bit complicated. It's based on a tsdx react project. tsdx is designed to make it easy to build libraries to publish to npm.
+
+However, tsdx is designed to make it easy to build EITHER an esm/cjs-module library OR a react library, but not both at once. To build both at once, I have had to complicate what tsdx gives you out of the box.
+
+Not only that, but I also wanted to make it easy for someone wanting to embed the solar-system viewer into an angular project to be able to do so easily.
+
+(On retrospect, I think that the extra complexity is not worth it; better to make visual widgets as a simple UMD modules and leave it to the user to bridge the complexity of incorporating the UMD into their SPA.)
+
+In any case, here's how things work.
+
+The way of developing a tsdx project out of the box is to run something like `parcel serve -p 3000 src/dev.html`, which includes `<script type="module" src="./dev.tsx"></script>` as the entry point. I.e. we're not even using tsdx, we are just running our code 'directly'.
+
+To build the foundations of our library, we run `tsdx build --format cjs,esm,umd --name SbnSolarSystemViewer`. This generates a dir dist in which you will find the resulting js files:
+
+```
+sbnsolarsystemviewer.cjs.development.js
+sbnsolarsystemviewer.cjs.development.js.map
+sbnsolarsystemviewer.cjs.production.min.js
+sbnsolarsystemviewer.cjs.production.min.js.map
+sbnsolarsystemviewer.esm.js
+sbnsolarsystemviewer.esm.js.map
+sbnsolarsystemviewer.umd.development.js
+sbnsolarsystemviewer.umd.development.js.map
+sbnsolarsystemviewer.umd.production.min.js
+sbnsolarsystemviewer.umd.production.min.js.map
+```
+
+The files ending `*.umd.js` are UMD modules, and can be run "directly" in an html file as demonstrated in the dir `demo-umd`. The cjs and esm files can be imported into other ts/js files using `require` and `import` keywords respectively.
+
+The contents of dist constitute the 'library'. Once this dir has been assembled, there are different ways we can use it. One way is to import from it directly, as in the case with demo-react. This is a simple parcel setup that just imports the library from dist (based on the fact that package.json has ....)
+
+[Oh my goodness! I have re-sussed how everything is setup. Honestly, it's so complicated that even describing it will take hours! You'll just have to refigure-out stuff as you go along!]
 
 ## Settings
 

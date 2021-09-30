@@ -1,8 +1,7 @@
-// import { SceneManager } from './threejs/scene-manager';
+import { SceneManager } from './threejs/scene-manager';
 import { addGlobalProperties } from './threejs/utils/add-global-properties';
 
-// let threejsScene: SceneManager;
-let threejsScene: any;
+let threejsScene: SceneManager;
 export let initDate = new Date();
 export const setInitDate = (date: Date) => (initDate = date);
 export const getInitDate = () => initDate;
@@ -26,12 +25,8 @@ export function init(containerId = 'threejs-canvas-container') {
         throw new Error("Can't find div of id " + containerId);
       }
 
-      // threejsScene = new SceneManager(containerId);
-
-      import('./threejs/scene-manager').then(SceneManager => {
-        threejsScene = new SceneManager.SceneManager(containerId);
-        threejsScene.init();
-      });
+      threejsScene = new SceneManager(containerId);
+      threejsScene.init();
     })
     .catch(_ => {
       console.log('Error loading stuff');
