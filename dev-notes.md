@@ -1,12 +1,18 @@
 # Dev Notes
 
+##
+
+The ephemirides are calculated based on this work:
+
+https://stjarnhimlen.se/comp/ppcomp.html#17
+
 ## Threejs Directional Light Helper Subtleties
 
 DL = Directional Light
 
 I came across some issue setting up DLs. If you create your own scene entity with a directional light, then you do NOT want to use that light to initialize the helper. Why? Because the light and the helper need to get added to the `_sceneEntityGroup` to get shown in the scene. However, if you animate that sceneEntity by, say, rotating the group then the helper will get transformed twice because it first gets the rotation applied to it in virtue of being in the group, but it also gets rotated in virtue of being associated with the light, which itself gets rotated in virtue of being in the group. So you need to clone the light and use that clone to initialize the helper.
 
-Next, you need to be mindful of subtlities when it comes to scaling directional lights and their helpers. Basically, it doesn't seem to be that helpers were designed with scaling in mind. I encountered several issues when importing an FBX object with a DL as child. The imported object is actually a THREE.Group instance, and when you scale this group, all the internal children do NOT have their own scales adjusted, rather, they get scaled at render time in virtue of having a group as parent with non-unitary scale.
+Next, you need to be mindful of subtleties when it comes to scaling directional lights and their helpers. Basically, it doesn't seem to be that helpers were designed with scaling in mind. I encountered several issues when importing an FBX object with a DL as child. The imported object is actually a THREE.Group instance, and when you scale this group, all the internal children do NOT have their own scales adjusted, rather, they get scaled at render time in virtue of having a group as parent with non-unitary scale.
 
 So if you try to use that child DL as the initiator of the helper -- or even a clone of that child -- then that helper will be drawn according to the "ungrouped" face-value scale of that child.
 

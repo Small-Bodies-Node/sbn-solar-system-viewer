@@ -41937,6 +41937,12 @@
             return units === 'deg' ? (val * 180) / Math.PI : val;
         };
         /**
+         * DWD Added
+         */
+        SKEphem.prototype.getAttrs = function () {
+            return this._attrs;
+        };
+        /**
          * @private
          * Infers values of some ephemerides attributes if the required information
          * is available.
@@ -41991,6 +41997,8 @@
                 period =
                     (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
                         SECONDS_IN_DAY;
+                // DWD Added:
+                // if (isNaN(period)) console.log('!!!!', this._attrs);
                 this.set('period', period);
             }
             if (e < 1.0) {
@@ -42589,8 +42597,11 @@
     var sin = Math.sin;
     var cos = Math.cos;
     var sqrt = Math.sqrt;
-    var DEFAULT_LEAD_TRAIL_YEARS = 10;
-    var DEFAULT_SAMPLE_POINTS = 360;
+    // DWD: original values
+    // const DEFAULT_LEAD_TRAIL_YEARS = 10;
+    // const DEFAULT_SAMPLE_POINTS = 360;
+    var DEFAULT_LEAD_TRAIL_YEARS = 10 / 10;
+    var DEFAULT_SAMPLE_POINTS = 360 / 10;
     // const DEFAULT_ORBIT_PATH_SETTINGS = {
     //   leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
     //   trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
@@ -42631,6 +42642,7 @@
             return OrbitType.TABLE;
         }
         var e = ephem.get('e');
+        // DWD Adjusted
         if (e > 0.9 && e < 1.2) {
             return OrbitType.PARABOLIC;
         }
@@ -42640,6 +42652,13 @@
         else {
             return OrbitType.ELLIPTICAL;
         }
+        /*   if (e === 1.0) {
+          return OrbitType.PARABOLIC;
+        } else if (e > 1.0) {
+          return OrbitType.HYPERBOLIC;
+        } else {
+          return OrbitType.ELLIPTICAL;
+        } */
     }
     /**
      * A class that builds a visual representation of a Kepler orbit.
@@ -42912,37 +42931,22 @@
          * @param {boolean} forceCompute forces the recomputing of the orbit on this call
          * @return {THREE.Line}
          */
-        SKOrbit.prototype.getOrbitShape = function (jd, forceCompute) {
-            if (forceCompute === void 0) { forceCompute = false; }
-            if (forceCompute) {
-                if (this._orbitShape) {
-                    this._orbitShape.geometry.dispose();
-                    this._orbitShape.material.dispose();
-                }
-                this._orbitShape = undefined;
-                if (this._orbitPoints) {
-                    this._orbitPoints.dispose();
-                }
-                this._orbitPoints = undefined;
-                if (this._eclipticDropLines) {
-                    this._eclipticDropLines.geometry.dispose();
-                    this._eclipticDropLines.material.dispose();
-                }
-                this._eclipticDropLines = undefined;
-            }
-            if (this._orbitShape) {
-                return this._orbitShape;
-            }
+        SKOrbit.prototype.getOrbitShape = function (jd, forceCompute
+        // ): THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> {
+        ) {
             if (this._orbitType === OrbitType.ELLIPTICAL) {
-                return this.getEllipse();
+                // console.log('==>', this._ephem);
+                // return this.getEllipse();
+                return this.getEllipseGeometry();
             }
             // For hyperbolic and parabolic orbits, decide on a time range to draw
             // them.
             // TODO(ian): Should we compute around current position, not time of perihelion?
             // @ts-ignore
-            var tp = this._orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
+            this._orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
             // Use current date as a fallback if time of perihelion is not available.
-            var centerDate = tp ? tp : julian.toJulianDay(new Date());
+            // const centerDate = tp ? tp : julian.toJulianDay(new Date());
+            var centerDate = julian.toJulianDay(new Date());
             var startJd = centerDate - this._options.orbitPathSettings.trailDurationYears * 365.25;
             var endJd = centerDate + this._options.orbitPathSettings.leadDurationYears * 365.25;
             var step = (endJd - startJd) / this._options.orbitPathSettings.numberSamplePoints;
@@ -42953,8 +42957,9 @@
                     return this.getLine(this.getPositionAtTimeHyperbolic.bind(this), startJd, endJd, step);
                 case OrbitType.PARABOLIC:
                     return this.getLine(this.getPositionAtTimeNearParabolic.bind(this), startJd, endJd, step);
-                case OrbitType.TABLE:
-                    return this.getTableOrbit(startJd, endJd, step);
+                // DWD Removed
+                // case OrbitType.TABLE:
+                // return this.getTableOrbit(startJd, endJd, step);
             }
             throw new Error('Unknown orbit shape');
         };
@@ -42973,11 +42978,15 @@
                 //
                 points.push(new Vector3(pos[0], pos[1], pos[2]));
             }
+            // console.log(' >>> ', +new Date() - +d, ' >>> ');
             // const pointsGeometry = new THREE.Geometry();
             // pointsGeometry.vertices = points;
             var pointsGeometry = new BufferGeometry();
             pointsGeometry.setFromPoints(points);
-            return this.generateAndCacheOrbitShape(pointsGeometry);
+            // DWD: originally this function returned a THREE.Line
+            // but in my revamped logic we only want to return the geometry
+            // return this.generateAndCacheOrbitShape(pointsGeometry);
+            return pointsGeometry;
         };
         /**
          * Returns the orbit for a table lookup orbit definition
@@ -43028,7 +43037,7 @@
                 var r = (a * (1 - ecc * ecc)) / (1 + ecc * cos(v));
                 var pos = this.vectorToHeliocentric(v, r);
                 if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
-                    console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:');
+                    console.error('NaN position value - you may have bad or incomplete data in the following ephemeris:', v, r, a, ecc);
                     console.error(eph);
                 }
                 // pts.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
@@ -43182,13 +43191,23 @@
                 _this.SKEph =
                     _this.skephem ||
                         new SKEphem({
+                            // 65P from spacedb?
+                            // epoch: 2458600.5,
+                            // a: 5.38533,
+                            // e: 0.19893,
+                            // i: 22.11137,
+                            // om: 294.42992,
+                            // w: 314.2889,
+                            // ma: 229.14238,
+                            //
                             epoch: 2458600.5,
-                            a: 5.38533,
-                            e: 0.19893,
-                            i: 22.11137,
-                            om: 294.42992,
-                            w: 314.2889,
-                            ma: 229.14238
+                            // a: 5.38533,
+                            e: 0.994954,
+                            i: 89.0608,
+                            om: 283.2105,
+                            w: 130.4979,
+                            q: 2.916594,
+                            tp: 2458043.666667
                         }, 'deg');
                 _this.SKOrbit = new SKOrbit(_this.SKEph, {
                     color: 'cyan',
@@ -43227,9 +43246,11 @@
                 return this.orbitLine;
             if (!this.SKOrbit)
                 throw new Error('Poor logic mi amigo');
-            var geometry = this.SKOrbit.getEllipseGeometry();
+            var geometry = this.SKOrbit.getOrbitShape();
+            // console.log(' 1>>> ', +new Date() - +d, ' >>> ');
             geometry.morphAttributes.position = [];
             var positionAttribute = geometry.attributes.position;
+            // console.log('XXX', geometry);
             var loggedPositions = [];
             for (var i = 0; i < positionAttribute.count; i++) {
                 var x0 = positionAttribute.getX(i);
@@ -43284,14 +43305,15 @@
                 isRealSearch = realDiffLength < tailLength;
                 isLoggedSearch = loggedDiffLength < tailLength;
                 if (isRealSearch) {
-                    realTargetTime += 0.5;
+                    realTargetTime += 0.5 * 10;
                     realDiffLength = realBodyPosition.distanceTo(this.getPosition(realTargetTime));
                 }
                 if (isLoggedSearch) {
-                    loggedTargetTime += 0.5;
+                    loggedTargetTime += 0.5 * 10;
                     loggedDiffLength = loggedBodyPosition.distanceTo(getLoggedPosition(this.getPosition(loggedTargetTime)));
                 }
             }
+            // console.log(' 6>>> ', +new Date() - +d, ' >>> ');
             // Set up loop to generate segments
             var radialSegments = 3;
             var heightSegments = 1;
@@ -43358,8 +43380,15 @@
      *
      */
     function getOrbitFromAsteroidDatum(datum, color, opacity) {
-        var epoch = datum.epoch, a = datum.a, e = datum.e, i = datum.i, om = datum.om, w = datum.w, ma = datum.ma;
-        return new Orbit(datum.desig, EOrbitalType.ASTEROID, new SKEphem({ epoch: epoch, a: a, e: e, i: i, om: om, w: w, ma: ma }, 'deg', true), color, opacity);
+        var epoch = datum.epoch, a = datum.a, e = datum.e, i = datum.i, om = datum.om, w = datum.w, ma = datum.ma, q = datum.q, tp = datum.tp; datum.name;
+        // if (q) console.log('datum', datum);
+        // console.log('name', name);
+        var skEphem = q
+            ? new SKEphem({ epoch: epoch, e: e, i: i, om: om, w: w, q: q, tp: tp }, 'deg', true)
+            : new SKEphem({ epoch: epoch, a: a, e: e, i: i, om: om, w: w, ma: ma }, 'deg', true);
+        var o = new Orbit(datum.desig, EOrbitalType.ASTEROID, skEphem, color, opacity);
+        // if (q) console.log('>>>> ', skEphem._attrs);
+        return o;
     }
 
     /**
@@ -43435,6 +43464,11 @@
         realGeometry.morphAttributes.position[0] = new Float32BufferAttribute(loggedPositions, 3);
     }
 
+    /**
+     * Permissible types of asteroid belt
+     */
+    var cometBeltTypes = ['A', 'C', 'P'];
+
     var radius = getPlanetRadiusMeters('CERES');
     /**
      * Function to do the heavy lifting in loading data,
@@ -43443,18 +43477,32 @@
      */
     function createAsteroidBeltMergedGeometries(belt) {
         return __awaiter(this, void 0, void 0, function () {
-            var hValDict, url, data, asteroidGeometries, tailGeometries, mergedAsteroidGeometry, mergedLoggedAsteroidGeometry, mergedTailsGeometry, mergedLoggedTailsGeometry;
+            var hValDict, asteroidOrCometLocation, url, data, asteroidGeometries, tailGeometries, mergedAsteroidGeometry, mergedLoggedAsteroidGeometry, mergedTailsGeometry, mergedLoggedTailsGeometry;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         hValDict = {
-                            MBA: 'h-11',
+                            /*     MBA: 'h-11',
                             NEO1KM: 'h-20',
                             NOT_NEO1KM: 'h-20',
                             PHA: 'h-999',
-                            DISTANTOBJECT: 'h-7'
+                            DISTANTOBJECT: 'h-7', */
+                            //
+                            MBA: 'h-11',
+                            NEO1KM: 'h-17',
+                            NOT_NEO1KM: 'h-19',
+                            PHA: 'h-19',
+                            DISTANTOBJECT: 'h-6',
+                            // ---
+                            A: 'h-999',
+                            // C: 'h-2',
+                            C: 'h-999',
+                            P: 'h-999'
                         };
-                        url = assetsBaseUrl + "/mpc-data/asteroids/asteroids-" + belt + "-" + hValDict[belt] + ".json";
+                        asteroidOrCometLocation = cometBeltTypes.includes(belt)
+                            ? 'comets/comets'
+                            : 'asteroids/asteroids';
+                        url = assetsBaseUrl + "/mpc-data/" + asteroidOrCometLocation + "-" + belt + "-" + hValDict[belt] + ".json";
                         return [4 /*yield*/, new Promise(function (resolve) {
                                 fetch(url)
                                     .then(function (res) { return res.json(); })
@@ -43468,30 +43516,46 @@
                         // Loop through received data and compute individual geometries
                         data.forEach(function (datum) {
                             // --->>
+                            var _a, _b;
                             // Filter on H
                             var H = datum.H;
                             // if (H <= 0) return;
                             // Compute radius for this object
-                            var r = ((radius * 15) / (H + 1)) * (0.5 + 5 * 0 * Math.random());
+                            var h = H < 1 ? 1 : H;
+                            var r = ((radius * 15) / (h + 0)) * (0.5 + 5 * 0 * Math.random()) * 5000;
+                            // if (r > 10 ** 9) r = 10 ** 9;
+                            if (((_a = datum.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'ceres')
+                                console.log('ceres', r);
+                            if (((_b = datum.name) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'eris')
+                                console.log('eris', r);
                             if (!r || r <= 0)
                                 console.log('!!!!!!!!!!', datum.name);
-                            // Create orbit
                             var orbit = getOrbitFromAsteroidDatum(datum, 'red', 0.01);
+                            // console.log(' 0>>> ', +new Date() - +d, ' >>> ');
                             var position = orbit.getPosition();
                             var x = position.x, y = position.y, z = position.z;
+                            // console.log(' 3>>> ', +new Date() - +d, ' >>> ');
                             // Reject failed orbits
                             if (!x || !y || !z) {
-                                // console.log('>>>>', datum.name, x, y, z);
+                                console.log('FAILED >>>>', datum.name, x, y, z);
                                 return;
                             }
                             // Get tail for asteroid
                             // const tailGeometry = orbit.getTail(r * 50000);
-                            var tailGeometry = orbit.getTail(r * 5000);
+                            var tailGeometry = orbit.getTail(r);
                             tailGeometries.push(tailGeometry);
+                            // console.log(' 4>>> ', +new Date() - +d, ' >>> ');
                             // Create geometry
-                            var asteroidGeometry = createAsteroidGeometry(r * 5000, 0.25 * (1.5 - Math.random()), position);
+                            var asteroidGeometry = createAsteroidGeometry(
+                            // r * 5000,
+                            r, 0.25 * (1.5 - Math.random()), position);
                             asteroidGeometries.push(asteroidGeometry);
+                            // console.log(' 5>>> ', +new Date() - +d, ' >>> ');
                         });
+                        // Merge individual 'real' and 'logged' asteroid geometries into a single
+                        // geometry with the 'real' geometries as the default/base vertices and the
+                        // 'logged' geometries as the morph targets
+                        console.log('asteroidGeometries', asteroidGeometries);
                         mergedAsteroidGeometry = BufferGeometryUtils.mergeBufferGeometries(asteroidGeometries.map(function (_a) {
                             var realGeometry = _a.realGeometry;
                             return realGeometry;

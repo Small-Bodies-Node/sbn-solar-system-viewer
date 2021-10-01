@@ -21,7 +21,7 @@ import { BirdsEye } from './scene-entities/birds-eye';
 import { getDestinationLookPosition } from './utils/get-destination-look-position';
 import { AsteroidBelt } from './scene-entities/asteroid-belt';
 import { myprint } from './utils/myprint';
-import { addHtmlButtonRow } from './html/add-html-button-row';
+import { createHtmlButtonRow } from './html/create-html-button-row';
 import { createDisplayMessageDiv } from './html/create-display-message-div';
 import { createSettingsButton } from './html/create-settings-button';
 import { createSettingsPanel } from './html/create-settings-panel';
@@ -77,20 +77,17 @@ export class SceneManager extends AbstractSceneManager {
     this.updateDisplayedMessage = updateMessageCb;
     this.updateDisplayedMessage('Loading...');
     // Search field
-    const searchFieldDiv = createSearchField(this.tryToStartZooming);
-    this._container.append(searchFieldDiv);
+    this._container.append(createSearchField(this.tryToStartZooming));
     // Buttons in main display
-    !false &&
-      addHtmlButtonRow(
-        [
-          { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
-          { label: 'Toggle helpers', cb: this.toggleHelpersVisibility },
-          { label: 'Toggle Orbits', cb: this.toggleIsOrbitsVisible },
-          { label: 'Toggle Log Scale', cb: this.toggleIsLogScale },
-          { label: 'Toggle Asteroids', cb: this.toggleAsteroids },
-        ],
-        this._container
-      );
+    this._container.append(
+      createHtmlButtonRow([
+        { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
+        { label: 'Toggle helpers', cb: this.toggleHelpersVisibility },
+        { label: 'Toggle Orbits', cb: this.toggleIsOrbitsVisible },
+        { label: 'Toggle Log Scale', cb: this.toggleIsLogScale },
+        { label: 'Toggle Asteroids', cb: this.toggleAsteroids },
+      ])
+    );
     // Settings panel and button
     const { settingsPanelDiv, toggleSettingsPanelCb } = createSettingsPanel();
     this._container.append(settingsPanelDiv);
@@ -119,7 +116,19 @@ export class SceneManager extends AbstractSceneManager {
       // new Asteroid('65P'),
     ];
     this.asteroidBelts = [
-      new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
+      new AsteroidBelt(
+        [
+          //
+          'DISTANTOBJECT',
+          'MBA',
+          'NEO1KM',
+          'PHA',
+          // 'C',
+          // 'P',
+          // 'A',
+        ],
+        this
+      ),
     ];
     this.starField = new StarField(auToMeters(999));
     this.zoomables = [

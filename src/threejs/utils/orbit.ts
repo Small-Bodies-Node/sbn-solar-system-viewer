@@ -73,13 +73,24 @@ export class Orbit {
       this.skephem ||
       new SKEphem(
         {
+          // 65P from spacedb?
+          // epoch: 2458600.5,
+          // a: 5.38533,
+          // e: 0.19893,
+          // i: 22.11137,
+          // om: 294.42992,
+          // w: 314.2889,
+          // ma: 229.14238,
+          //
           epoch: 2458600.5,
-          a: 5.38533,
-          e: 0.19893,
-          i: 22.11137,
-          om: 294.42992,
-          w: 314.2889,
-          ma: 229.14238,
+          // a: 5.38533,
+          e: 0.994954,
+          i: 89.0608,
+          om: 283.2105,
+          w: 130.4979,
+          q: 2.916594,
+          tp: 2458043.666667,
+          // ma: 229.14238,
         },
         'deg'
       );
@@ -99,9 +110,14 @@ export class Orbit {
   getMorphedOrbitLine() {
     if (!!this.orbitLine) return this.orbitLine;
     if (!this.SKOrbit) throw new Error('Poor logic mi amigo');
-    const geometry = this.SKOrbit.getEllipseGeometry();
+    // const geometry = this.SKOrbit.getEllipseGeometry();
+
+    const d = new Date();
+    const geometry = this.SKOrbit.getOrbitShape();
+    // console.log(' 1>>> ', +new Date() - +d, ' >>> ');
     geometry.morphAttributes.position = [];
     const positionAttribute = geometry.attributes.position;
+    // console.log('XXX', geometry);
     const loggedPositions = [];
     for (let i = 0; i < positionAttribute.count; i++) {
       const x0 = positionAttribute.getX(i);
@@ -160,24 +176,26 @@ export class Orbit {
     let loggedDiffLength = 0;
     let isRealSearch = true;
     let isLoggedSearch = true;
+    const d = new Date();
     while (isRealSearch || isLoggedSearch) {
       // --->
 
       isRealSearch = realDiffLength < tailLength;
       isLoggedSearch = loggedDiffLength < tailLength;
       if (isRealSearch) {
-        realTargetTime += 0.5;
+        realTargetTime += 0.5 * 10;
         realDiffLength = realBodyPosition.distanceTo(
           this.getPosition(realTargetTime)
         );
       }
       if (isLoggedSearch) {
-        loggedTargetTime += 0.5;
+        loggedTargetTime += 0.5 * 10;
         loggedDiffLength = loggedBodyPosition.distanceTo(
           getLoggedPosition(this.getPosition(loggedTargetTime))
         );
       }
     }
+    // console.log(' 6>>> ', +new Date() - +d, ' >>> ');
 
     // Set up loop to generate segments
     const radialSegments = 3;

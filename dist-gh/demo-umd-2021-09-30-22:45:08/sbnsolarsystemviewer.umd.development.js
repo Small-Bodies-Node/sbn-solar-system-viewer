@@ -55341,7 +55341,7 @@
         // new Asteroid('65P'),
       ];
       _this.asteroidBelts = [new AsteroidBelt([//
-      'DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], _assertThisInitialized(_this))];
+      'DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA', 'C'], _assertThisInitialized(_this))];
       _this.starField = new StarField(auToMeters(999));
       _this.zoomables = [].concat(_this.planets, _this.asteroids, _this.birdsEyes, [_this.sun]);
       _this.zoomableOrbitals = [].concat(_this.planets, _this.asteroids);
@@ -55587,7 +55587,28 @@
       console.log('Error loading stuff');
       console.log(_);
     });
-  } // if ("development" === 'development') displayFpsStats();
+  }
+  displayFpsStats();
+  /**
+   * Loads and runs stats.min.js to display FPS, etc.
+   */
+
+  function displayFpsStats() {
+    var script = document.createElement('script');
+
+    script.onload = function () {
+      // @ts-ignore
+      var stats = new Stats();
+      document.body.appendChild(stats.dom);
+      requestAnimationFrame(function loop() {
+        stats.update();
+        requestAnimationFrame(loop);
+      });
+    };
+
+    script.src = 'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
+    document.head.appendChild(script);
+  }
   /**
    * Destroy
    */

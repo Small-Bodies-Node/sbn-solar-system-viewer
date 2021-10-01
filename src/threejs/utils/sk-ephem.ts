@@ -154,6 +154,13 @@ export class SKEphem {
   }
 
   /**
+   * DWD Added
+   */
+  getAttrs() {
+    return this._attrs;
+  }
+
+  /**
    * @private
    * Infers values of some ephemerides attributes if the required information
    * is available.
@@ -212,6 +219,8 @@ export class SKEphem {
       period =
         (2 * Math.PI * Math.sqrt((aMeters * aMeters * aMeters) / GM)) /
         SECONDS_IN_DAY;
+      // DWD Added:
+      // if (isNaN(period)) console.log('!!!!', this._attrs);
       this.set('period', period);
     }
 

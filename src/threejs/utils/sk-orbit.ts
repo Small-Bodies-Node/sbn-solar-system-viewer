@@ -10,8 +10,13 @@ const sin = Math.sin;
 const cos = Math.cos;
 const sqrt = Math.sqrt;
 
-const DEFAULT_LEAD_TRAIL_YEARS = 10;
-const DEFAULT_SAMPLE_POINTS = 360;
+// DWD: original values
+// const DEFAULT_LEAD_TRAIL_YEARS = 10;
+// const DEFAULT_SAMPLE_POINTS = 360;
+
+const DEFAULT_LEAD_TRAIL_YEARS = 10 / 10;
+const DEFAULT_SAMPLE_POINTS = 360 / 10;
+
 // const DEFAULT_ORBIT_PATH_SETTINGS = {
 //   leadDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
 //   trailDurationYears: DEFAULT_LEAD_TRAIL_YEARS,
@@ -56,6 +61,7 @@ export function getOrbitType(ephem: SKEphem | SKEphemerisTable) {
   }
 
   let e = ephem.get('e');
+  // DWD Adjusted
   if (e > 0.9 && e < 1.2) {
     return OrbitType.PARABOLIC;
   } else if (e > 1.2) {
@@ -63,6 +69,13 @@ export function getOrbitType(ephem: SKEphem | SKEphemerisTable) {
   } else {
     return OrbitType.ELLIPTICAL;
   }
+  /*   if (e === 1.0) {
+    return OrbitType.PARABOLIC;
+  } else if (e > 1.0) {
+    return OrbitType.HYPERBOLIC;
+  } else {
+    return OrbitType.ELLIPTICAL;
+  } */
 }
 
 interface IOptions {
@@ -438,8 +451,9 @@ export class SKOrbit {
   getOrbitShape(
     jd?: number,
     forceCompute = false
-  ): THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> {
-    if (forceCompute) {
+    // ): THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> {
+  ): THREE.BufferGeometry {
+    /*     if (forceCompute) {
       if (this._orbitShape) {
         this._orbitShape.geometry.dispose();
         this._orbitShape.material.dispose();
@@ -460,10 +474,12 @@ export class SKOrbit {
 
     if (this._orbitShape) {
       return this._orbitShape;
-    }
+    } */
 
     if (this._orbitType === OrbitType.ELLIPTICAL) {
-      return this.getEllipse();
+      // console.log('==>', this._ephem);
+      // return this.getEllipse();
+      return this.getEllipseGeometry();
     }
 
     // For hyperbolic and parabolic orbits, decide on a time range to draw
@@ -472,7 +488,8 @@ export class SKOrbit {
     // @ts-ignore
     const tp = this._orbitType === OrbitType.TABLE ? jd : this._ephem.get('tp');
     // Use current date as a fallback if time of perihelion is not available.
-    const centerDate = tp ? tp : julian.toJulianDay(new Date());
+    // const centerDate = tp ? tp : julian.toJulianDay(new Date());
+    const centerDate = julian.toJulianDay(new Date());
     const startJd =
       centerDate - this._options.orbitPathSettings.trailDurationYears * 365.25;
     const endJd =
@@ -498,8 +515,9 @@ export class SKOrbit {
           endJd,
           step
         );
-      case OrbitType.TABLE:
-        return this.getTableOrbit(startJd, endJd, step);
+      // DWD Removed
+      // case OrbitType.TABLE:
+      // return this.getTableOrbit(startJd, endJd, step);
     }
     throw new Error('Unknown orbit shape');
   }
@@ -515,6 +533,8 @@ export class SKOrbit {
     step: number
   ) {
     const points = [];
+
+    const d = new Date();
     for (let jd = startJd; jd <= endJd; jd += step) {
       const pos = orbitFn(jd);
 
@@ -526,13 +546,18 @@ export class SKOrbit {
 
       points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
     }
+    // console.log(' >>> ', +new Date() - +d, ' >>> ');
 
     // const pointsGeometry = new THREE.Geometry();
     // pointsGeometry.vertices = points;
     const pointsGeometry = new THREE.BufferGeometry();
     pointsGeometry.setFromPoints(points);
 
-    return this.generateAndCacheOrbitShape(pointsGeometry);
+    // DWD: originally this function returned a THREE.Line
+    // but in my revamped logic we only want to return the geometry
+    // return this.generateAndCacheOrbitShape(pointsGeometry);
+
+    return pointsGeometry;
   }
 
   /**
@@ -596,7 +621,11 @@ export class SKOrbit {
 
       if (isNaN(pos[0]) || isNaN(pos[1]) || isNaN(pos[2])) {
         console.error(
-          'NaN position value - you may have bad or incomplete data in the following ephemeris:'
+          'NaN position value - you may have bad or incomplete data in the following ephemeris:',
+          v,
+          r,
+          a,
+          ecc
         );
         console.error(eph);
       }

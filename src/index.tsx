@@ -30,10 +30,11 @@ export function init(containerId = 'threejs-canvas-container') {
     })
     .catch(_ => {
       console.log('Error loading stuff');
+      console.log(_);
     });
 }
 
-if (process.env.NODE_ENV === 'development') displayFpsStats();
+// if (process.env.NODE_ENV === 'development') displayFpsStats();
 /**
  * Loads and runs stats.min.js to display FPS, etc.
  */

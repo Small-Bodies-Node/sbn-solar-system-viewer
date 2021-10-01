@@ -12,6 +12,7 @@ import { getAsteroidBeltColor } from '../utils/get-asteroid-belt-color';
 import { getAsteroidBeltMergedGeometries } from '../utils/get-asteroid-belt-merged-geometries';
 import { myprint } from '../utils/myprint';
 import { SceneManager } from '../scene-manager';
+import { TCometBeltType, cometBeltTypes } from '../models/TCometBeltType';
 
 type TLabelsDict = { [key in TAsteroidBeltType]: string };
 /* const labelsDict: TLabelsDict = {
@@ -23,14 +24,15 @@ type TLabelsDict = { [key in TAsteroidBeltType]: string };
 }; */
 
 type TMeshes = {
-  [key in TAsteroidBeltType]: THREE.Mesh<
+  [key in TAsteroidBeltType | TCometBeltType]: THREE.Mesh<
     THREE.BufferGeometry,
     THREE.MeshPhongMaterial
   >;
 };
 
 const getInitMeshes = () =>
-  asteroidBeltTypes.reduce((acc: any, belt, ind) => {
+  // asteroidBeltTypes.concat(cometBeltTypes)
+  [...asteroidBeltTypes, ...cometBeltTypes].reduce((acc: any, belt, ind) => {
     acc[belt] = new THREE.Mesh(
       new THREE.BufferGeometry(),
       new THREE.MeshPhongMaterial({ morphTargets: true })
@@ -49,7 +51,7 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
   mergedTailsMeshes: TMeshes = getInitMeshes();
 
   constructor(
-    private belts: TAsteroidBeltType[],
+    private belts: (TAsteroidBeltType | TCometBeltType)[],
     private parentSceneManager: SceneManager
   ) {
     super(3000);

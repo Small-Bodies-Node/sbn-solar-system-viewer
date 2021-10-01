@@ -4,29 +4,20 @@
 
 import fs from 'fs';
 import readline from 'readline';
+
+//@ts-ignore
+import * as julian from 'julian';
+console.log(julian);
+
 import path from 'path';
 import {
-  asteroidBeltTypes,
-  TAsteroidBeltType,
-} from './src/threejs/models/TAsteroidBeltType';
+  TCometBeltType,
+  cometBeltTypes,
+} from './src/threejs/models/TCometBeltType';
 
 // Data Paths
-const pathToInputJson = path.join(__dirname, 'rawData', 'mpc-asteroids.json');
-/* const pathToOutputJson = path.join(
-  __dirname,
-  'src',
-  'threejs',
-  'data',
-  'json',
-  'asteroids'
-); */
-
-const pathToOutputJson = path.join(
-  __dirname,
-  'assets',
-  'mpc-data',
-  'asteroids'
-);
+const pathToInputJson = path.join(__dirname, 'rawData', 'mpc-comets.json');
+const pathToOutputJson = path.join(__dirname, 'assets', 'mpc-data', 'comets');
 
 const HVals = [
   -1,
@@ -69,11 +60,11 @@ async function processLineByLine() {
 
   // Create a writeStream for each value of H and orbitType
   const writeStreams: IWriteStreams = {};
-  for (let j = 0; j < asteroidBeltTypes.length; j++) {
+  for (let j = 0; j < cometBeltTypes.length; j++) {
     for (let k = 0; k < HVals.length; k++) {
       const H = HVals[k];
-      const asteroidBeltType = asteroidBeltTypes[j];
-      const key = getWriteStreamKey(asteroidBeltType, H);
+      const cometBeltType = cometBeltTypes[j];
+      const key = getWriteStreamKey(cometBeltType, H);
       const file = `${pathToOutputJson}/${key}`;
       console.log('file: ', file);
       writeStreams[key] = {
@@ -130,38 +121,67 @@ async function processLineByLine() {
           // Only record bodies below this H
           if (newObj.H > H) continue;
 
-          let asteroidBeltType: TAsteroidBeltType | undefined;
+          let cometBeltType: TCometBeltType | undefined;
 
-          if (newObj.NEO_flag) {
-            asteroidBeltType = newObj.One_km_NEO_flag ? 'NEO1KM' : 'NOT_NEO1KM';
+          if (newObj.Orbit_type === 'C') {
+            cometBeltType = 'C';
           }
-          if (newObj.Orbit_type === 'MBA') {
-            asteroidBeltType = 'MBA';
-          }
-          if (newObj.Orbit_type === 'Distant Object') {
-            asteroidBeltType = 'DISTANTOBJECT';
-          }
-          if (newObj.PHA_flag) {
-            asteroidBeltType = 'PHA';
+          if (newObj.Orbit_type === 'P') {
+            cometBeltType = 'P';
           }
 
-          if (asteroidBeltType) {
+          // Compute decimal epoch
+          const {
+            Epoch_day,
+            Epoch_month,
+            Epoch_year,
+            //
+            Year_of_perihelion,
+            Month_of_perihelion,
+            Day_of_perihelion,
+          } = newObj;
+          const epochDecimal = +julian.default(
+            new Date(Epoch_year, Epoch_month - 1, Epoch_day, 0, 0, 0, 0)
+          );
+
+          const periDateDecimal = +julian.default(
+            new Date(
+              Year_of_perihelion,
+              Month_of_perihelion - 1,
+              Day_of_perihelion,
+              0,
+              0,
+              0,
+              0
+            )
+          );
+
+          if (cometBeltType) {
             // Only copy needed data for output:
             const outObj = {
+              /*           e: 0.994954,
+          i: 89.0608,
+          om: 283.2105,
+          w: 130.4979,
+          q: 2.916594,
+          tp: 2458043.666667, */
+
               H: newObj.H,
-              name: newObj.Name,
-              desig: newObj.Principal_desig,
-              epoch: newObj.Epoch,
-              ma: newObj.M,
+              name: newObj.Designation_and_name,
+              desig: newObj.Designation_and_name,
+              epoch: epochDecimal,
+              // ma: newObj.M,
               w: newObj.Peri,
               om: newObj.Node,
               i: newObj.i,
               e: newObj.e,
-              a: newObj.a,
+              q: newObj.Perihelion_dist,
+              tp: periDateDecimal,
+              // a: newObj.a,
             };
 
             // Logic to avoid first comma in array
-            const key = getWriteStreamKey(asteroidBeltType, H);
+            const key = getWriteStreamKey(cometBeltType, H);
             let sep = ',\n';
             if (!writeStreams[key].isFirstObjWritten) {
               sep = '\n';
@@ -200,6 +220,6 @@ function printProgress(i: number) {
   }
 }
 
-function getWriteStreamKey(asteroidBeltType: TAsteroidBeltType, H: THVals) {
-  return `asteroids-${asteroidBeltType}-h-${H}.json`;
+function getWriteStreamKey(cometBeltType: TCometBeltType, H: THVals) {
+  return `comets-${cometBeltType}-h-${H}.json`;
 }
