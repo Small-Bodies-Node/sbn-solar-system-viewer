@@ -47,7 +47,7 @@ export class SceneManager extends AbstractSceneManager {
   private starField?: StarField;
   private isToyScale = true;
   private isOrbitsVisible = true;
-  private isLogScale = false;
+  private isLogScale = !false;
   private toyScalables: AbstractToyModel[];
   private logScalables: AbstractToyModel[] = [];
 
@@ -202,6 +202,7 @@ export class SceneManager extends AbstractSceneManager {
     setTimeout(() => {
       this.setIsToyScale(true);
       this.tryToStartZooming('BIRDSEYE');
+      this.setIsLogScale(true);
     }, 3500);
     this._camera.up.set(1, 1, 1);
 

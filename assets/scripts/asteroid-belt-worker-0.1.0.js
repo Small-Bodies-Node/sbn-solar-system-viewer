@@ -43592,9 +43592,11 @@
                 switch (_a.label) {
                     case 0:
                         belt = e.data;
+                        console.log('Worker: begin building geometries for belt ' + belt);
                         return [4 /*yield*/, createAsteroidBeltMergedGeometries(belt)];
                     case 1:
                         res = _a.sent();
+                        console.log('Worker: end building geometries for belt ' + belt);
                         ret = JSON.stringify({
                             mergedAsteroidGeometry: res.mergedAsteroidGeometry.toJSON(),
                             mergedTailsGeometry: res.mergedTailsGeometry.toJSON()

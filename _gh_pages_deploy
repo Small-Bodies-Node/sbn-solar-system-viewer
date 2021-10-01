@@ -16,7 +16,7 @@ cp -R "demo-umd" "dist-gh/$distDir"
 cat >"dist-gh/index.html" <<EOM
 <html>
 <head>
-  <meta http-equiv="refresh" content="0; url=https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/${distDir}/bundled.html" />
+  <meta http-equiv="refresh" content="0; url=https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/${distDir}/index.html" />
 </head>
 </html>
 EOM

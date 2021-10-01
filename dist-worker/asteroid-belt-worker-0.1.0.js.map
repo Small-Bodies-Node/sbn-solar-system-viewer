@@ -1,1 +1,0 @@
-{"version":3,"file":"asteroid-belt-worker-0.1.0.js","sources":["../../src/threejs/workers/asteroid-belt-worker.ts","../../src/threejs/utils/constants.ts"],"sourcesContent":[null,null],"names":["console","log"],"mappings":"yBAKAA,QAAQC,IAAI,iBCmByB"}
