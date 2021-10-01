@@ -12,4 +12,5 @@ redundant
 
 # Data
 src/threejs/data/json/asteroids/*
+src/threejs/data/json/*
 rawData/*.json
