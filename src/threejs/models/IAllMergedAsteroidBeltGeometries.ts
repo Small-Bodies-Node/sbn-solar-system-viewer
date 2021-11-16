@@ -1,4 +1,5 @@
 import { TAsteroidBeltType } from './TAsteroidBeltType';
+import { TCometBeltType } from './TCometBeltType';
 
 /**
  * Contract for object to pass around the merged geometries
@@ -7,5 +8,5 @@ import { TAsteroidBeltType } from './TAsteroidBeltType';
 export interface IAllMergedAsteroidBeltGeometries {
   mergedAsteroidGeometry: THREE.BufferGeometry;
   mergedTailsGeometry: THREE.BufferGeometry;
-  belt: TAsteroidBeltType;
+  belt: TAsteroidBeltType | TCometBeltType;
 }

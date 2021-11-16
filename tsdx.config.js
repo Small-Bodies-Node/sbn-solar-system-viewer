@@ -9,11 +9,7 @@ module.exports = {
   rollup(config) {
     // -------->>>
 
-    config.plugins.push(
-      replace({
-        __IS_PRODUCTION__: 'true',
-      })
-    );
+    config.plugins.push(replace({ __IS_PRODUCTION__: 'true' }));
 
     if (config.output.format === 'umd') {
       /**
@@ -23,10 +19,15 @@ module.exports = {
       const origExternal = config.external;
       config.external = id => {
         if (id.startsWith('three/examples/')) return false;
-        if (id === 'three' && process.env.BUNDLE_THREE) return false;
+        if (id.startsWith('react-icons/')) return false;
+        // if (id === 'three' && process.env.BUNDLE_THREE) return false;
+        // Do not include three
+        if (id === 'three') return false;
         return origExternal(id);
       };
       config.output.globals['three'] = 'THREE';
+      // console.log('==============');
+      // console.log(config);
     }
 
     if (config.output.format === 'esm') {

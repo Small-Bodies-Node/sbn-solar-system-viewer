@@ -34,7 +34,7 @@ const distPackageJson: INewPackageJson = {
 
 // Remove pointless stuff:
 delete distPackageJson.scripts;
-delete distPackageJson.peerDependencies;
+// delete distPackageJson.peerDependencies;
 delete distPackageJson.husky;
 delete distPackageJson.prettier;
 delete distPackageJson['size-limit'];

@@ -29,9 +29,8 @@ function _usage() {
     ${WHI}--help          ${GRE}-  Show this usage
     ${WHI}--build-umd     ${GRE}-  Assemble umd & react part in ./dist
     ${WHI}--build-worker  ${GRE}-  Build separate worker script(s)
-    ${WHI}--build-quick   ${GRE}-  Assemble min needed for just react
     ${WHI}--build-ngx     ${GRE}-  Assemble ngx part in ./dist
-    ${WHI}--build         ${GRE}-  Assemble complete lib in ./dist
+    ${WHI}--build         ${GRE}-  Assemble complete lib in ./dist and package locally
     ${WHI}--dev           ${GRE}-  Serve up src code directly
     ${WHI}--dev-worker    ${GRE}-  Serve up worker
     ${WHI}--dev-react     ${GRE}-  Watch builds and serve demo-react
@@ -92,18 +91,9 @@ function _develop_react() {
 #######################################
 function _build_umd() {
   _print "Building cjs,umd,esm..."
-
-  _print "First build with threejs bundled into umd"
-  BUNDLE_THREE=true ./node_modules/.bin/tsdx build --format cjs,esm,umd --name SbnSolarSystemViewerWithThreejs
-
-  _print "Move umd with threejs to demo-umd"
-  # find dist -type f -name '*.umd.*js*' -exec bash -c $'mv {} $(echo {} | sed 's/.umd/.umd.withthreejs/g' | sed 's/dist/demo-umd/g' )' \;
-  find dist -type f -name '*.umd.*js*' -exec bash -c $'mv {} $(echo {} | sed 's/dist/demo-umd/g' )' \;
-
-  _print "Rebuild without threejs bundled into umd"
   ./node_modules/.bin/tsdx build --format cjs,esm,umd --name SbnSolarSystemViewer
 
-  _print "Copy umd without threejs to demo-umd"
+  _print "Copy umd demo-umd"
   cp dist/*.umd.*.*js* demo-umd
 }
 
@@ -139,19 +129,6 @@ function _build_worker() {
 function _dev_worker() {
   _print "Develop worker..."
   ./node_modules/.bin/rollup -c worker-rollup.config.js --watch
-}
-
-#######################################
-# Absolute basic build needed for react
-#   consumption
-# Globals:
-#   None
-# Arguments:
-#   None
-#######################################
-function _build_quick() {
-  _print "Quick build..."
-  BUNDLE_THREE=true ./node_modules/.bin/tsdx build --format esm
 }
 
 #######################################

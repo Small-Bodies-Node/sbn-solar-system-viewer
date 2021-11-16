@@ -21,7 +21,7 @@ export const buttonToggleToyScale = (
   button.style.setProperty('transform', 'translateX(-50%)');
 
   // Set properties common to all buttons; append to container when ready
-  injectCommonButtonProperties(button, container, onClickCB);
+  injectCommonButtonProperties(button, onClickCB);
 
   // Finish him
   return button;

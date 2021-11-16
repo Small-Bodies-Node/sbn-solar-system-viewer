@@ -16,8 +16,8 @@ export const buttonFadeInSpecs = '1s ease-in-out';
 
 // These two properties must be coordinated together using e.g. google.fonts
 export const buttonFontFamily = "'Odibee Sans', cursive";
-export const buttonCssUrl =
-  'https://fonts.googleapis.com/css2?family=Odibee+Sans';
+// export const buttonCssUrl =
+// 'https://fonts.googleapis.com/css2?family=Odibee+Sans';
 
 /**
  * Root url of file server with copy of /images

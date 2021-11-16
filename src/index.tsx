@@ -1,5 +1,5 @@
-import { TOptions, setOptions } from './options';
 import { SceneManager } from './threejs/scene-manager';
+import { addGlobalProperties } from './threejs/utils/add-global-properties';
 
 let threejsScene: SceneManager;
 export let initDate = new Date();
@@ -9,23 +9,32 @@ export const getInitDate = () => initDate;
 /**
  * Create threeJs canvas and inject into container
  */
-export function init(
-  containerId = 'threejs-canvas-container',
-  options?: TOptions
-) {
+export function init(containerId = 'threejs-canvas-container') {
   // --->>>
 
-  if (!!options) setOptions(options);
+  console.log('Debug 0');
 
-  // Get div to contain canvas
-  const canvasContainer = document.getElementById(containerId);
-  if (!canvasContainer) throw new Error("Can't find div of id " + containerId);
+  // Add threeJs, stuff in the head, etc.
+  addGlobalProperties()
+    .then(_ => {
+      console.log('Debug 1');
 
-  threejsScene = new SceneManager(containerId);
-  threejsScene.init();
+      // Get div to contain canvas
+      const canvasContainer = document.getElementById(containerId);
+      if (!canvasContainer) {
+        throw new Error("Can't find div of id " + containerId);
+      }
+
+      threejsScene = new SceneManager(containerId);
+      threejsScene.init();
+    })
+    .catch(_ => {
+      console.log('Error loading stuff');
+      console.log(_);
+    });
 }
 
-if (process.env.NODE_ENV === 'development') displayFpsStats();
+// if (process.env.NODE_ENV === 'development') displayFpsStats();
 /**
  * Loads and runs stats.min.js to display FPS, etc.
  */
@@ -40,7 +49,8 @@ function displayFpsStats() {
       requestAnimationFrame(loop);
     });
   };
-  script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
+  script.src =
+    'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
   document.head.appendChild(script);
 }
 

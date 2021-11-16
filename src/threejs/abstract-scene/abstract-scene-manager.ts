@@ -66,6 +66,7 @@ export abstract class AbstractSceneManager {
     this._canvas.style.height = '100%';
     this._container.append(this._canvas);
     this._container.style.setProperty('position', 'relative');
+    this._container.style.setProperty('font-family', '"Odibee Sans", cursive');
     this._container.style.setProperty('background-color', 'black');
     addLoaderDiv(this._container);
   }

@@ -1,7 +1,6 @@
-import { addGlobalStyles } from './add-global-styles';
+import { simpleUuid } from '../utils/simple-uuid';
 
-export const loaderDivId = 'sbn-solar-system-loader-div-id';
-
+export const loaderDivId = 'loader-div-id-' + simpleUuid();
 const borderWidthPxls = 5;
 const spinSpeedMs = 2000;
 
@@ -19,9 +18,6 @@ export const addLoaderDiv = (containerDiv: HTMLElement) => {
   // Only add once
   if (isInit) return;
   isInit = true;
-
-  // Injects key frames for spin animation
-  addGlobalStyles();
 
   // Create divs
   const loaderDiv = document.createElement('div');

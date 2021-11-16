@@ -12,6 +12,7 @@ import { getAsteroidBeltColor } from '../utils/get-asteroid-belt-color';
 import { getAsteroidBeltMergedGeometries } from '../utils/get-asteroid-belt-merged-geometries';
 import { myprint } from '../utils/myprint';
 import { SceneManager } from '../scene-manager';
+import { TCometBeltType, cometBeltTypes } from '../models/TCometBeltType';
 
 type TLabelsDict = { [key in TAsteroidBeltType]: string };
 /* const labelsDict: TLabelsDict = {
@@ -23,14 +24,15 @@ type TLabelsDict = { [key in TAsteroidBeltType]: string };
 }; */
 
 type TMeshes = {
-  [key in TAsteroidBeltType]: THREE.Mesh<
+  [key in TAsteroidBeltType | TCometBeltType]: THREE.Mesh<
     THREE.BufferGeometry,
     THREE.MeshPhongMaterial
   >;
 };
 
 const getInitMeshes = () =>
-  asteroidBeltTypes.reduce((acc: any, belt, ind) => {
+  // asteroidBeltTypes.concat(cometBeltTypes)
+  [...asteroidBeltTypes, ...cometBeltTypes].reduce((acc: any, belt, ind) => {
     acc[belt] = new THREE.Mesh(
       new THREE.BufferGeometry(),
       new THREE.MeshPhongMaterial({ morphTargets: true })
@@ -49,7 +51,7 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
   mergedTailsMeshes: TMeshes = getInitMeshes();
 
   constructor(
-    private belts: TAsteroidBeltType[],
+    private belts: (TAsteroidBeltType | TCometBeltType)[],
     private parentSceneManager: SceneManager
   ) {
     super(3000);
@@ -58,7 +60,7 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
       this._sceneEntityGroup.add(this.mergedAsteroidsMeshes[belt]);
       this._sceneEntityGroup.add(this.mergedTailsMeshes[belt]);
     });
-    this.parentSceneManager.updateMessageField('Building asteroid belt');
+    this.parentSceneManager.updateDisplayedMessage('Building asteroid belt');
   }
 
   async init() {
@@ -69,19 +71,11 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
 
       const texture = await getTextureFromImageUrl(textureUrl).catch(_ => null);
 
-      getAsteroidBeltMergedGeometries(this.belts, this.parentSceneManager)
-        /*         .then(asteroidBeltMergedGeometries => ({
-          asteroidBeltMergedGeometries,
-
-        })) */
-        .then(xxx => {
-          // ]).then(([texture, { mergedAsteroidGeometry, mergedTailsGeometry }[]]) => {
-          // --->>
-
-          // const { belt, asteroidBeltMergedGeometries } = xxx;
-          xxx.forEach(
+      getAsteroidBeltMergedGeometries(this.belts, this.parentSceneManager).then(
+        allAsteroidBeltMergedGeometries => {
+          allAsteroidBeltMergedGeometries.forEach(
             ({ belt, mergedAsteroidGeometry, mergedTailsGeometry }) => {
-              //
+              // --->>
 
               const color = getAsteroidBeltColor(belt);
 
@@ -117,7 +111,8 @@ export class AsteroidBelt extends AbstractToyModel implements ISceneEntity {
               this.isMeshesLoaded = true;
             }
           );
-        });
+        }
+      );
 
       myprint('RESOLVED ' + this.NAME);
       resolve(this._sceneEntityGroup);

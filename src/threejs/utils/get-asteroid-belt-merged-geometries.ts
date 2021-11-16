@@ -6,6 +6,7 @@ import { myprint } from './myprint';
 import { getWorkerURL } from './get-worker-url';
 import { IAllMergedAsteroidBeltGeometries } from '../models/IAllMergedAsteroidBeltGeometries';
 import { SceneManager } from '../scene-manager';
+import { TCometBeltType } from '../models/TCometBeltType';
 
 type TAllMergedAsteroidBeltGeometriesStringified = {
   [key in keyof IAllMergedAsteroidBeltGeometries]: string;
@@ -16,7 +17,7 @@ type TAllMergedAsteroidBeltGeometriesStringified = {
  * then parse the returned data and return THREE.BufferGeometries
  */
 export async function getAsteroidBeltMergedGeometries(
-  belts: TAsteroidBeltType[],
+  belts: (TAsteroidBeltType | TCometBeltType)[],
   parentSceneManager: SceneManager
 ): Promise<IAllMergedAsteroidBeltGeometries[]> {
   return new Promise(async resolve0 => {
@@ -37,7 +38,7 @@ export async function getAsteroidBeltMergedGeometries(
     myprint('Start getting worker');
 
     interface IXXX {
-      belt: TAsteroidBeltType;
+      belt: TAsteroidBeltType | TCometBeltType;
       data: any;
     }
 
@@ -55,7 +56,7 @@ export async function getAsteroidBeltMergedGeometries(
       })
     );
 
-    parentSceneManager.updateMessageField('Loading asteroids belts');
+    parentSceneManager.updateDisplayedMessage('Loading asteroids belts');
     parentSceneManager.setIsScenePaused(true);
 
     setTimeout(() => {
@@ -80,7 +81,7 @@ export async function getAsteroidBeltMergedGeometries(
         }
       );
 
-      parentSceneManager.updateMessageField('Asteroids Loaded');
+      parentSceneManager.updateDisplayedMessage('Asteroids Loaded');
       parentSceneManager.setIsScenePaused(false);
 
       resolve0(xxx);

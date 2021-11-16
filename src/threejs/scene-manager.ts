@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 
 import { AbstractSceneManager } from './abstract-scene/abstract-scene-manager';
-import { buttonToggleHelpers } from './html/button-toggle-helpers';
-import { buttonToggleToyScale } from './html/button-toggle-toy-scale';
-import { buttonToggleOrbits } from './html/button-toggle-orbits';
-import { buttonToggleLogScale } from './html/button-toggle-log-scale';
 import { Sun } from './scene-entities/sun';
 import { Planet } from './scene-entities/planet';
 import { StarField } from './scene-entities/star-field';
@@ -14,7 +10,7 @@ import { SimpleLight } from './scene-entities/simple-light';
 import { Asteroid } from './scene-entities/asteroid';
 import { PointLight } from './scene-entities/point-light';
 import { solarSystemData } from './data/basic-solar-system-data';
-import { addSearchField } from './html/add-search-field';
+import { createSearchField } from './html/create-search-field';
 import { IZoomable } from './models/IZoomable';
 import { updateTraversalFraction } from './utils/update-traversal-fraction';
 import { updateCameraPosition } from './utils/update-camera-position';
@@ -25,14 +21,21 @@ import { BirdsEye } from './scene-entities/birds-eye';
 import { getDestinationLookPosition } from './utils/get-destination-look-position';
 import { AsteroidBelt } from './scene-entities/asteroid-belt';
 import { myprint } from './utils/myprint';
-import { addHtmlButtonRow } from './html/add-html-button-row';
-import { addMessageField } from './html/add-message-field';
+import { createHtmlButtonRow } from './html/create-html-button-row';
+import { createDisplayMessageDiv } from './html/create-display-message-div';
+import { createSettingsButton } from './html/create-settings-button';
+import { createSettingsPanel } from './html/create-settings-panel';
 
 /**
  * Implement a scene for this app with 'real' scene entities
  */
 export class SceneManager extends AbstractSceneManager {
   // --->>>
+
+  // User-changeable settings
+  // private abundanceRepresentationMode: EAbundanceRepresentationMode =
+  // EAbundanceRepresentationMode.TOY_REPRESENTATION;
+  // private loadMode: ELoadMode = ELoadMode.BEFORE_ANIMATION;
 
   // Toy-scalable bodies
   private sun = new Sun();
@@ -44,7 +47,7 @@ export class SceneManager extends AbstractSceneManager {
   private starField?: StarField;
   private isToyScale = true;
   private isOrbitsVisible = true;
-  private isLogScale = false;
+  private isLogScale = !false;
   private toyScalables: AbstractToyModel[];
   private logScalables: AbstractToyModel[] = [];
 
@@ -56,11 +59,9 @@ export class SceneManager extends AbstractSceneManager {
   private isZoomingAngle = false;
   private zoomTraversalFraction = 0;
   private zoomClock = new THREE.Clock(); //Controls movement of camera when touring planets
-
   private isScenePaused = false;
 
-  //
-  public updateMessageField: (msg: string) => void = () => {
+  public updateDisplayedMessage: (msg: string) => void = () => {
     console.log('denied!');
   };
 
@@ -70,21 +71,30 @@ export class SceneManager extends AbstractSceneManager {
     super(containerId);
 
     // Add html
-    this.updateMessageField = addMessageField(this._container);
-    this.updateMessageField('Working?');
-    addSearchField(this._container, this.tryToStartZooming);
-    false &&
-      addHtmlButtonRow(
-        [
-          { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
-          { label: 'Toggle helpers', cb: this.toggleHelpersVisibility },
-          { label: 'Toggle Orbits', cb: this.toggleIsOrbitsVisible },
-          { label: 'Toggle Log Scale', cb: this.toggleIsLogScale },
-          { label: 'Toggle Asteroids', cb: this.toggleAsteroids },
-        ],
-        this._container
-      );
+    // Message Display
+    const { displayMessageDiv, updateMessageCb } = createDisplayMessageDiv();
+    this._container.append(displayMessageDiv);
+    this.updateDisplayedMessage = updateMessageCb;
+    this.updateDisplayedMessage('Loading...');
+    // Search field
+    this._container.append(createSearchField(this.tryToStartZooming));
+    // Buttons in main display
+    this._container.append(
+      createHtmlButtonRow([
+        { label: 'Toggle Toy Scale', cb: this.toggleIsToyScale },
+        { label: 'Toggle helpers', cb: this.toggleHelpersVisibility },
+        { label: 'Toggle Orbits', cb: this.toggleIsOrbitsVisible },
+        { label: 'Toggle Log Scale', cb: this.toggleIsLogScale },
+        { label: 'Toggle Asteroids', cb: this.toggleAsteroids },
+      ])
+    );
+    // Settings panel and button
+    const { settingsPanelDiv, toggleSettingsPanelCb } = createSettingsPanel();
+    this._container.append(settingsPanelDiv);
+    const settingsButton = createSettingsButton(toggleSettingsPanelCb);
+    this._container.append(settingsButton);
 
+    // Entities
     this.birdsEyes = [new BirdsEye(), new BirdsEye('BIRDSEYELOG', 5)];
     this.planets = [
       new Planet('MERCURY'),
@@ -106,7 +116,19 @@ export class SceneManager extends AbstractSceneManager {
       // new Asteroid('65P'),
     ];
     this.asteroidBelts = [
-      new AsteroidBelt(['DISTANTOBJECT', 'MBA', 'NEO1KM', 'PHA'], this),
+      new AsteroidBelt(
+        [
+          //
+          'DISTANTOBJECT',
+          'MBA',
+          'NEO1KM',
+          'PHA',
+          'C',
+          // 'P',
+          // 'A',
+        ],
+        this
+      ),
     ];
     this.starField = new StarField(auToMeters(999));
     this.zoomables = [
@@ -180,6 +202,7 @@ export class SceneManager extends AbstractSceneManager {
     setTimeout(() => {
       this.setIsToyScale(true);
       this.tryToStartZooming('BIRDSEYE');
+      this.setIsLogScale(true);
     }, 3500);
     this._camera.up.set(1, 1, 1);
 

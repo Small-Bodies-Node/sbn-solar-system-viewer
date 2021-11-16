@@ -11,7 +11,10 @@ export declare const buttonCursorType = "pointer";
 export declare const buttonPadding = "10px";
 export declare const buttonFadeInSpecs = "1s ease-in-out";
 export declare const buttonFontFamily = "'Odibee Sans', cursive";
+<<<<<<< HEAD
 export declare const buttonCssUrl = "https://fonts.googleapis.com/css2?family=Odibee+Sans";
+=======
+>>>>>>> 009-amends
 /**
  * Root url of file server with copy of /images
  */
