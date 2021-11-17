@@ -1,6 +1,7 @@
 #! /usr/bin/env ts-node --compiler-options {"module":"CommonJS","lib":["es2020"]}
 //
-// Creates a package.json file for the library based on info from this repo's package.json
+// Creates a package.json file for the library based on info from
+// this repo's package.json
 
 import fs from 'fs';
 import packageJson from './package.json';
@@ -9,12 +10,13 @@ console.log(`Packaging ${packageJson.name} ${packageJson.version}`);
 
 interface INewPackageJson extends Partial<typeof packageJson> {
   devDependencies: any;
+  dependencies: any;
   main: string;
   module: string;
 }
 
 // Add name prefix '@my-name/' if you want the package to be privately scoped
-// Requires payment to npm
+// Note: this requires paid subscription to npm
 const namePrefix = '';
 
 const distPackageJson: INewPackageJson = {
@@ -22,14 +24,14 @@ const distPackageJson: INewPackageJson = {
   name: `${namePrefix}${packageJson.name}`,
   main: `./${packageJson.name}.cjs.js`,
   module: `./${packageJson.name}.esm.js`,
-  // devDependencies: {
-  //   '@angular/common': '^12.0.0',
-  //   '@angular/core': '^12.0.0',
-  //   '@types/react': '^17.0.5',
-  //   '@types/three': (packageJson as any)['@types/three'],
-  //   react: '^17.0.2',
-  //   three: (packageJson as any)['three'],
-  // },
+  devDependencies: {
+    '@types/three': (packageJson as any).devDependencies['@types/three'],
+    three: (packageJson as any).devDependencies['three'],
+  },
+  dependencies: {
+    julian: (packageJson as any).dependencies['julian'],
+    'kepler-utils': (packageJson as any).dependencies['kepler-utils'],
+  },
 };
 
 // Remove pointless stuff:

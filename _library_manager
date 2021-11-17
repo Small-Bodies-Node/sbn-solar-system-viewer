@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Manager for assembling library
+# Manager for developing and assembling library
 
 ### Params and prelims
 FILE_NAME=$(cat "package.json" | jq -r '.name')
@@ -26,14 +26,12 @@ function _usage() {
   =======================================================
     _library_manager usage:
   -------------------------------------------------------
-    ${WHI}--help          ${GRE}-  Show this usage
-    ${WHI}--build-umd     ${GRE}-  Assemble umd & react part in ./dist
-    ${WHI}--build-worker  ${GRE}-  Build separate worker script(s)
-    ${WHI}--build-ngx     ${GRE}-  Assemble ngx part in ./dist
-    ${WHI}--build         ${GRE}-  Assemble complete lib in ./dist and package locally
-    ${WHI}--dev           ${GRE}-  Serve up src code directly
-    ${WHI}--dev-worker    ${GRE}-  Serve up worker
-    ${WHI}--dev-react     ${GRE}-  Watch builds and serve demo-react
+    ${WHI}--help         ${GRE}-  Show this usage
+    ${WHI}--build        ${GRE}-  Assemble complete lib in ./dist
+    ${WHI}--build-worker ${GRE}-  Build separate worker script(s)
+    ${WHI}--dev          ${GRE}-  Serve up src code directly
+    ${WHI}--dev-worker   ${GRE}-  Serve up worker
+    ${WHI}--demo-umd     ${GRE}-  Demo-run umd build
   =======================================================
   """
 }
@@ -63,37 +61,20 @@ function _develop() {
 }
 
 #######################################
-# Start watching builds on src code and
-#   running parralel on output; useful
-#   when you want to develop react
-#   consumption of the lib; but makes for
-#   a slow dev experience
-# Globals:
-#   None
-# Arguments:
-#   All script args
-#######################################
-function _develop_react() {
-  # ./node_modules/.bin/parcel serve -p 3000 src/dev.html
-  ./node_modules/.bin/tsdx watch &
-  PID=$!
-  ./_demo_manager --react
-  pkill $PID
-
-}
-
-#######################################
 # Build umd and modules part of dist
 # Globals:
 #   None
 # Arguments:
 #   All script args
 #######################################
-function _build_umd() {
+function _build() {
   _print "Building cjs,umd,esm..."
   ./node_modules/.bin/tsdx build --format cjs,esm,umd --name SbnSolarSystemViewer
 
-  _print "Copy umd demo-umd"
+  _print "Generating package.json for this lib..."
+  ./_package_lib.ts
+
+  _print "Copying umd demo-umd..."
   cp dist/*.umd.*.*js* demo-umd
 }
 
@@ -108,15 +89,9 @@ function _build_worker() {
   _print "Building worker..."
 
   _print "Compile worker code..."
-  # BUNDLE_THREE=true ./node_modules/.bin/tsdx build --entry src/threejs/workers/asteroid-belt-worker.ts --format umd --name worker
-  # BUNDLE_THREE=true ./node_modules/.bin/tsdx build --entry src/threejs/workers/asteroid-belt-worker.ts --format esm --name worker
   ./node_modules/.bin/rollup -c worker-rollup.config.js
 
   _print "Copy compiled worker to dist-worker ..."
-  # local dist_worker="dist-worker"
-  # [ -d "$dist_worker" ] && rm -rf "$dist_worker"
-  # mkdir "$dist_worker"
-  # cp "./dist/worker.esm.development.js" "${dist_worker}/asteroid-belt-worker-${VERSION}.js"
 }
 
 #######################################
@@ -126,9 +101,22 @@ function _build_worker() {
 # Arguments:
 #   All script args
 #######################################
-function _dev_worker() {
+function _develop_worker() {
   _print "Develop worker..."
   ./node_modules/.bin/rollup -c worker-rollup.config.js --watch
+}
+
+#######################################
+# Runs vanilla html with UMD app
+#   to test consumption of this
+#   npm package
+#######################################
+function _demo_umd() {
+
+  _print "Demo-ing UMD build..."
+  # cd demo-umd
+  ./node_modules/.bin/http-server demo-umd -p 1234
+  # cd ..
 }
 
 #######################################
@@ -142,7 +130,6 @@ function _dev_worker() {
 #   None
 #######################################
 function _package_locally() {
-
   _print "Creating dist/package.json"
   ./_package_lib.ts
 
@@ -151,64 +138,6 @@ function _package_locally() {
   npm pack .
   mv "${FILE_NAME}-"*".tgz" "../${FILE_NAME}.tgz"
   cd ..
-
-  _print "Installing into demo-ngx"
-  cp "${FILE_NAME}.tgz" "demo-ngx/${FILE_NAME}.tgz"
-  cd demo-ngx
-  npm install "file:/./${FILE_NAME}.tgz" --force
-  cd ..
-
-  _print "Installing into demo-cra"
-  mv "${FILE_NAME}.tgz" "demo-cra/${FILE_NAME}.tgz"
-  cd demo-cra
-  npm install "file:/./${FILE_NAME}.tgz" --force
-  cd ..
-}
-
-#######################################
-# Build and install ngx part of dist
-# Globals:
-#   None
-# Arguments:
-#   None
-#######################################
-function _build_ngx() {
-
-  _print "Building ngx library"
-  _print "Refreshing ngx-lib dirs"
-  ngxDest="src-ngx-lib/projects/ngx-wrapper/src/lib/widgetSrc"
-  [ -d dist/ngx ] && rm -rf dist/ngx
-  [ ! -d dist/ngx ] && mkdir dist/ngx
-  [ -d $ngxDest ] && rm -rf $ngxDest
-  [ ! -d $ngxDest ] && mkdir -p $ngxDest
-
-  _print "Copying tsdx-built modules to ngx-builder lib"
-  cp -R dist/* $ngxDest
-
-  _print "Building ngx library called 'NgxWrapper'"
-  cd src-ngx-lib
-  npm i
-  ./node_modules/.bin/ng build NgxWrapper
-  cd ..
-
-  _print "Copying newly created ngx lib to dist"
-  cp -R src-ngx-lib/dist/ngx-wrapper dist/ngx
-  echo "??? >>> "$?
-  ls dist
-  echo "What is going on here?"
-}
-
-#######################################
-# Compiles src to consumables
-# Globals:
-#   None
-# Arguments:
-#   None
-#######################################
-function _build() {
-  _build_umd
-  _build_ngx
-  _package_locally
 }
 
 main() {
@@ -222,24 +151,14 @@ main() {
   "--build-worker")
     _build_worker
     ;;
-  "--build-umd")
-    _build_umd
-    ;;
-  "--build-quick")
-    _build_umd
-    ;;
-  "--build-ngx")
-    _build_ngx
-    ;;
-  "--dev-worker")
-    echo "Developing worker"
-    _dev_worker
-    ;;
   "--dev")
     _develop
     ;;
-  "--dev-react")
-    _develop_react
+  "--dev-worker")
+    _develop_worker
+    ;;
+  "--demo-umd")
+    _demo_umd
     ;;
   *)
     echo >&2 "Invalid option: $@"

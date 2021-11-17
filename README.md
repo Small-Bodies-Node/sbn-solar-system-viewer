@@ -1,33 +1,39 @@
 # SBN Solar System Viewer
 
-## Project Set up
+## Intro
 
-This repo is a bit complicated. It's based on a tsdx react project. tsdx is designed to make it easy to build libraries to publish to npm.
+This repo is for the development of a library that can be imported into a web app in order to inject a html with a three.js animation of the solar system. The injected html shall be referred from hereon as the (solar-system) 'widget'.
 
-However, tsdx is designed to make it easy to build EITHER an esm/cjs-module library OR a react library, but not both at once. To build both at once, I have had to complicate what tsdx gives you out of the box.
+This repo is based on a tsdx project. tsdx is designed to make it easy to build libraries to publish to npm. Originally, this repo was set up to publish a library with usable UMD, ESM, Commonjs, React and Ngx imports. However, this made the repo too complicated, so now it is only for UMD, ESM, Commonjs. Separate libraries for react and ngx will be created that wrap around this library.
 
-Not only that, but I also wanted to make it easy for someone wanting to embed the solar-system viewer into an angular project to be able to do so easily.
+## How it works
 
-(On retrospect, I think that the extra complexity is not worth it; better to make visual widgets as a simple UMD modules and leave it to the user to bridge the complexity of incorporating the UMD into their SPA.)
+This library creates code that will inject html into a web application with a threeJs animation of the solar system. The animation requires a lot of resources specific to this project that need to be served separately. These resources include:
 
-In any case, here's how things work.
+- Images of planets
+- Data for the ephemerides of orbiting objects
+- A web-worker script
 
-The way of developing a tsdx project out of the box is to run something like `parcel serve -p 3000 src/dev.html`, which includes `<script type="module" src="./dev.tsx"></script>` as the entry point. I.e. we're not even using tsdx, we are just running our code 'directly'.
+These items that need to be served are found within the dir `assets`. The web-worker script is used to try to optimize the UX of loading large amounts of comet-asteroid data. Since it is the result of the development process, it needs to be built and copied to your static-file server (see below).
 
-To build the foundations of our library, we run `tsdx build --format cjs,esm,umd --name SbnSolarSystemViewer`. This generates a dir dist in which you will find the resulting js files:
+## Quickstart
 
-```
-sbnsolarsystemviewer.cjs.development.js
-sbnsolarsystemviewer.cjs.development.js.map
-sbnsolarsystemviewer.cjs.production.min.js
-sbnsolarsystemviewer.cjs.production.min.js.map
-sbnsolarsystemviewer.esm.js
-sbnsolarsystemviewer.esm.js.map
-sbnsolarsystemviewer.umd.development.js
-sbnsolarsystemviewer.umd.development.js.map
-sbnsolarsystemviewer.umd.production.min.js
-sbnsolarsystemviewer.umd.production.min.js.map
-```
+### Serving Static Assets
+
+If you clone this repo then the `assets` folder will not contain the ephemerides data from the Minor Planet Center. You need to first obtain the raw data from the MPC using the `_get_raw_data` script. Then run `_process_asteroids.ts` and `_process_comets.ts` in order to extract the relevant data and output it to a format that will be readable by this widget.
+
+### Development
+
+To develop this library, you need to have two use the script `_library_manager` to launch two developer processes:
+
+- `./_library_manager --dev`
+- `./_library_manager --dev-worker`
+
+### Build and Publish
+
+#### Build
+
+Run `_library_manager --build` to generate UMD, ESM and Commonjs modules in the `dist` dir. This command will also copy the UMD files into `demo-umd` which you can run locally with `_library_manager --demo-umd`.
 
 The files ending `*.umd.js` are UMD modules, and can be run "directly" in an html file as demonstrated in the dir `demo-umd`. The cjs and esm files can be imported into other ts/js files using `require` and `import` keywords respectively.
 

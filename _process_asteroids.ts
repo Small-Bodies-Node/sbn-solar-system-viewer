@@ -11,15 +11,7 @@ import {
 } from './src/threejs/models/TAsteroidBeltType';
 
 // Data Paths
-const pathToInputJson = path.join(__dirname, 'rawData', 'mpc-asteroids.json');
-/* const pathToOutputJson = path.join(
-  __dirname,
-  'src',
-  'threejs',
-  'data',
-  'json',
-  'asteroids'
-); */
+const pathToInputJson = path.join(__dirname, 'raw-data', 'mpc-asteroids.json');
 
 const pathToOutputJson = path.join(
   __dirname,

@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Script to download raw data from MPC that is input to the _process* scripts
+
+# Params
+RAW_DATA_DIR="raw-data"
+MPC_ASTER="$RAW_DATA_DIR/mpc-asteroids.json"
+MPC_COMET="$RAW_DATA_DIR/mpc-comets.json"
+
+# Create dir if not existing
+[[ ! -d raw-data ]] && mkdir raw-data
+
+# Download gzip files
+[[ ! -f "$MPC_COMET.gz" ]] && wget 'https://www.minorplanetcenter.net/Extended_Files/cometels.json.gz' \
+  -O "$MPC_COMET.gz"
+[[ ! -f "$MPC_ASTER.gz" ]] && wget 'https://minorplanetcenter.net/Extended_Files/mpcorb_extended.json.gz' \
+  -O "$MPC_ASTER.gz"
+
+# Unzip files
+[[ ! -f "$MPC_COMET" ]] && gunzip "$MPC_COMET.gz"
+[[ ! -f "$MPC_ASTER" ]] && gunzip "$MPC_ASTER.gz"
+
+# Remove .gz files
+# rm "$MPC_COMET.gz"
+# rm "$MPC_ASTER.gz"

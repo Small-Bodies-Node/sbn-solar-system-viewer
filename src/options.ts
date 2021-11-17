@@ -2,7 +2,7 @@
  * This module is the SSOT for global "static" settings for the app
  * that get set before the threejs scene begins. These govern e.g.
  * the default values of the "dynamic" settings that the user can set
- * and that will then persist within localStorage (at least, that is the eventual goal)
+ * and that will then persist within localStorage
  */
 
 export interface IOptionsBooleans {

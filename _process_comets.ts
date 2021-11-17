@@ -7,7 +7,6 @@ import readline from 'readline';
 
 //@ts-ignore
 import * as julian from 'julian';
-console.log(julian);
 
 import path from 'path';
 import {
@@ -16,7 +15,7 @@ import {
 } from './src/threejs/models/TCometBeltType';
 
 // Data Paths
-const pathToInputJson = path.join(__dirname, 'rawData', 'mpc-comets.json');
+const pathToInputJson = path.join(__dirname, 'raw-data', 'mpc-comets.json');
 const pathToOutputJson = path.join(__dirname, 'assets', 'mpc-data', 'comets');
 
 const HVals = [

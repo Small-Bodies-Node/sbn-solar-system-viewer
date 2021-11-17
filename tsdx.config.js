@@ -18,11 +18,13 @@ module.exports = {
        */
       const origExternal = config.external;
       config.external = id => {
+        // if (id.startsWith('three/examples/')) return true;
         if (id.startsWith('three/examples/')) return false;
-        if (id.startsWith('react-icons/')) return false;
+        // if (id.startsWith('react-icons/')) return false;
         // if (id === 'three' && process.env.BUNDLE_THREE) return false;
         // Do not include three
-        if (id === 'three') return false;
+        // if (id === 'three') return false;
+        if (id === 'three') return true;
         return origExternal(id);
       };
       config.output.globals['three'] = 'THREE';

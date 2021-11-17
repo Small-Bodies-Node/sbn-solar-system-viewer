@@ -4,14 +4,15 @@ node_modules
 dist
 .parcel-cache
 **/*.tgz
+**/*.gz
 package
 dist-gh-pages
+dist-gh
 
 .notes
-redundant
+.redundant
 
 # Data
-src/threejs/data/json/asteroids/*
-src/threejs/data/json/*
-rawData/*.json
-dist-gh/**
+raw-data/*.json
+assets/mpc-data/asteroids/*.json
+assets/mpc-data/comets/*.json
