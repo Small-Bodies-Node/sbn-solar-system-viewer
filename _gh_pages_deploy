@@ -3,7 +3,7 @@
 # Simple script to deploy demo-umd to github pages; uses npm package `gh-pages`
 
 ### Build library afresh
-./_library_manager --build-umd
+# ./_library_manager --build-umd
 
 ### Details to deploy client to github pages
 GITHUB_USER_NAME='small-bodies-node'
@@ -11,6 +11,7 @@ GITHUB_REPO_NAME='sbn-solar-system-viewer'
 
 ### Copy output to time-stamped edition of code to be deployed
 distDir="demo-umd-"$(date "+%F-%T")
+mkdir -p "dist-gh/$distDir"
 cp -R "demo-umd" "dist-gh/$distDir"
 
 cat >"dist-gh/index.html" <<EOM

@@ -71,7 +71,16 @@
     "typescript": "^3.9.9"
   },
   "dependencies": {
-    "kepler-utils": "^3.0.1",
-    "julian": "^0.2.0"
-  }
+    "julian": "^0.2.0",
+    "kepler-utils": "^3.0.1"
+  },
+  "description": "## Intro",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@d-w-d.github.com:Small-Bodies-Node/sbn-solar-system-viewer.git"
+  },
+  "keywords": []
 }

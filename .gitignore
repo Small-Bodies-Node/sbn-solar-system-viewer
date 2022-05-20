@@ -16,3 +16,5 @@ dist-gh
 raw-data/*.json
 assets/mpc-data/asteroids/*.json
 assets/mpc-data/comets/*.json
+
+GERBS-NOTES.txt
