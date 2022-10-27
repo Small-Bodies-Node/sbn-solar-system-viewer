@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <title>Demo of Built UMD Module</title>
+    <style>
+      body {
+        margin: 0px;
+      }
+      .title {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        color: white;
+        font-family: 'Courier New', Courier, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h3 class="title">
+      SbnSolarSystemViewer Without Threejs Bundled Example
+    </h3>
+    <div
+      id="umd-demo-container-id"
+      style="width: 100vw; height: 100vh; background-color: none"
+    ></div>
+
+    <!-- Requires separate Threejs from CDN call -->
+    <!-- <script src="sbnsolarsystemviewer.umd.development.js"></script> -->
+    <script src="sbnsolarsystemviewer.umd.development.js"></script>
+    <script>
+      SbnSolarSystemViewer.init('umd-demo-container-id');
+    </script>
+  </body>
+</html>
