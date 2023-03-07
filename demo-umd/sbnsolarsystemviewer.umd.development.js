@@ -12218,31 +12218,11 @@
       console.log(_);
     });
   }
-  /**
-   * Loads and runs stats.min.js to display FPS, etc.
-   */
 
-  function displayFpsStats() {
-    var script = document.createElement('script');
-
-    script.onload = function () {
-      // @ts-ignore
-      var stats = new Stats();
-      document.body.appendChild(stats.dom);
-      requestAnimationFrame(function loop() {
-        stats.update();
-        requestAnimationFrame(loop);
-      });
-    };
-
-    script.src = 'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
-    document.head.appendChild(script);
-  }
-
-  displayFpsStats();
   /**
    * Add 'destroy' feature to UMD
    */
+
 
   function destroy() {
     threejsScene.destroy();

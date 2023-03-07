@@ -47,7 +47,7 @@ function displayFpsStats() {
     'https://sbn-solar-system-viewer.s3.amazonaws.com/scripts/stats.min.js';
   document.head.appendChild(script);
 }
-if (process.env.NODE_ENV === 'development') displayFpsStats();
+// if (process.env.NODE_ENV === 'development') displayFpsStats();
 
 /**
  * Add 'destroy' feature to UMD
@@ -64,3 +64,9 @@ if (process.env.NODE_ENV === 'development') {
     init();
   };
 }
+
+const x: any = [];
+
+x.forEach((el: any) => {
+  el.forEach((el: any) => {});
+});
